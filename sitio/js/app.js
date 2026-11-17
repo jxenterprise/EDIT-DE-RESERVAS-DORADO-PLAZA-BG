@@ -668,6 +668,19 @@
       aviso('PDF descargado: ' + nombre, 3200);
       nubeAnotar('Descargó el PDF ' + nombre);
     });
+    /* «Eliminar» (v1.4, pedido de JX): quita el Excel / listado que está en pantalla —también del historial—
+       y deja la página lista para subir otro. Pide confirmación porque no se puede recuperar. */
+    $('#btn-eliminar').addEventListener('click', function () {
+      if (!actual) { return; }
+      var id = actual.id, t = Reglas.totales(actual.filas);
+      confirmar('¿Eliminar el listado del ' + fechaTexto(actual.fecha) + ' que está en pantalla (' + plural(t.reservas, 'reserva', 'reservas') + ')? Se borra también del historial' +
+        (nubeActiva() ? ' de todos los equipos' : '') + ' y no se puede recuperar.', 'Eliminar').then(function (si) {
+        if (!si) { return; }
+        return borrarListado(id, 'Listado eliminado. Ya puedes subir otro Excel.').then(function () {
+          if (!actual) { irA('#subir'); }
+        });
+      });
+    });
     $('#btn-compartir').addEventListener('click', function () {
       if (!actual || !maqueta) { return; }
       var nombre = Hoja.nombreArchivo(actual.fecha), blob = hacerPdf(), archivo = null;
@@ -703,6 +716,7 @@
     }
     $('#btn-borrar-historial').hidden = nubeActiva() && !esAdmin();
     var puedeBorrar = !nubeActiva() || esAdmin();
+    $('#btn-eliminar').hidden = !puedeBorrar;                // «Eliminar» de la barra: mismas reglas que «Borrar» (v1.4)
     $('#lista-historial').innerHTML = listados.map(function (x) {
       var t = Reglas.totales(x.filas), enPantalla = actual && actual.id === x.id;
       return '<li' + (enPantalla ? ' aria-current="true"' : '') + '><span class="historial__info">' +
@@ -712,6 +726,14 @@
         (enPantalla ? '' : '<button type="button" class="boton boton--secundario boton--chico" data-historial="abrir" data-id="' + esc(x.id) + '">Abrir</button>') +
         (puedeBorrar ? '<button type="button" class="enlace enlace--peligro" data-historial="borrar" data-id="' + esc(x.id) + '" aria-label="Borrar el listado del ' + esc(fechaCorta(x.fecha)) + '">Borrar</button>' : '') + '</span></li>';
     }).join('');
+  }
+  /** Borra un listado (del equipo y, con la nube, de todos los equipos). Lo usan el historial y «Eliminar». */
+  function borrarListado(id, avisoListo) {
+    return nubeBorrar(id).then(function () {
+      listados = listados.filter(function (l) { return l.id !== id; });
+      if (actual && actual.id === id) { actual = null; }
+      guardarListados(); pintarTodo(); aviso(avisoListo || 'Listado borrado.', 2600);
+    }, function () { aviso('No se pudo borrar: revisa la conexión e inténtalo otra vez.', 4200, true); });
   }
   function eventosHistorial() {
     $('#lista-historial').addEventListener('click', function (e) {
@@ -725,12 +747,7 @@
         return;
       }
       confirmar('¿Borrar el listado del ' + fechaCorta(x.fecha) + '?' + (nubeActiva() ? ' Se borra para todos los equipos.' : '') + ' No se puede recuperar.', 'Borrar').then(function (si) {
-        if (!si) { return; }
-        return nubeBorrar(id).then(function () {
-          listados = listados.filter(function (l) { return l.id !== id; });
-          if (actual && actual.id === id) { actual = null; }
-          guardarListados(); pintarTodo(); aviso('Listado borrado.', 2000);
-        }, function () { aviso('No se pudo borrar: revisa la conexión e inténtalo otra vez.', 4200, true); });
+        if (si) { return borrarListado(id); }
       });
     });
     $('#btn-borrar-historial').addEventListener('click', function () {

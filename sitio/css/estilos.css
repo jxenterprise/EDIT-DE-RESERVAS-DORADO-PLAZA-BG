@@ -180,7 +180,7 @@ strong { color: var(--texto-fuerte); }
   padding: calc(24px + env(safe-area-inset-top, 0px)) calc(16px + var(--der)) 6px calc(16px + var(--izq));
 }
 .encabezado__logo { width: clamp(210px, 64vw, 290px); height: auto; }
-/* Versión bajo el logo: pastilla discreta en dorado (se cambia en index.html en cada versión) */
+/* Versión bajo el logo: pastilla discreta en dorado, SOLO el número (v1.4; la fecha y la hora van en CLAUDE.md) */
 .encabezado__version {
   margin-top: 10px; padding: 3px 11px; border-radius: 999px;
   font-size: 12.5px; line-height: 1.5; letter-spacing: .02em; color: var(--texto-suave);
@@ -459,7 +459,7 @@ html[data-tema="oscuro"] .footer-dev-txt {             /* pie oscuro → platead
 /* ---------- 13. Barra de acciones (fija abajo, a mano del pulgar) ---------- */
 .acciones {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-  display: grid; grid-template-columns: auto auto auto; gap: 8px;   /* cada botón, del ancho de su texto; el sobrante se reparte */
+  display: grid; grid-auto-flow: column; grid-auto-columns: auto; gap: 8px;   /* una columna por botón visible, del ancho de su texto; el sobrante se reparte */
   padding: 12px calc(12px + var(--der)) calc(12px + var(--abajo)) calc(12px + var(--izq));
   background: var(--velo-barra);
   -webkit-backdrop-filter: blur(14px) saturate(1.1);
@@ -468,6 +468,10 @@ html[data-tema="oscuro"] .footer-dev-txt {             /* pie oscuro → platead
 }
 .acciones .boton { min-width: 0; padding: 0 8px; font-size: 14.5px; gap: 6px; }
 .acciones__largo { display: none; }
+/* «Eliminar» (v1.4): en rojo para que no se confunda con los demás; en celular, solo el ícono (44 px) */
+.boton--eliminar { color: var(--error); }
+.acciones .boton--eliminar { min-width: 50px; }
+.acciones__eliminar { display: none; }
 
 /* ---------- 14. Diálogos y aviso flotante ---------- */
 .dialogo {
@@ -602,6 +606,9 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 @media (min-width: 440px) {
   .acciones__largo { display: inline; }        /* «Descargar PDF» completo cuando cabe */
 }
+@media (min-width: 560px) {
+  .acciones__eliminar { display: inline; }     /* «Eliminar» con su palabra cuando cabe */
+}
 @media (min-width: 520px) {
   .tarjeta { padding: 20px; }
   .pasos { grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -612,7 +619,7 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 @media (min-width: 760px) {
   .acciones {                                    /* en pantallas grandes: barra flotante centrada */
     left: 50%; right: auto; bottom: calc(14px + var(--abajo)); transform: translateX(-50%);
-    width: min(600px, calc(100vw - 32px)); padding: 10px;
+    width: min(700px, calc(100vw - 32px)); padding: 10px;
     border: 1px solid var(--linea); border-radius: 20px; box-shadow: var(--sombra);
   }
   html.hay-hoja .aviso { bottom: calc(var(--alto-acciones) + 30px + var(--abajo)); }
@@ -634,7 +641,11 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
   .acciones { gap: 6px; padding-left: calc(8px + var(--izq)); padding-right: calc(8px + var(--der)); }
   .acciones .boton { font-size: 13.5px; padding: 0 6px; gap: 5px; }
   .acciones .boton svg { width: 18px; height: 18px; }
+  .acciones .boton--eliminar { min-width: 44px; }
   .resumen__total strong { font-size: 34px; }
+}
+@media (max-width: 300px) {                     /* plegable de 280 px: con 4 botones, sin íconos en los de texto para que no se corten */
+  .acciones .boton:not(.boton--eliminar) svg { display: none; }
 }
 
 /* Pantallas BAJITAS (celular acostado, iPhone SE): la barra de abajo se adelgaza
@@ -657,6 +668,7 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 /* ---------- 17. Accesibilidad y movimiento reducido ---------- */
 @media (hover: hover) {
   .boton--secundario:hover, .boton-mini:hover, .reserva:hover, .soltar__caja:hover { border-color: var(--oro); }
+  .boton--eliminar:hover { border-color: var(--error); background: var(--error-fondo); }
   .soltar__caja:hover { background: var(--oro-palido); }
   .boton--primario:hover { box-shadow: 0 1px 0 rgba(255, 255, 255, .6) inset, 0 8px 20px rgba(168, 123, 63, .32); }
 }

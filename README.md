@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.3** · 17 nov 2026, 3:46 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.4** · 17 nov 2026, 4:23 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -48,7 +48,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja.
 4. Mira el **Resumen** (total de habitaciones y de reservas) y los **avisos**. Si todo está bien, dice «Todo en orden».
 5. Repasa **«Revisa la lista»**: así va a salir la hoja. Si algo está mal, toca la reserva y corrígela ([punto 3](#3-revisar-y-corregir-antes-de-imprimir)).
-6. Abajo está la **hoja** tal cual sale por la impresora. Usa la barra de abajo: **Imprimir**, **Descargar PDF** o **Compartir**.
+6. Abajo está la **hoja** tal cual sale por la impresora. Usa la barra de abajo: **Imprimir**, **Descargar PDF**, **Compartir** o **Eliminar**.
 
 > **La fecha de la hoja es la de hoy** (hora de Colombia). Si el Excel trae llegadas de otro día (por ejemplo, en el turno de noche sacas la hoja de mañana), sale un aviso con el botón **«Usar DD/MM/AAAA»** para ponerle esa fecha con un toque. También la puedes cambiar a mano en **«Fecha que sale en la hoja»**.
 
@@ -104,6 +104,7 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 - **Imprimir**: abre la ventana de impresión con **solo la hoja** (sin botones ni nada de la página), tamaño **carta**. Si escoges «Guardar como PDF», el archivo ya se llama `Reservas_DP_DD-MM-AAAA`.
 - **Descargar PDF**: baja `Reservas_DP_DD-MM-AAAA.pdf` (por ejemplo, `Reservas_DP_17-11-2026.pdf`), idéntico a lo que ves en pantalla.
 - **Compartir** (en el celular): abre el menú de compartir del teléfono con el PDF, para mandarlo al grupo de WhatsApp. Si el navegador no lo permite (por ejemplo, en el computador), descarga el PDF para que lo adjuntes.
+- **Eliminar** (🗑, en rojo; desde v1.4): solo aparece cuando hay un Excel subido. Quita de la pantalla el listado que estás viendo **y también del historial**, después de preguntarte «¿Eliminar…?». Sirve si subiste el Excel equivocado. Con la nube activa solo lo ve el administrador (igual que «Borrar» del historial). En el celular se ve solo la basurita; en pantallas más anchas dice «Eliminar».
 - Si son muchas reservas, la hoja sigue en otra página («Pág. 1 de 2») con los títulos de la tabla repetidos. Los totales van al final.
 
 ## 6. Historial, modo noche y ajustes
@@ -139,7 +140,7 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 **Solo el administrador** (sección **Administración**, abajo del historial):
 - **Usuarios de recepción:** **+ Nuevo usuario** (nombre, usuario y una contraseña temporal que la web inventa; entrégasela en persona), **Contraseña nueva** (si alguien la olvidó), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
 - **Quién hizo qué:** quién entró, quién subió cada Excel, quién corrigió, agregó o quitó cada reserva, quién imprimió o descargó el PDF, y a qué hora (últimos 30 días).
-- **Borrar** listados del historial (para todos los equipos).
+- **Borrar** listados del historial y **Eliminar** el que está en pantalla (para todos los equipos).
 - **Ajustes de la hoja para todos:** casilla «Llegó» y «Ahorrar papel».
 
 > Si la página se abre con doble clic, en el computador de la casa o mientras Cloudflare no tiene la nube lista, funciona **sola en ese equipo**, como antes (sin pedir usuario).
@@ -268,16 +269,17 @@ Una sola rama: **`main`**. Antes de empezar a editar, `git pull` (para traer lo 
 
 ## 12. Versiones
 
-La versión y la hora de la última actualización se ven en la página, debajo del logo. Fechas y horas de Colombia.
+En la página, debajo del logo, se ve **solo el número de la versión** (desde v1.4, pedido de JX). La fecha y la hora de cada versión se anotan aquí y en `CLAUDE.md`. Horas de Colombia.
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.4** | 17 nov 2026, 4:23 p. m. | Botón **Eliminar** (🗑 rojo) en la barra de abajo, junto a Imprimir / PDF / Compartir: solo aparece con un Excel subido y quita ese listado (también del historial) después de confirmar. Debajo del logo queda **solo la versión** (sin fecha ni hora). La barra cabe con 4 botones desde el plegable de 280 px hasta PC. |
 | **v1.3** | 17 nov 2026, 3:46 p. m. | **Nube con usuarios** (pedido de JX): cada recepcionista entra con su usuario y contraseña; historial compartido entre todos los equipos (Cloudflare D1) que se borra solo a los 30 días; funciona sin señal y sube al volver; si dos equipos corrigen a la vez se juntan los cambios. **Administrador:** usuarios, «Quién hizo qué», borrar del historial y ajustes de la hoja para todos. **Pantalla de carga** igual a la del Manual de turnos (2,5 s parejos). Contraste del número de versión. |
 | **v1.2** | 17 nov 2026, 2:57 p. m. | Ahora se llama **Editador de reservas DP**. Versión y hora de actualización debajo del logo. README nuevo. Publicación en Cloudflare corregida: solo se publica `sitio/` (la dirección principal abre el editador y `CLAUDE.md` ya no sale en la web). Probado también con el motor de Safari de iPhone. |
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.3, v1.4…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.5, v1.6…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
