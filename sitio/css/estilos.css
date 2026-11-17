@@ -182,8 +182,8 @@ strong { color: var(--texto-fuerte); }
 .encabezado__logo { width: clamp(210px, 64vw, 290px); height: auto; }
 /* Versión bajo el logo: pastilla discreta en dorado, SOLO el número (v1.4; la fecha y la hora van en CLAUDE.md) */
 .encabezado__version {
-  margin-top: 10px; padding: 3px 11px; border-radius: 999px;
-  font-size: 12.5px; line-height: 1.5; letter-spacing: .02em; color: var(--texto-suave);
+  margin-top: 10px; padding: 2px 9px; border-radius: 999px;
+  font-size: 11.5px;   /* v1.5: un poco más pequeña (JX: «se ve muy grande, pequeñala, pero no tanto») */ line-height: 1.5; letter-spacing: .02em; color: var(--texto-suave);
   background: var(--oro-palido); border: 1px solid var(--linea-2);
   font-variant-numeric: tabular-nums;
   max-width: 100%; text-wrap: balance;   /* plegable de 280 px: baja a 2 renglones parejos sin salirse */
@@ -290,6 +290,9 @@ input:focus, select:focus { border-color: var(--oro); box-shadow: 0 0 0 4px rgba
   text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--oro); cursor: pointer;
 }
 .enlace--peligro { color: var(--error); text-decoration-color: var(--error); }
+/* botón rojo «Sí, eliminar» (v1.5, igual al del Manual de turnos): texto en el color del fondo
+   (claro #B03A2E con marfil y noche #F08A76 con negro pasan 4.5:1) */
+.boton--peligro, .boton--peligro:visited { color: var(--fondo); background: var(--error); border-color: var(--error); }
 .boton:focus-visible, .boton-mini:focus-visible, .enlace:focus-visible, summary:focus-visible, .reserva:focus-visible,
 #input-excel:focus-visible + .soltar__caja {
   outline: 3px solid rgba(201, 156, 87, .7); outline-offset: 2px;
@@ -503,6 +506,86 @@ html.hay-hoja .aviso { bottom: calc(var(--alto-acciones) + var(--abajo) + 14px);
 .aviso--fuera { opacity: 0; transform: translate(-50%, 8px); }
 .aviso--alerta { background: #8C2F21; }
 html[data-tema="oscuro"] .aviso { background: rgba(245, 233, 210, .96); color: #2E2414; }
+/* «Deshacer» (v1.5): el mismo aviso con un botón-píldora del color del texto */
+.aviso--deshacer { display: flex; align-items: center; gap: 12px; text-align: left; padding: 8px 8px 8px 16px; }
+.aviso__boton {
+  flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-weight: 800; color: inherit; background: transparent; border: 1.5px solid currentColor;
+}
+.aviso__boton:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+
+/* Guía «Tu hoja está aquí abajo» (v1.5): pastilla dorada a la derecha, encima de la barra de acciones,
+   con la flecha que baja suave. Discreta: no tapa la barra, se va sola a los 8 s. */
+.guia-hoja {
+  position: fixed; z-index: 55; right: calc(16px + var(--der));
+  bottom: calc(var(--alto-acciones) + var(--abajo) + 14px);
+  display: inline-flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px - var(--izq) - var(--der));
+  min-height: 44px; padding: 8px 12px 8px 16px; border-radius: 999px; cursor: pointer;
+  font: inherit; font-size: 14.5px; font-weight: 750; line-height: 1.25; text-align: left;
+  color: #3E2E14; background: var(--boton-oro); border: 1px solid var(--boton-oro-borde); box-shadow: var(--sombra-boton), 0 8px 24px rgba(0, 0, 0, .14);
+  animation: guia-entra .45s cubic-bezier(.2, .8, .3, 1) both;
+  transition: opacity .3s, transform .3s;
+}
+.guia-hoja svg { width: 22px; height: 22px; flex: none; animation: guia-flecha 1.1s ease-in-out infinite; }
+.guia-hoja--fuera { opacity: 0; transform: translateY(10px); }
+.guia-hoja:focus-visible { outline: 3px solid var(--oro); outline-offset: 3px; }
+@keyframes guia-entra { from { opacity: 0; transform: translateY(14px) scale(.96); } }
+@keyframes guia-flecha { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(4px); } }
+@media (min-width: 760px) {
+  .guia-hoja { bottom: calc(var(--alto-acciones) + 30px + var(--abajo)); right: calc(24px + var(--der)); }
+}
+@media print { .guia-hoja { display: none !important; } }
+
+/* ---------- 14c. Ventanitas de pregunta y de resultado (v1.5, pedido de JX) ----------
+   Copiadas del Manual de turnos (v1.9 y v1.13): el mismo diálogo de la web (radio 20 px), más angosto
+   y centrado; el ícono entra girando 360°, el círculo se dibuja y luego lo de adentro:
+   ✓ verde (ok) · ✗ roja (error) · basurita roja (eliminar) · puerta dorada (salir).
+   Los fondos llevan respaldo rgba antes de color-mix (computadores viejos de recepción).
+   Con «movimiento reducido» se ve ya dibujado (sección 17). */
+.resultado { width: min(360px, calc(100vw - 32px)); text-align: center; }
+.resultado__caja { padding: 26px 22px 18px; }
+.resultado__icono { display: block; width: 92px; height: 92px; margin: 0 auto 14px; overflow: visible; }
+.resultado__fondo { fill: rgba(47, 158, 91, .12); fill: color-mix(in srgb, var(--s-verde) 12%, transparent); }
+.resultado__circulo {
+  stroke: var(--s-verde); stroke-width: 3; stroke-linecap: round;
+  stroke-dasharray: 151; stroke-dashoffset: 151; transform: rotate(-90deg); transform-origin: 50% 50%;
+}
+.resultado__ok, .resultado__x {
+  stroke: var(--s-verde); stroke-width: 3.6; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 48; stroke-dashoffset: 48;
+}
+.pregunta__basura, .pregunta__puerta {
+  fill: none; stroke: var(--s-rojo); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 90; stroke-dashoffset: 90;
+}
+.resultado__x, .pregunta__basura, .pregunta__puerta { display: none; }
+/* rojo: error y eliminar */
+.resultado[data-tipo="error"] .resultado__fondo, .resultado[data-tipo="eliminar"] .resultado__fondo { fill: rgba(200, 65, 47, .12); fill: color-mix(in srgb, var(--s-rojo) 12%, transparent); }
+.resultado[data-tipo="error"] .resultado__circulo, .resultado[data-tipo="eliminar"] .resultado__circulo, .resultado[data-tipo="error"] .resultado__x { stroke: var(--s-rojo); }
+.resultado[data-tipo="error"] .resultado__ok, .resultado[data-tipo="salir"] .resultado__ok { display: none; }
+.resultado[data-tipo="error"] .resultado__x, .resultado[data-tipo="eliminar"] .pregunta__basura, .resultado[data-tipo="salir"] .pregunta__puerta { display: inline; }
+/* dorado: salir */
+.resultado[data-tipo="salir"] .resultado__fondo { fill: rgba(217, 178, 102, .16); fill: color-mix(in srgb, var(--oro) 16%, transparent); }
+.resultado[data-tipo="salir"] .resultado__circulo, .resultado[data-tipo="salir"] .pregunta__puerta { stroke: var(--bronce); }
+/* la animación (se repite cada vez que se abre: app.js fuerza el reinicio) */
+.resultado[open] .resultado__icono { animation: resultado-giro .85s cubic-bezier(.2, .8, .3, 1) both; }
+.resultado[open] .resultado__circulo { animation: resultado-trazo .75s .05s cubic-bezier(.65, 0, .45, 1) forwards; }
+.resultado[open] .resultado__ok, .resultado[open] .resultado__x { animation: resultado-trazo .45s .65s cubic-bezier(.65, 0, .45, 1) forwards; }
+.resultado[open] .pregunta__basura, .resultado[open] .pregunta__puerta { animation: resultado-trazo .6s .6s cubic-bezier(.65, 0, .45, 1) forwards; }
+@keyframes resultado-giro { from { opacity: 0; transform: rotate(-360deg) scale(.55); } to { opacity: 1; transform: none; } }
+@keyframes resultado-trazo { to { stroke-dashoffset: 0; } }
+.resultado__titulo { margin-bottom: 8px; font-size: 20px; text-wrap: balance; }
+.resultado__texto { margin-bottom: 18px; font-size: 15.5px; color: var(--texto); text-wrap: pretty; overflow-wrap: anywhere; }
+.resultado .dialogo__botones .boton { flex: 1 1 100%; }
+.resultado__clave { font-family: ui-monospace, Consolas, monospace; font-weight: 800; color: var(--texto-fuerte); letter-spacing: .04em; }
+/* pantallas bajas (celular acostado): más compactas, todo a la vista */
+@media (max-height: 440px) {
+  .resultado__caja { padding: 14px 18px 12px; }
+  .resultado__icono { width: 52px; height: 52px; margin-bottom: 6px; }
+  .resultado__titulo { margin-bottom: 4px; font-size: 18px; }
+  .resultado__texto { margin-bottom: 10px; font-size: 14.5px; }
+  .resultado .dialogo__botones .boton { min-height: 44px; }
+}
 html[data-tema="oscuro"] .aviso--alerta { background: #F2BE45; color: #2E2414; }
 
 /* ---------- 14b. Nube: entrar, cuenta y administración (v1.3) ----------
@@ -676,7 +759,9 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
   html { scroll-behavior: smooth; }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; }
+  /* animation-delay 0 (v1.5): el ✓, la ✗, la basurita y la puerta de las ventanitas se ven ya dibujados al instante */
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-delay: 0s !important; scroll-behavior: auto !important; }
+  .guia-hoja svg { animation: none; }                    /* la flecha queda quieta (no parpadea) */
 }
 
 /* ---------- 18. IMPRESIÓN ----------

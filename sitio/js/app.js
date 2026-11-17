@@ -256,7 +256,9 @@
       ocupado = false;
       irA('#resumen');
       var t = Reglas.totales(actual.filas);
-      aviso('Listo: ' + plural(t.reservas, 'reserva', 'reservas') + ' y ' + plural(t.habitaciones, 'habitación', 'habitaciones') + (nov ? '. Mira las novedades.' : '.'), 3600);
+      resultado('ok', '¡Listado listo!', plural(t.reservas, 'reserva', 'reservas') + ' y ' + plural(t.habitaciones, 'habitación', 'habitaciones') +
+        (nov ? '. Es una descarga más nueva del mismo día: mira las novedades.' : '. Revisa la lista y saca la hoja.'))   // v1.5: ✓ verde (pedido de JX)
+        .then(mostrarGuia);                                  // y al cerrarlo, la guía «tu hoja está aquí abajo» (una vez)
     }).catch(function (e) {
       setTimeout(function () {                               // un instante mínimo para que no parpadee
         L.ocultar({ motivo: 'excel', salida: 'cancelada' });
@@ -272,12 +274,13 @@
     if (x.checkin.length && checkin.length) { return x.checkin.some(function (d) { return checkin.indexOf(d) >= 0; }); }
     return diaDe(x.creado) === hoy;
   }
+  function idListado() { return 'l' + ahora().toString(36) + Math.floor(Math.random() * 1296).toString(36); }
   /** Crea el listado a partir del Excel ya leído. Si es una descarga más nueva del mismo día, compara y conserva lo hecho a mano. */
   function cargarListado(armado, nombre) {
     var hoy = hoyISO(), momento = ahora();
     var previo = listados.filter(function (x) { return esElMismo(x, armado.checkin, hoy); })[0] || null;
     var nuevo = {
-      id: 'l' + momento.toString(36) + Math.floor(Math.random() * 1296).toString(36), fecha: hoy, fechaManual: false, creado: momento, actualizado: momento, archivo: nombre,
+      id: idListado(), fecha: hoy, fechaManual: false, creado: momento, actualizado: momento, archivo: nombre,
       filasExcel: armado.filasExcel, sinCodigo: armado.sinCodigo, checkin: armado.checkin, filas: armado.filas, seq: 0, novedades: null,
       autor: nube.usuario ? nube.usuario.nombre : '', borradas: [], tFecha: 0
     };
@@ -476,7 +479,7 @@
    * 7) CORREGIR, AGREGAR Y QUITAR RESERVAS (diálogo #dlg-reserva)
    *    Lo hecho a mano se marca en pantalla, nunca en la hoja.
    * ================================================================ */
-  var editando = null;                                       // id de la fila, o null si es una reserva nueva
+  var editando = null, tFechaOk = 0;                                       // id de la fila, o null si es una reserva nueva
   function chipsDe(caja, titulo, valores, campo) {
     caja.hidden = !valores.length;
     caja.innerHTML = valores.length ? '<span>' + titulo + '</span>' + valores.map(function (v) {
@@ -540,19 +543,20 @@
     if (hab < 1) { errorEditor('Escribe cuántas habitaciones tiene (un número del 1 al 999).', $('#r-hab')); return; }
     var sel = $('#r-pre'), pre = sel.value, opcion = sel.options[sel.selectedIndex];
     var datos = { cod: cod, hab: hab, ag: Reglas.limpiar($('#r-ag').value), ti: Reglas.limpiar($('#r-ti').value), pre: pre, preTxt: pre === 'otro' && opcion ? opcion.getAttribute('data-texto') || '' : '' };
-    var que;
+    var que, ok;
     if (f) {
       Reglas.CAMPOS.forEach(function (c) { f[c] = datos[c]; });
       marcar(f);
       que = 'Corrigió la reserva ' + cod;
-      aviso('Reserva ' + cod + ' guardada.', 2200);
+      ok = ['¡Reserva guardada!', cod + (datos.ti ? ' · ' + datos.ti : '') + '. Así sale en la hoja.'];
     } else {
       actual.seq = (actual.seq || 0) + 1;
       actual.filas.push(marcar(Reglas.filaManual(datos, actual.seq)));
       que = 'Agregó a mano la reserva ' + cod;
-      aviso('Reserva ' + cod + ' agregada a la hoja.', 2400);
+      ok = ['¡Reserva agregada!', cod + ' (' + plural(hab, 'habitación', 'habitaciones') + ') ya está en la hoja.'];
     }
     tocar(que); cerrarEditor(); pintarListado(); pintarHistorial();
+    resultado('ok', ok[0], ok[1]);                             // v1.5: ✓ verde al guardar (pedido de JX)
   }
 
   function eventosEditar() {
@@ -576,24 +580,40 @@
       if (!f || !f.base) { return; }
       Reglas.CAMPOS.forEach(function (c) { f[c] = f.base[c]; });
       marcar(f);
-      tocar('Devolvió la reserva ' + f.cod + ' a lo que dice el Excel'); cerrarEditor(); pintarListado(); pintarHistorial(); aviso('Volvió a lo que dice el Excel.', 2200);
+      tocar('Devolvió la reserva ' + f.cod + ' a lo que dice el Excel'); cerrarEditor(); pintarListado(); pintarHistorial();
+      resultado('ok', '¡Reserva restaurada!', f.cod + ' volvió a lo que dice el Excel.');
     });
     $('#r-quitar').addEventListener('click', function () {
       var f = editando ? filaPorId(editando) : null;
       if (!f) { return; }
       cerrarEditor();
+      var lst = actual, quien = f.cod + (f.ti ? ' · ' + f.ti : '');
       if (f.origen === 'manual') {
-        confirmar('¿Borrar la reserva ' + f.cod + '? La agregaste a mano y no se puede recuperar.', 'Borrar').then(function (si) {
-          if (!si) { return; }
-          actual.filas = actual.filas.filter(function (x) { return x !== f; });
-          actual.borradas = (actual.borradas || []).concat(f.id);   // así otro equipo no la vuelve a traer al mezclar
-          tocar('Borró la reserva ' + f.cod + ' (agregada a mano)'); pintarListado(); pintarHistorial(); aviso('Reserva borrada.', 2000);
+        preguntar({ titulo: '¿Eliminar esta reserva?', texto: quien + '. La agregaste a mano: sale de la hoja y de la lista.', si: 'Sí, eliminar' }).then(function (si) {
+          if (!si || actual !== lst) { return; }
+          lst.filas = lst.filas.filter(function (x) { return x !== f; });
+          lst.borradas = (lst.borradas || []).concat(f.id);         // así otro equipo no la vuelve a traer al mezclar
+          tocar('Borró la reserva ' + f.cod + ' (agregada a mano)'); pintarListado(); pintarHistorial();
+          conDeshacer('Reserva ' + f.cod + ' eliminada.', function () {
+            // vuelve como una línea nueva (con otro id): la vieja ya quedó en «borradas» y otro equipo podría tenerla así
+            lst.seq = (lst.seq || 0) + 1;
+            lst.filas.push(marcar(Reglas.filaManual(f, lst.seq)));
+            cambioEn(lst, 'Deshizo: volvió la reserva ' + f.cod);
+            resultado('ok', '¡Listo, se deshizo!', 'La reserva ' + f.cod + ' volvió a la hoja.');
+          });
         });
         return;
       }
-      f.quitada = true; marcar(f);
-      tocar('Quitó de la hoja la reserva ' + f.cod); pintarListado(); pintarHistorial();
-      aviso('Quitada de la hoja. Puedes devolverla abajo, en «Quitadas de la hoja».', 3600);
+      preguntar({ titulo: '¿Quitar esta reserva de la hoja?', texto: quien + '. Queda abajo, en «Quitadas de la hoja», por si la quieres devolver.', si: 'Sí, quitar' }).then(function (si) {
+        if (!si || actual !== lst) { return; }
+        f.quitada = true; marcar(f);
+        tocar('Quitó de la hoja la reserva ' + f.cod); pintarListado(); pintarHistorial();
+        conDeshacer('Reserva ' + f.cod + ' quitada de la hoja.', function () {
+          f.quitada = false; marcar(f);
+          cambioEn(lst, 'Deshizo: devolvió a la hoja la reserva ' + f.cod);
+          resultado('ok', '¡Listo, se deshizo!', 'La reserva ' + f.cod + ' volvió a la hoja.');
+        });
+      });
     });
     /* acciones de los avisos, las novedades y las quitadas */
     document.addEventListener('click', function (e) {
@@ -602,39 +622,47 @@
       var acc = b.getAttribute('data-accion');
       if (acc === 'devolver') {
         var f = filaPorId(b.getAttribute('data-id'));
-        if (f) { f.quitada = false; marcar(f); tocar('Devolvió a la hoja la reserva ' + f.cod); pintarListado(); pintarHistorial(); aviso('Reserva ' + f.cod + ' devuelta a la hoja.', 2200); }
+        if (f) { f.quitada = false; marcar(f); tocar('Devolvió a la hoja la reserva ' + f.cod); pintarListado(); pintarHistorial(); resultado('ok', '¡Reserva devuelta!', f.cod + ' volvió a la hoja.'); }
       } else if (acc === 'aplicar-sugerencias') {
         var n = 0;
         Reglas.avisos(actual.filas).conSugerencia.forEach(function (x) {
           var ag = Reglas.aplicarSugerencias(x.ag), ti = Reglas.aplicarSugerencias(x.ti);
           if (ag !== x.ag || ti !== x.ti) { x.ag = ag; x.ti = ti; marcar(x); n += 1; }
         });
-        tocar('Corrigió letras dañadas en ' + plural(n, 'reserva', 'reservas')); pintarListado(); pintarHistorial(); aviso(plural(n, 'reserva corregida', 'reservas corregidas') + '. Revísalas en la lista.', 2800);
+        tocar('Corrigió letras dañadas en ' + plural(n, 'reserva', 'reservas')); pintarListado(); pintarHistorial();
+        resultado('ok', '¡Letras corregidas!', plural(n, 'reserva corregida', 'reservas corregidas') + '. Revísalas en la lista.');
       } else if (acc === 'fecha-checkin') {
         if (actual.checkin.length !== 1) { return; }
         actual.fecha = actual.checkin[0]; actual.fechaManual = actual.fecha !== hoyISO(); actual.tFecha = ahora();
         tocar('Puso la fecha de la hoja en ' + fechaTexto(actual.fecha)); pintarResumen(); pintarAvisos(); pintarHoja(); pintarHistorial();
-        aviso('La hoja sale con fecha ' + fechaTexto(actual.fecha) + '.', 2400);
+        resultado('ok', '¡Fecha cambiada!', 'La hoja sale con fecha ' + fechaTexto(actual.fecha) + '.');
       } else if (acc === 'volver-a-agregar') {
         var i = +b.getAttribute('data-i'), y = actual.novedades && actual.novedades.yaNo[i];
         if (!y) { return; }
         actual.seq = (actual.seq || 0) + 1;
         actual.filas.push(marcar(Reglas.filaManual(y, actual.seq)));
         actual.novedades.yaNo.splice(i, 1);
-        tocar('Agregó a mano la reserva ' + y.cod + ' (ya no venía en el Excel)'); pintarListado(); pintarHistorial(); aviso('Reserva ' + y.cod + ' agregada a mano.', 2400);
+        tocar('Agregó a mano la reserva ' + y.cod + ' (ya no venía en el Excel)'); pintarListado(); pintarHistorial();
+        resultado('ok', '¡Reserva agregada!', y.cod + ' está otra vez en la hoja (agregada a mano).');
       }
     });
     /* fecha de la hoja */
     $('#fecha-hoja').addEventListener('change', function () {
       if (!actual) { return; }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(this.value)) { this.value = actual.fecha; return; }
+      if (this.value === actual.fecha) { return; }          // Safari repite «change» al perder el foco (al abrirse el ✓): si no cambió, nada
       actual.fecha = this.value; actual.fechaManual = this.value !== hoyISO(); actual.tFecha = ahora();
       tocar('Puso la fecha de la hoja en ' + fechaTexto(actual.fecha)); pintarResumen(); pintarAvisos(); pintarHoja(); pintarHistorial();
+      // v1.5: ✓ verde 1,2 s después del último cambio (al escribir la fecha con el teclado, «change» sale con cada número)
+      clearTimeout(tFechaOk);
+      tFechaOk = setTimeout(function () { if (actual) { resultado('ok', '¡Fecha cambiada!', 'La hoja sale con fecha ' + fechaTexto(actual.fecha) + '.'); } }, 1200);
     });
     $('#btn-fecha-hoy').addEventListener('click', function () {
       if (!actual) { return; }
+      clearTimeout(tFechaOk);
       actual.fecha = hoyISO(); actual.fechaManual = false; actual.tFecha = ahora();
       tocar('Puso la fecha de la hoja en hoy (' + fechaTexto(actual.fecha) + ')'); pintarResumen(); pintarAvisos(); pintarHoja(); pintarHistorial();
+      resultado('ok', '¡Fecha de hoy!', 'La hoja sale con fecha ' + fechaTexto(actual.fecha) + '.');
     });
   }
 
@@ -665,7 +693,7 @@
       if (!actual || !maqueta) { return; }
       var nombre = Hoja.nombreArchivo(actual.fecha);
       descargar(hacerPdf(), nombre);
-      aviso('PDF descargado: ' + nombre, 3200);
+      resultado('ok', '¡PDF descargado!', nombre + ' quedó en tus descargas.');
       nubeAnotar('Descargó el PDF ' + nombre);
     });
     /* «Eliminar» (v1.4, pedido de JX): quita el Excel / listado que está en pantalla —también del historial—
@@ -673,10 +701,14 @@
     $('#btn-eliminar').addEventListener('click', function () {
       if (!actual) { return; }
       var id = actual.id, t = Reglas.totales(actual.filas);
-      confirmar('¿Eliminar el listado del ' + fechaTexto(actual.fecha) + ' que está en pantalla (' + plural(t.reservas, 'reserva', 'reservas') + ')? Se borra también del historial' +
-        (nubeActiva() ? ' de todos los equipos' : '') + ' y no se puede recuperar.', 'Eliminar').then(function (si) {
+      preguntar({
+        titulo: '¿Eliminar este listado?',
+        texto: 'El del ' + fechaTexto(actual.fecha) + ' que está en pantalla (' + plural(t.reservas, 'reserva', 'reservas') + ', ' + plural(t.habitaciones, 'habitación', 'habitaciones') +
+          '). Se quita también del historial' + (nubeActiva() ? ' de todos los equipos' : '') + '.',
+        si: 'Sí, eliminar'
+      }).then(function (si) {
         if (!si) { return; }
-        return borrarListado(id, 'Listado eliminado. Ya puedes subir otro Excel.').then(function () {
+        return borrarListados([id], false, 'Listado eliminado.').then(function () {
           if (!actual) { irA('#subir'); }
         });
       });
@@ -689,14 +721,15 @@
       if (archivo && navigator.canShare && navigator.share && navigator.canShare({ files: [archivo] })) {
         // solo el archivo: en iPhone, si va con texto, WhatsApp a veces manda el texto y se pierde el PDF (WebKit, bug 251500)
         navigator.share({ files: [archivo] })
+          .then(function () { resultado('ok', '¡Hoja compartida!', nombre + ' se envió.'); })
           .catch(function (e) {
             if (e && e.name === 'AbortError') { return; }       // la persona cerró el menú de compartir
             descargar(blob, nombre);
-            aviso('No se pudo abrir «Compartir»: se descargó el PDF para que lo adjuntes.', 4600);
+            resultado('ok', '¡PDF descargado!', 'No se pudo abrir «Compartir»: ' + nombre + ' quedó en tus descargas para que lo adjuntes.');
           });
       } else {
         descargar(blob, nombre);
-        aviso('Este navegador no comparte archivos directamente: se descargó el PDF para que lo adjuntes en WhatsApp.', 5200);
+        resultado('ok', '¡PDF descargado!', 'Este navegador no comparte archivos directamente: ' + nombre + ' quedó en tus descargas para que lo adjuntes en WhatsApp.');
       }
     });
   }
@@ -727,13 +760,31 @@
         (puedeBorrar ? '<button type="button" class="enlace enlace--peligro" data-historial="borrar" data-id="' + esc(x.id) + '" aria-label="Borrar el listado del ' + esc(fechaCorta(x.fecha)) + '">Borrar</button>' : '') + '</span></li>';
     }).join('');
   }
-  /** Borra un listado (del equipo y, con la nube, de todos los equipos). Lo usan el historial y «Eliminar». */
-  function borrarListado(id, avisoListo) {
-    return nubeBorrar(id).then(function () {
-      listados = listados.filter(function (l) { return l.id !== id; });
-      if (actual && actual.id === id) { actual = null; }
-      guardarListados(); pintarTodo(); aviso(avisoListo || 'Listado borrado.', 2600);
-    }, function () { aviso('No se pudo borrar: revisa la conexión e inténtalo otra vez.', 4200, true); });
+  /** Borra listados (del equipo y, con la nube, de todos los equipos) y ofrece «Deshacer» 10 s.
+   *  todo = «Borrar todo» (en la nube borra todos). Lo usan el historial y «Eliminar» de la barra. */
+  function borrarListados(ids, todo, textoListo) {
+    var quitados = listados.filter(function (l) { return todo || ids.indexOf(l.id) >= 0; }), actualAntes = actual;
+    return nubeBorrar(todo ? null : ids[0]).then(function () {
+      listados = listados.filter(function (l) { return quitados.indexOf(l) < 0; });
+      if (actual && quitados.indexOf(actual) >= 0) { actual = null; }
+      guardarListados(); pintarTodo();
+      conDeshacer(textoListo, function () { devolverListados(quitados, actualAntes); });
+    }, function () { resultado('error', 'No se pudo eliminar', 'Revisa la conexión e inténtalo otra vez.'); });
+  }
+  /** «Deshacer» de borrarListados. Con la nube vuelven con otro id (el viejo ya se borró allá) y se suben otra vez. */
+  function devolverListados(quitados, actualAntes) {
+    quitados.forEach(function (x) {
+      if (indiceDe(x.id) >= 0) { return; }
+      var y = x;
+      if (nubeActiva()) { y = listadoSano(JSON.parse(JSON.stringify(x))) || x; y.id = idListado(); y.actualizado = ahora(); }
+      listados.push(y);
+      if (actualAntes === x) { actual = y; }
+      if (y !== x) { nubeCambio(y, 'Deshizo: devolvió el listado del ' + fechaTexto(y.fecha)); }
+    });
+    listados.sort(function (a, b) { return b.creado - a.creado; });
+    if (listados.length > maxHistorial()) { listados = listados.slice(0, maxHistorial()); }
+    guardarListados(); pintarTodo();
+    resultado('ok', '¡Listo, se deshizo!', quitados.length === 1 ? 'El listado volvió.' : 'Los ' + quitados.length + ' listados volvieron.');
   }
   function eventosHistorial() {
     $('#lista-historial').addEventListener('click', function (e) {
@@ -743,20 +794,25 @@
       if (!x) { return; }
       if (b.getAttribute('data-historial') === 'abrir') {
         actual = x; guardarListados(); mostrarError(''); pintarTodo(); irA('#resumen');
-        aviso('Listado del ' + fechaCorta(x.fecha) + ' en pantalla.', 2400);
+        resultado('ok', '¡Listado abierto!', 'El del ' + fechaCorta(x.fecha) + ' ya está en pantalla.');
         return;
       }
-      confirmar('¿Borrar el listado del ' + fechaCorta(x.fecha) + '?' + (nubeActiva() ? ' Se borra para todos los equipos.' : '') + ' No se puede recuperar.', 'Borrar').then(function (si) {
-        if (si) { return borrarListado(id); }
+      var t = Reglas.totales(x.filas);
+      preguntar({
+        titulo: '¿Eliminar este listado del historial?',
+        texto: 'El del ' + fechaCorta(x.fecha) + ' (' + plural(t.reservas, 'reserva', 'reservas') + ')' + (nubeActiva() ? '. Se borra para todos los equipos.' : '.'),
+        si: 'Sí, eliminar'
+      }).then(function (si) {
+        if (si) { return borrarListados([id], false, 'Listado eliminado del historial.'); }
       });
     });
     $('#btn-borrar-historial').addEventListener('click', function () {
-      confirmar('¿Borrar los ' + listados.length + ' listados ' + (nubeActiva() ? 'del historial de TODOS los equipos' : 'guardados en este equipo') + '? No se pueden recuperar.', 'Borrar todo').then(function (si) {
-        if (!si) { return; }
-        return nubeBorrar(null).then(function () {
-          listados = []; actual = null;
-          guardarListados(); pintarTodo(); aviso('Historial borrado.', 2200);
-        }, function () { aviso('No se pudo borrar: revisa la conexión e inténtalo otra vez.', 4200, true); });
+      preguntar({
+        titulo: '¿Eliminar todo el historial?',
+        texto: (listados.length === 1 ? 'El listado guardado' : 'Los ' + listados.length + ' listados guardados') + (nubeActiva() ? ' en el historial de TODOS los equipos.' : ' en este equipo.'),
+        si: 'Sí, eliminar todo'
+      }).then(function (si) {
+        if (si) { return borrarListados([], true, 'Historial eliminado.'); }
       });
     });
   }
@@ -829,9 +885,162 @@
       setTimeout(function () { $('#conf-no').focus(); }, 30);
     });
   }
+  /* ---------- ventanita de PREGUNTA (v1.5, igual a la de eliminar del Manual de turnos) ----------
+     preguntar({ tipo: 'eliminar' | 'salir', titulo, texto, si, no }) → promesa con true / false.
+     «Sí» no cuenta en el primer medio segundo (un doble toque o un toque «fantasma» del celular no
+     borra sin querer) y el foco empieza en «Cancelar» (Enter no borra). Esc = Cancelar.
+     NO se cierra sola: espera a que la persona responda (JX: eliminar y errores «hasta que el usuario los quite»). */
+  var PREGUNTA_ESPERA_MS = 500, VENTANITA_SOLA_MS = 8000, finPregunta = null;   // 8 s: solo las de éxito (✓ y «Sesión cerrada»)
+  /** Cuenta regresiva en el texto de un botón; al llegar a 0 llama a alFin. Devuelve con qué pararla. */
+  function cuentaAtras(boton, texto, alFin) {
+    var fin = Date.now() + VENTANITA_SOLA_MS;
+    function pintar() { boton.textContent = texto + ' (' + Math.max(1, Math.ceil((fin - Date.now()) / 1000)) + ')'; }
+    pintar();
+    var tSeg = setInterval(pintar, 250), tFin = setTimeout(alFin, VENTANITA_SOLA_MS);
+    return function () { clearInterval(tSeg); clearTimeout(tFin); boton.textContent = texto; };
+  }
+  function preguntar(op) {
+    op = op || {};
+    if (finPregunta) { finPregunta(false); }
+    return new Promise(function (ok) {
+      var dlg = $('#dlg-pregunta'), si = $('#preg-si'), no = $('#preg-no'), desde = Date.now(), tipo = op.tipo === 'salir' ? 'salir' : 'eliminar';
+      dlg.setAttribute('data-tipo', tipo);
+      $('#preg-titulo').textContent = op.titulo || (tipo === 'salir' ? '¿Salir?' : '¿Eliminar?');
+      $('#preg-texto').textContent = op.texto || '';
+      $('#preg-texto').hidden = !op.texto;
+      si.textContent = op.si || (tipo === 'salir' ? 'Sí, salir' : 'Sí, eliminar');
+      si.className = 'boton ' + (tipo === 'salir' ? 'boton--primario' : 'boton--peligro');
+      var parar = function () {};
+      function fin(v) {
+        if (finPregunta !== fin) { return; }
+        finPregunta = null;
+        parar();
+        si.removeEventListener('click', alSi); no.removeEventListener('click', alNo);
+        dlg.removeEventListener('cancel', alCancelar); dlg.removeEventListener('close', alCerrar);
+        if (dlg.open && dlg.close) { dlg.close(); } else { dlg.removeAttribute('open'); }
+        ok(v);
+      }
+      function alSi() { if (Date.now() - desde >= PREGUNTA_ESPERA_MS) { fin(true); } }
+      function alNo() { fin(false); }
+      function alCancelar(e) { if (e && e.preventDefault) { e.preventDefault(); } fin(false); }   // Esc
+      function alCerrar() { if (!dlg.open) { fin(false); } }                                     // la cerró otro (p. ej. pedirEntrar)
+      finPregunta = fin;
+      si.addEventListener('click', alSi); no.addEventListener('click', alNo);
+      dlg.addEventListener('cancel', alCancelar); dlg.addEventListener('close', alCerrar);
+      abrirAnimada(dlg);
+      no.focus();
+    });
+  }
+  /* ---------- ventanita de RESULTADO (v1.5, igual a la del Manual de turnos) ----------
+     resultado('ok' | 'error' | 'salir', título, texto, clave?) → ✓ verde, ✗ roja o puerta dorada que se
+     dibujan con un círculo de 360°. Se cierra con «Entendido» o Esc; la promesa se cumple al cerrarla.
+     clave (opcional) = contraseña temporal que se muestra en grande para entregarla en persona.
+     Las de ÉXITO (✓ verde y «Sesión cerrada») se cierran solas a los 8 s con la cuenta en el botón
+     («Entendido (8)»), para que no estorben (JX: «solo a los positivos»). La ✗ roja de error se queda hasta
+     que la persona la cierre. La que muestra una contraseña temporal también se queda (hay que anotarla). */
+  var finResultado = null;
+  function resultado(tipo, titulo, texto, clave) {
+    if (finResultado) { finResultado(); }
+    return new Promise(function (ok) {
+      var dlg = $('#dlg-resultado'), boton = $('#res-ok'), caja = $('#res-texto');
+      dlg.setAttribute('data-tipo', tipo === 'error' || tipo === 'salir' ? tipo : 'ok');
+      $('#res-titulo').textContent = titulo;
+      caja.textContent = texto || '';
+      if (clave) { var c = document.createElement('span'); c.className = 'resultado__clave'; c.textContent = clave; caja.appendChild(document.createTextNode(' ')); caja.appendChild(c); }
+      caja.hidden = !texto && !clave;
+      var parar = function () {};
+      function fin() {
+        if (finResultado !== fin) { return; }
+        finResultado = null;
+        parar();
+        boton.removeEventListener('click', fin); dlg.removeEventListener('cancel', alCancelar); dlg.removeEventListener('close', alCerrar);
+        if (dlg.open && dlg.close) { dlg.close(); } else { dlg.removeAttribute('open'); }
+        ok();
+      }
+      function alCancelar(e) { if (e && e.preventDefault) { e.preventDefault(); } fin(); }   // Esc
+      function alCerrar() { if (!dlg.open) { fin(); } }
+      finResultado = fin;
+      boton.addEventListener('click', fin); dlg.addEventListener('cancel', alCancelar); dlg.addEventListener('close', alCerrar);
+      abrirAnimada(dlg);
+      setTimeout(function () { boton.focus(); }, 30);
+      boton.textContent = 'Entendido';
+      if (tipo !== 'error' && !clave) { parar = cuentaAtras(boton, 'Entendido', fin); }
+    });
+  }
+  /** Abre una ventanita y reinicia su animación (si se abre dos veces seguidas, se vuelve a dibujar). */
+  function abrirAnimada(dlg) {
+    if (dlg.open && dlg.close) { dlg.close(); }
+    void dlg.offsetWidth;
+    if (typeof dlg.showModal === 'function') { dlg.showModal(); } else { dlg.setAttribute('open', ''); }
+  }
+  /* ---------- «Deshacer» 10 s (v1.5, como en el Manual de turnos) ---------- */
+  var DESHACER_MS = 10000, alDeshacer = null, tDeshacerFin = 0, tDeshacerSeg = 0;
+  function conDeshacer(texto, fn) {
+    var caja = $('#deshacer'), fin = ahora() + DESHACER_MS;
+    clearTimeout(tDeshacerFin); clearInterval(tDeshacerSeg);
+    alDeshacer = fn;
+    $('#deshacer-texto').textContent = texto;
+    function contar() { $('#deshacer-btn').textContent = 'Deshacer (' + Math.max(1, Math.ceil((fin - ahora()) / 1000)) + ')'; }
+    contar();
+    clearTimeout(tAviso); $('#aviso').hidden = true;
+    caja.hidden = false; caja.classList.remove('aviso--fuera');
+    tDeshacerSeg = setInterval(contar, 250);
+    tDeshacerFin = setTimeout(cerrarDeshacer, DESHACER_MS);
+  }
+  function cerrarDeshacer() {
+    var caja = $('#deshacer');
+    clearTimeout(tDeshacerFin); clearInterval(tDeshacerSeg);
+    alDeshacer = null;
+    caja.classList.add('aviso--fuera');
+    setTimeout(function () { if (!alDeshacer) { caja.hidden = true; } }, 260);
+  }
+  function eventosDeshacer() {
+    $('#deshacer-btn').addEventListener('click', function () {
+      var fn = alDeshacer;
+      cerrarDeshacer();
+      if (fn) { fn(); }
+    });
+  }
+  /* ---------- guía «Tu hoja está aquí abajo» (v1.5, pedido de JX) ----------
+     Una vez por entrada del usuario (con nube; la marca se borra al entrar) o una vez por equipo (sin nube).
+     Nunca en una recarga. Se quita a los GUIA_MS, al llegar a la hoja o al tocarla (que lleva a la hoja). */
+  var GUIA_MS = 8000, tGuia = 0, vigiaGuia = null;
+  function mostrarGuia() {
+    var g = $('#guia-hoja'), hoja = $('#hoja');
+    if (!actual || leer('guia-hoja', false) === true || !g.hidden) { return; }
+    if (hoja.getBoundingClientRect().top < window.innerHeight * 0.7) { return; }   // la hoja ya se ve: no hace falta
+    guardar('guia-hoja', true, true);
+    $('#guia-texto').textContent = (nubeActiva() && nube.usuario ? nube.usuario.nombre + ', tu' : 'Tu') + ' hoja está aquí abajo';
+    g.classList.remove('guia-hoja--fuera'); g.hidden = false;
+    clearTimeout(tGuia); tGuia = setTimeout(ocultarGuia, GUIA_MS);
+    if (window.IntersectionObserver) {
+      vigiaGuia = new IntersectionObserver(function (e) { if (e[0] && e[0].isIntersecting) { ocultarGuia(); } }, { threshold: 0.12 });
+      vigiaGuia.observe(hoja);
+    }
+  }
+  function ocultarGuia() {
+    var g = $('#guia-hoja');
+    clearTimeout(tGuia);
+    if (vigiaGuia) { vigiaGuia.disconnect(); vigiaGuia = null; }
+    if (g.hidden) { return; }
+    g.classList.add('guia-hoja--fuera');
+    setTimeout(function () { g.hidden = true; }, 320);
+  }
+  function eventosGuia() {
+    $('#guia-hoja').addEventListener('click', function () { ocultarGuia(); irA('#hoja'); });
+  }
+  /** Un listado cambió fuera de la pantalla actual (lo usa «Deshacer»): se guarda, se sube y se pinta si está en pantalla. */
+  function cambioEn(lst, que) {
+    lst.actualizado = ahora();
+    guardarListados(); nubeCambio(lst, que);
+    if (actual === lst) { pintarListado(); }
+    pintarHistorial();
+  }
+
   var tAviso = 0;
   function aviso(texto, ms, alerta) {
     var el = $('#aviso');
+    if (!$('#deshacer').hidden) { cerrarDeshacer(); }      // un aviso nuevo reemplaza al «Deshacer» (no se tapan)
     el.textContent = texto;
     el.classList.toggle('aviso--alerta', !!alerta);
     el.hidden = false;
@@ -951,7 +1160,7 @@
   /* ---------- entrar y salir ---------- */
   function pedirEntrar(primera, mensaje) {
     document.documentElement.classList.add('pide-entrar');
-    ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
+    ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar', '#dlg-pregunta'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
     $('#entrar').hidden = false;
     $('#entrar-primera').hidden = !primera;
     $('#entrar-sub').textContent = primera ? 'Así se crea el acceso a la nube.' : 'Solo para recepción: escribe tu usuario y tu contraseña.';
@@ -977,12 +1186,16 @@
     boton.disabled = true; boton.textContent = 'Entrando…'; err.hidden = true;
     pedir('POST', 'entrar', { usuario: usuario, clave: clave, recordar: $('#e-recordar').checked }).then(function (j) {
       $('#e-clave').value = '';
+      guardar('guia-hoja', false, true);                     // v1.5: en cada entrada la guía «tu hoja está aquí abajo» sale una vez
       ponerUsuario(j.usuario);
       return bajarNube(true).then(function () {
         // si el último listado de este equipo es de hoy, vuelve a la pantalla
         if (!actual && listados[0] && (diaDe(listados[0].creado) === hoyISO() || listados[0].fecha >= hoyISO())) { actual = listados[0]; guardarListados(); }
         pintarTodo();
-        aviso('Hola, ' + nube.usuario.nombre + '.', 2400);
+        // v1.5: ✓ verde al entrar (si tiene contraseña temporal, primero sale «Mi cuenta» para cambiarla y el ✓ sale después)
+        if (!nube.usuario.cambiar) {
+          resultado('ok', '¡Bienvenido, ' + nube.usuario.nombre + '!', 'Acceso ' + (esAdmin() ? 'de administrador ' : '') + 'conectado: lo que hagas se guarda en este equipo y en la nube de recepción.');
+        }
       });
     }, function (e) {
       var t = {
@@ -992,7 +1205,7 @@
         'sin-conexion': 'Sin conexión: revisa el internet e inténtalo otra vez.'
       }[e.tipo] || 'No se pudo entrar. Inténtalo otra vez en un momento.';
       err.textContent = t; err.hidden = false;
-      $('#e-clave').focus();
+      resultado('error', 'No se pudo entrar', t).then(function () { $('#e-clave').focus(); });   // v1.5: ✗ roja
     }).then(function () { boton.disabled = false; boton.textContent = 'Entrar'; });
   }
   /** Borra de este equipo todo lo de la nube (al salir: el equipo puede ser compartido). */
@@ -1001,20 +1214,25 @@
     nube.usuario = null; nube.vers = {}; nube.pend = {}; nube.acciones = {}; nube.reemplaza = {}; nube.sueltas = []; nube.desde = 0;
     guardarNube();
   }
+  /** Salir (v1.5): pregunta con la ventanita de la puerta y al final «Sesión cerrada». */
   function salir() {
-    var seguir = Promise.resolve(true);
-    if (hayPendientes()) {
-      seguir = subirNube().then(function () {
-        if (!hayPendientes()) { return true; }
-        return confirmar('Hay cambios que todavía no se han subido a la nube (¿sin señal?). Si sales ahora se pierden. ¿Salir igual?', 'Salir igual');
+    var seguir = hayPendientes() ? subirNube() : Promise.resolve();
+    seguir.then(function () {
+      var pendientes = hayPendientes();
+      return preguntar({
+        tipo: pendientes ? 'eliminar' : 'salir',
+        titulo: pendientes ? '¿Salir sin subir los cambios?' : '¿Salir de tu cuenta?',
+        texto: pendientes ? 'Hay cambios que todavía no se han subido a la nube (¿sin señal?). Si sales ahora se pierden.'
+          : 'En este equipo se borra el historial (sigue guardado en la nube). Para volver, entras con tu usuario y tu contraseña.',
+        si: pendientes ? 'Salir igual' : 'Sí, salir'
       });
-    }
-    seguir.then(function (si) {
+    }).then(function (si) {
       if (!si) { return; }
       cerrarDialogo('#dlg-cuenta');
+      var nombre = nube.usuario ? nube.usuario.nombre : '';
       pedir('POST', 'salir', {}).catch(nada).then(function () {
         olvidarEquipo(); pintarTodo(); pedirEntrar(false, '');
-        aviso('Saliste. En este equipo ya no queda nada del historial.', 3200);
+        resultado('salir', 'Sesión cerrada', (nombre ? '¡Hasta pronto, ' + nombre + '! ' : '') + 'En este equipo ya no queda nada del historial.');
       });
     });
   }
@@ -1225,8 +1443,8 @@
   function nubeAjustesHoja() {
     if (!esAdmin()) { return; }
     pedir('PUT', 'ajustes', { casilla: ajustes.casilla === true, apretar: ajustes.apretar !== false }).then(function () {
-      aviso('Ajuste guardado para todos los equipos de recepción.', 2600);
-    }, function (e) { errorNube(e); pintarNube(); aviso('No se pudo guardar el ajuste en la nube: revisa la conexión.', 4200, true); });
+      resultado('ok', '¡Ajuste guardado para todos!', 'Todos los equipos de recepción sacan la hoja así.');
+    }, function (e) { errorNube(e); pintarNube(); resultado('error', 'No se pudo guardar el ajuste', 'Revisa la conexión e inténtalo otra vez.'); });
   }
 
   /* ---------- pintar: botón de cuenta, «Mi cuenta», permisos ---------- */
@@ -1273,7 +1491,7 @@
     pedir('POST', 'clave', { actual: actualC, nueva: nueva }).then(function () {
       nube.usuario.cambiar = false; guardarNube();
       cerrarDialogo('#dlg-cuenta');
-      aviso('Listo: tu contraseña quedó cambiada. Desde ahora entras con la nueva.', 3600);
+      resultado('ok', '¡Contraseña cambiada!', 'Desde ahora entras con la nueva.' + (nube.usuario ? ' Bienvenido, ' + nube.usuario.nombre + '.' : ''));
     }, function (e) {
       if (e.estado === 401) { errorNube(e); return; }
       mal({ clave: 'La contraseña actual no es correcta.', corta: 'La nueva debe tener 8 o más letras o números.', igual: 'La nueva tiene que ser distinta de la actual.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo cambiar. Inténtalo otra vez.');
@@ -1364,8 +1582,13 @@
       pintarUsuarios(r.usuarios || []);
       cerrarDialogo('#dlg-usuario');
       if (dlgUsuario.modo === 'nombre' && nube.usuario && dlgUsuario.id === nube.usuario.id) { nube.usuario.nombre = cuerpo.nombre; guardarNube(); pintarNube(); }
-      aviso(dlgUsuario.modo === 'nuevo' ? 'Usuario creado. Entrégale su usuario «' + cuerpo.usuario + '» y la contraseña temporal en persona.'
-        : dlgUsuario.modo === 'nombre' ? 'Nombre guardado.' : 'Contraseña temporal puesta. Entrégasela en persona.', 5200);
+      if (dlgUsuario.modo === 'nuevo') {
+        resultado('ok', '¡Usuario creado!', cuerpo.nombre + ' entra con el usuario «' + cuerpo.usuario + '» y esta contraseña temporal (entrégasela en persona; al entrar pone una suya):', clave);
+      } else if (dlgUsuario.modo === 'nombre') {
+        resultado('ok', '¡Nombre guardado!', 'Así sale en el historial y en «Quién hizo qué»: ' + cuerpo.nombre + '.');
+      } else {
+        resultado('ok', '¡Contraseña nueva puesta!', 'Su sesión se cerró en todos los equipos. Entrégale en persona esta contraseña temporal:', clave);
+      }
       cargarAdmin();
     }, function (e) {
       if (e.estado === 401) { errorNube(e); return; }
@@ -1385,14 +1608,30 @@
       pregunta = admin ? '¿Quitarle el administrador a ' + nombre + '? Seguirá entrando como recepción.' : '¿Hacer administrador a ' + nombre + '? Podrá crear usuarios, ver la actividad, borrar del historial y cambiar los ajustes de la hoja.';
       si = admin ? 'Quitar administrador' : 'Hacer administrador';
     }
-    confirmar(pregunta, si).then(function (ok) {
+    // v1.5: desactivar = ventanita roja (es «eliminar» el acceso) + Deshacer; lo demás = confirmar + ✓ verde
+    var desactivar = que === 'activo' && cuerpo.activo === false;
+    var pide = desactivar
+      ? preguntar({ titulo: '¿Desactivar a ' + nombre + '?', texto: 'No podrá entrar y se cierra su sesión en todos los equipos. Lo que hizo queda guardado.', si: 'Sí, desactivar' })
+      : confirmar(pregunta, si);
+    function fallo(e) {
+      if (e.estado === 401) { errorNube(e); return; }
+      resultado('error', 'No se pudo cambiar', { 'ultimo-admin': 'Debe quedar al menos un administrador activo.', propio: 'No puedes quitarte el administrador ni desactivarte a ti mismo.' }[e.tipo] || 'Revisa la conexión e inténtalo otra vez.');
+    }
+    pide.then(function (ok) {
       if (!ok) { return; }
       return pedir('PATCH', 'usuarios/' + id, cuerpo).then(function (r) {
-        pintarUsuarios(r.usuarios || []); aviso('Listo: ' + nombre + ' quedó actualizado.', 2600); cargarAdmin();
-      }, function (e) {
-        if (e.estado === 401) { errorNube(e); return; }
-        aviso({ 'ultimo-admin': 'Debe quedar al menos un administrador activo.', propio: 'No puedes quitarte el administrador ni desactivarte a ti mismo.' }[e.tipo] || 'No se pudo cambiar: revisa la conexión.', 4200, true);
-      });
+        pintarUsuarios(r.usuarios || []); cargarAdmin();
+        if (desactivar) {
+          conDeshacer(nombre + ' quedó desactivado.', function () {
+            pedir('PATCH', 'usuarios/' + id, { activo: true }).then(function (r2) {
+              pintarUsuarios(r2.usuarios || []); cargarAdmin(); resultado('ok', '¡Listo, se deshizo!', nombre + ' puede entrar otra vez.');
+            }, fallo);
+          });
+          return;
+        }
+        resultado('ok', que === 'activo' ? '¡' + nombre + ' está activo otra vez!' : cuerpo.rol === 'admin' ? '¡' + nombre + ' ya es administrador!' : 'Listo: ' + nombre + ' quedó como recepción',
+          que === 'activo' ? 'Ya puede entrar con su usuario y su contraseña.' : cuerpo.rol === 'admin' ? 'Puede crear usuarios, ver «Quién hizo qué», borrar del historial y cambiar los ajustes de la hoja.' : 'Sigue entrando, pero ya no maneja usuarios ni borra.');
+      }, fallo);
     });
   }
 
@@ -1419,14 +1658,15 @@
       var b = this; b.disabled = true;
       subirNube().then(function () { return bajarNube(false); }).then(function () {
         b.disabled = false;
-        aviso(nube.estado === 'al-dia' ? 'Todo está guardado en la nube.' : (TEXTO_NUBE[nube.estado] || TEXTO_NUBE.error)[1], 3200, nube.estado !== 'al-dia');
+        if (nube.estado === 'al-dia') { resultado('ok', '¡Todo guardado en la nube!', 'Los demás equipos de recepción ya ven lo mismo que tú.'); }
+        else { resultado('error', 'No se pudo guardar en la nube', (TEXTO_NUBE[nube.estado] || TEXTO_NUBE.error)[1] + ' Lo hecho sigue en este equipo y se sube solo cuando vuelva la señal.'); }
       });
     });
     $('#btn-salir').addEventListener('click', salir);
     $('#btn-ir-admin').addEventListener('click', function () { cerrarDialogo('#dlg-cuenta'); irA('#admin'); cargarAdmin(); });
     /* administración */
     $('#btn-nuevo-usuario').addEventListener('click', function () { abrirUsuario('nuevo', null); });
-    $('#btn-actualizar-actividad').addEventListener('click', function () { cargarAdmin().then(function () { aviso('Actividad al día.', 1800); }); });
+    $('#btn-actualizar-actividad').addEventListener('click', function () { cargarAdmin().then(function () { resultado('ok', '¡Actividad al día!', 'Ya ves lo último que se hizo en todos los equipos.'); }); });
     $('#btn-mas-actividad').addEventListener('click', function () { nube.admin.verHasta += 100; pintarActividad(); });
     $('#lista-usuarios').addEventListener('click', function (e) {
       var b = e.target.closest('[data-u]');
@@ -1464,7 +1704,7 @@
 
   function iniciar() {
     aplicarTema();
-    eventosSubir(); eventosEditar(); eventosSalida(); eventosHistorial(); eventosAjustes(); eventosNube();
+    eventosSubir(); eventosEditar(); eventosSalida(); eventosHistorial(); eventosAjustes(); eventosNube(); eventosDeshacer(); eventosGuia();
     /* si el último listado es de hoy (o tiene fecha de hoy en adelante), vuelve a estar en pantalla */
     var id = leer('actual', null), hoy = hoyISO();
     var ultimo = listados.filter(function (x) { return x.id === id; })[0];

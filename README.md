@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.4** · 17 nov 2026, 4:23 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.5** · 17 nov 2026, 5:40 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -104,7 +104,7 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 - **Imprimir**: abre la ventana de impresión con **solo la hoja** (sin botones ni nada de la página), tamaño **carta**. Si escoges «Guardar como PDF», el archivo ya se llama `Reservas_DP_DD-MM-AAAA`.
 - **Descargar PDF**: baja `Reservas_DP_DD-MM-AAAA.pdf` (por ejemplo, `Reservas_DP_17-11-2026.pdf`), idéntico a lo que ves en pantalla.
 - **Compartir** (en el celular): abre el menú de compartir del teléfono con el PDF, para mandarlo al grupo de WhatsApp. Si el navegador no lo permite (por ejemplo, en el computador), descarga el PDF para que lo adjuntes.
-- **Eliminar** (🗑, en rojo; desde v1.4): solo aparece cuando hay un Excel subido. Quita de la pantalla el listado que estás viendo **y también del historial**, después de preguntarte «¿Eliminar…?». Sirve si subiste el Excel equivocado. Con la nube activa solo lo ve el administrador (igual que «Borrar» del historial). En el celular se ve solo la basurita; en pantallas más anchas dice «Eliminar».
+- **Eliminar** (🗑, en rojo; desde v1.4): solo aparece cuando hay un Excel subido. Quita de la pantalla el listado que estás viendo **y también del historial**, después de preguntarte «¿Eliminar…?». Tienes **10 segundos para «Deshacer»**. Sirve si subiste el Excel equivocado. Con la nube activa solo lo ve el administrador (igual que «Borrar» del historial). En el celular se ve solo la basurita; en pantallas más anchas dice «Eliminar».
 - Si son muchas reservas, la hoja sigue en otra página («Pág. 1 de 2») con los títulos de la tabla repetidos. Los totales van al final.
 
 ## 6. Historial, modo noche y ajustes
@@ -117,6 +117,14 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
   - **Ahorrar papel** (prendido): si apretando un poco la letra la hoja cabe en menos páginas, la aprieta (por ejemplo, 20 reservas en 1 hoja en vez de 2). Apágalo si quieres siempre el espaciado original.
   - Con la nube, estos dos ajustes son **iguales para todos los equipos** y **solo el administrador** los cambia.
 - **En el celular:** menú del navegador → **Agregar a la pantalla de inicio**, para abrirlo como una app.
+
+### Ventanitas de confirmación (desde v1.5)
+
+- **Todo lo que se elimina pregunta primero** con una ventanita roja y una basurita que se dibuja: eliminar el listado, borrar del historial (uno o todo), quitar una reserva de la hoja, borrar una reserva agregada a mano y desactivar un usuario. El botón «Sí» no funciona en el primer medio segundo, para que un doble toque no borre sin querer. Después sale **«Deshacer (10)»** por 10 segundos.
+- **Todo lo que sale bien muestra un ✓ verde**: listado listo al subir el Excel, reserva guardada o agregada, restaurada, devuelta a la hoja, letras corregidas, fecha cambiada, PDF descargado o compartido, listado abierto del historial, «se deshizo», y con la nube: bienvenida al entrar, contraseña cambiada, usuario creado, administrador, guardado en la nube. **Se quita solo a los 8 segundos** («Entendido (8)»).
+- **Los errores (✗ roja) y las preguntas de eliminar se quedan** hasta que la persona las cierre. También la que muestra la contraseña temporal de un usuario nuevo (hay que anotarla).
+- **Salir de la cuenta** pregunta con una puerta dorada y al final dice «Sesión cerrada».
+- **«Tu hoja está aquí abajo ↓»**: después de subir el Excel, una pastilla dorada a la derecha indica que la hoja está abajo (con la nube dice tu nombre: «Jx, tu hoja está aquí abajo»). Sale **una sola vez por cada vez que entras con tu usuario** (sin la nube, una vez por equipo), nunca al recargar, y se quita sola a los 8 segundos, al bajar hasta la hoja o al tocarla (te lleva a la hoja).
 
 ## 7. Entrar con tu usuario y la nube (desde v1.3)
 
@@ -269,17 +277,18 @@ Una sola rama: **`main`**. Antes de empezar a editar, `git pull` (para traer lo 
 
 ## 12. Versiones
 
-En la página, debajo del logo, se ve **solo el número de la versión** (desde v1.4, pedido de JX). La fecha y la hora de cada versión se anotan aquí y en `CLAUDE.md`. Horas de Colombia.
+En la página, debajo del logo, se ve **solo el número de la versión** con «V» mayúscula (desde v1.4/v1.5, pedido de JX). La fecha y la hora de cada versión se anotan aquí y en `CLAUDE.md`. Horas de Colombia.
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.5** | 17 nov 2026, 5:40 p. m. | **Ventanitas como las del Manual de turnos**: basurita roja que se dibuja en 360° en todo lo que se elimina (con «Deshacer» 10 s), ✓ verde en todo lo que sale bien (se quita solo a los 8 s), ✗ roja en los errores y puerta dorada al salir. Guía **«Tu hoja está aquí abajo ↓»** (una vez por entrada, 8 s). La versión debajo del logo un poco más pequeña y con «V» mayúscula. Arreglo para Safari: el ✓ de la fecha salía dos veces. |
 | **v1.4** | 17 nov 2026, 4:23 p. m. | Botón **Eliminar** (🗑 rojo) en la barra de abajo, junto a Imprimir / PDF / Compartir: solo aparece con un Excel subido y quita ese listado (también del historial) después de confirmar. Debajo del logo queda **solo la versión** (sin fecha ni hora). La barra cabe con 4 botones desde el plegable de 280 px hasta PC. |
 | **v1.3** | 17 nov 2026, 3:46 p. m. | **Nube con usuarios** (pedido de JX): cada recepcionista entra con su usuario y contraseña; historial compartido entre todos los equipos (Cloudflare D1) que se borra solo a los 30 días; funciona sin señal y sube al volver; si dos equipos corrigen a la vez se juntan los cambios. **Administrador:** usuarios, «Quién hizo qué», borrar del historial y ajustes de la hoja para todos. **Pantalla de carga** igual a la del Manual de turnos (2,5 s parejos). Contraste del número de versión. |
 | **v1.2** | 17 nov 2026, 2:57 p. m. | Ahora se llama **Editador de reservas DP**. Versión y hora de actualización debajo del logo. README nuevo. Publicación en Cloudflare corregida: solo se publica `sitio/` (la dirección principal abre el editador y `CLAUDE.md` ya no sale en la web). Probado también con el motor de Safari de iPhone. |
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.5, v1.6…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.6, v1.7…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

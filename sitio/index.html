@@ -65,9 +65,9 @@
     <img class="encabezado__logo" src="img/logo-dorado-plaza-recepcion-bocagrande.webp" width="1200" height="878"
          alt="Dorado Plaza · Recepción · Hotel Dorado Plaza · Bocagrande" fetchpriority="high">
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
-         (pedido de JX, v1.4): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
+         con «V» mayúscula (pedido de JX, v1.4 y v1.5): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.4</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">V1.5</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -448,7 +448,61 @@
     </form>
   </dialog>
 
-  <!-- DIÁLOGO: CONFIRMAR (reemplaza al confirm() del navegador) -->
+  <!-- ===========================================================
+       VENTANITA DE PREGUNTA (v1.5, pedido de JX: «modales bien diseñados… el ícono de basura en 360
+       en todo lo que se vaya a eliminar… y salidas»). Mismo diseño del Manual de turnos (#dlg-eliminar):
+       círculo que se dibuja en 360° y adentro, según data-tipo:
+         eliminar → basurita roja + «Sí, eliminar» rojo (listado, historial, reservas, desactivar usuario)
+         salir    → puerta dorada + «Sí, salir» (salir de la cuenta)
+       «Sí» no cuenta en el primer medio segundo (un doble toque o un toque «fantasma» del celular no
+       borra sin querer) y el foco empieza en «Cancelar». Después de eliminar sale «Deshacer» 10 s.
+       Depende de: .resultado, .pregunta__* y .boton--peligro en estilos.css; preguntar() en app.js
+       =========================================================== -->
+  <dialog class="dialogo resultado" id="dlg-pregunta" data-tipo="eliminar" aria-labelledby="preg-titulo" aria-describedby="preg-texto">
+    <div class="dialogo__caja resultado__caja">
+      <svg class="resultado__icono" viewBox="0 0 52 52" aria-hidden="true">
+        <circle class="resultado__fondo" cx="26" cy="26" r="24"/>
+        <circle class="resultado__circulo" cx="26" cy="26" r="24" fill="none"/>
+        <path class="pregunta__basura" d="M16 19.5h20M23.5 24v8M28.5 24v8M18.5 19.5l1.4 14.5h12.2l1.4-14.5M22 19.5v-3.5h8v3.5"/>
+        <path class="pregunta__puerta" d="M25 16.5h-7.5v19H25M28.5 20.5l5.5 5.5-5.5 5.5M34 26H22.5"/>
+      </svg>
+      <h2 class="dialogo__titulo resultado__titulo" id="preg-titulo">¿Eliminar?</h2>
+      <p class="dialogo__texto resultado__texto" id="preg-texto"></p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--peligro" id="preg-si">Sí, eliminar</button>
+        <button type="button" class="boton boton--secundario" id="preg-no">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===========================================================
+       VENTANITA DE RESULTADO (v1.5, pedido de JX: «los accesos a admin con chulos verdes»). La misma
+       del Manual de turnos (#dlg-resultado): ✓ verde o ✗ roja que se dibujan con un círculo de 360°.
+         ok     → ✓ verde: entrar, usuario creado, contraseña, administrador, guardado en la nube,
+                  listado listo al subir el Excel
+         error  → ✗ roja: no se pudo entrar / guardar / cambiar
+         salir  → puerta dorada: «Sesión cerrada»
+       Depende de: .resultado en estilos.css; resultado() en app.js
+       =========================================================== -->
+  <dialog class="dialogo resultado" id="dlg-resultado" data-tipo="ok" aria-labelledby="res-titulo" aria-describedby="res-texto">
+    <div class="dialogo__caja resultado__caja">
+      <svg class="resultado__icono" viewBox="0 0 52 52" aria-hidden="true">
+        <circle class="resultado__fondo" cx="26" cy="26" r="24"/>
+        <circle class="resultado__circulo" cx="26" cy="26" r="24" fill="none"/>
+        <path class="resultado__ok" fill="none" d="M15.5 27.2l7 7L37 19.5"/>
+        <path class="resultado__x" fill="none" d="M18.5 18.5l15 15M33.5 18.5l-15 15"/>
+        <path class="pregunta__puerta" d="M25 16.5h-7.5v19H25M28.5 20.5l5.5 5.5-5.5 5.5M34 26H22.5"/>
+      </svg>
+      <h2 class="dialogo__titulo resultado__titulo" id="res-titulo">¡Listo!</h2>
+      <p class="dialogo__texto resultado__texto" id="res-texto"></p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--primario" id="res-ok">Entendido</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- DIÁLOGO: CONFIRMAR (reemplaza al confirm() del navegador) — para lo que NO borra nada
+       (hacer administrador, activar un usuario). Lo que borra usa la ventanita de pregunta (arriba). -->
   <dialog class="dialogo" id="dlg-confirmar" aria-labelledby="conf-texto">
     <div class="dialogo__caja">
       <p class="dialogo__texto" id="conf-texto"></p>
@@ -461,6 +515,20 @@
 
   <!-- Aviso flotante («PDF descargado», «Reserva agregada», etc.) -->
   <div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+  <!-- GUÍA «TU HOJA ESTÁ AQUÍ ABAJO» (v1.5, pedido de JX: «el usuario no va a saber dónde está… que diga su nombre
+       y que está acá abajo… solo una vez… que no demore ni 8 segundos»). Pastilla dorada a la derecha, sobre la
+       barra; al tocarla lleva a la hoja. Sale una vez por entrada del usuario (sin nube: una vez por equipo) y se
+       quita a los 8 s, al llegar a la hoja o al tocarla. Depende de: .guia-hoja en estilos.css; mostrarGuia() en app.js -->
+  <button type="button" class="guia-hoja" id="guia-hoja" hidden>
+    <span id="guia-texto">Tu hoja está aquí abajo</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13m0 0l-5-5m5 5l5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+
+  <!-- «Deshacer» (v1.5): después de eliminar algo, 10 s para devolverlo. Depende de: conDeshacer() en app.js -->
+  <div class="aviso aviso--deshacer" id="deshacer" hidden>
+    <span id="deshacer-texto" role="status" aria-live="polite"></span>
+    <button type="button" class="aviso__boton" id="deshacer-btn">Deshacer</button>
+  </div>
 
   <script src="js/logo-vector.js" defer></script>
   <script src="js/lector-excel.js" defer></script>
