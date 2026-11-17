@@ -412,7 +412,11 @@ export async function onRequest(context) {
   const [r0, r1] = ruta, metodo = request.method, url = new URL(request.url);
   try {
     const falta = faltaEn(env);
-    if (falta.length) { return error('sin-configurar', 503, { falta: falta }); }
+    if (falta.length) {
+      // GET /api/yo (lo que pregunta la web al abrir) responde 200 para no ensuciar la consola en cada visita
+      // mientras JX activa la base; lo demás, 503. En los dos casos: { error: 'sin-configurar', falta }.
+      return error('sin-configurar', r0 === 'yo' && metodo === 'GET' ? 200 : 503, { falta: falta });
+    }
     // lo que cambia datos solo lo puede mandar la propia web (otra página no puede poner este encabezado)
     if (metodo !== 'GET' && request.headers.get('X-Editador') !== '1') { return error('origen', 403); }
     const db = baseDe(env);

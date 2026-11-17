@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.3** · 17 nov 2026, 3:44 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.3** · 17 nov 2026, 3:46 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -248,7 +248,7 @@ Lo mismo que se hizo en el Manual de turnos, con otros nombres. Mientras no est�
 5. **Crear el administrador:** abre la página. Sale **Entrar** con el aviso «Primera vez». Escribe el usuario que quieras para ti (por ejemplo `jx`) y la `CLAVE_INICIAL`. Quedas como **administrador** y la web te pide poner **tu propia contraseña**. Desde ahí la `CLAVE_INICIAL` ya no sirve para entrar.
 6. **Crear a los recepcionistas:** sección **Administración** → **+ Nuevo usuario**. A cada uno entrégale en persona su usuario y la contraseña temporal; al entrar pone la suya.
 
-Para revisar si quedó bien, abre `https://editador-reservas-doradoplaza-bg.pages.dev/api/yo`: con todo listo responde `{"usuario":null,…}`. Si falta algo, responde `sin-configurar` y dice en `falta` si es `DB`, `CLAVE_INICIAL` o `CLAVE_INICIAL_CORTA`.
+Para revisar si quedó bien, abre `https://editador-reservas-doradoplaza-bg.pages.dev/api/yo`: con todo listo responde `{"usuario":null,…}`. Si falta algo, responde `{"error":"sin-configurar","falta":[…]}` y dice en `falta` si es `DB`, `CLAVE_INICIAL` o `CLAVE_INICIAL_CORTA`.
 
 **Si el administrador olvida su contraseña:** si hay otro administrador, él le pone una **Contraseña nueva**. Si no, en Cloudflare: **Variables y secretos** → **«+ Agregar»** → Tipo **Texto** → Nombre `RESCATE_ADMIN` → Valor: tu usuario (por ejemplo `jx`) → **Guardar** → **Reintentar implementación**. Entra con tu usuario y la `CLAVE_INICIAL`, pon tu contraseña nueva y **borra `RESCATE_ADMIN`** (y vuelve a **Reintentar implementación**). Los datos no se pierden.
 
@@ -272,7 +272,7 @@ La versión y la hora de la última actualización se ven en la página, debajo 
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
-| **v1.3** | 17 nov 2026, 3:44 p. m. | **Nube con usuarios** (pedido de JX): cada recepcionista entra con su usuario y contraseña; historial compartido entre todos los equipos (Cloudflare D1) que se borra solo a los 30 días; funciona sin señal y sube al volver; si dos equipos corrigen a la vez se juntan los cambios. **Administrador:** usuarios, «Quién hizo qué», borrar del historial y ajustes de la hoja para todos. **Pantalla de carga** igual a la del Manual de turnos (2,5 s parejos). Contraste del número de versión. |
+| **v1.3** | 17 nov 2026, 3:46 p. m. | **Nube con usuarios** (pedido de JX): cada recepcionista entra con su usuario y contraseña; historial compartido entre todos los equipos (Cloudflare D1) que se borra solo a los 30 días; funciona sin señal y sube al volver; si dos equipos corrigen a la vez se juntan los cambios. **Administrador:** usuarios, «Quién hizo qué», borrar del historial y ajustes de la hoja para todos. **Pantalla de carga** igual a la del Manual de turnos (2,5 s parejos). Contraste del número de versión. |
 | **v1.2** | 17 nov 2026, 2:57 p. m. | Ahora se llama **Editador de reservas DP**. Versión y hora de actualización debajo del logo. README nuevo. Publicación en Cloudflare corregida: solo se publica `sitio/` (la dirección principal abre el editador y `CLAUDE.md` ya no sale en la web). Probado también con el motor de Safari de iPhone. |
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |

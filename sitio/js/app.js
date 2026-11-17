@@ -918,6 +918,7 @@
   function iniciarNube() {
     if (!/^https?:$/.test(location.protocol) || !window.fetch || esLocal()) { nube.modo = 'local'; pintarNube(); return Promise.resolve(); }
     return pedir('GET', 'yo').then(function (j) {
+      if (j.error) { nube.modo = 'local'; pintarNube(); return; }   // «sin-configurar»: la base aún no está en Cloudflare
       nube.modo = 'nube'; nube.dias = +j.guardarDias || 30;
       if (!j.usuario) { nube.usuario = null; guardarNube(); pedirEntrar(!!j.primera, ''); return; }
       ponerUsuario(j.usuario);

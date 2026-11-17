@@ -4,7 +4,7 @@
 
 Contexto para que cualquier chat futuro (de Claude u otra IA) retome este proyecto sin adivinar. **Se amplía, nunca se borra lo anterior.**
 
-## 📍 Por dónde vamos (LÉEME PRIMERO) — última actualización: 17 nov 2026, 3:44 p. m. (hora Colombia) · **v1.3**
+## 📍 Por dónde vamos (LÉEME PRIMERO) — última actualización: 17 nov 2026, 3:46 p. m. (hora Colombia) · **v1.3**
 
 - **Estado:** **v1.3** en GitHub (rama **`main`**). Funciona completa: subir Excel → lista → corregir/agregar/quitar → hoja → Imprimir / PDF / Compartir → historial, y desde v1.3 **la nube con usuarios** (ver abajo). **No hay errores conocidos abiertos.**
 - **☁️ v1.3 · NUBE CON USUARIOS (sesión 3, pedido de JX con un video de su Manual de turnos):** `functions/api/[[ruta]].js` (Cloudflare Pages Functions + base **D1**) con **usuario por persona** (admin + recepción), sesiones con cookie, historial compartido entre equipos, mezcla de cambios de dos equipos, «Quién hizo qué», ajustes de la hoja para todos y **borrado automático a los 30 días**. Si en la dirección no hay nube (doble clic, `python -m http.server`, o Cloudflare sin la base), la página trabaja **sola en el equipo como antes**, sin pedir usuario.
@@ -238,11 +238,12 @@ Copiados tal cual del Manual de turnos (generados con las herramientas de `fuent
   - **README reescrito**: tabla antes/después, enlace a la página, publicación conectada a GitHub con `Build output directory = sitio`, trabajo en PC y nube y tabla de versiones.
   - Cloudflare: JX corrigió la configuración (ver «Publicada» arriba).
   - **Probado con el motor de Safari (WebKit) por primera vez**, en la PC de JX: iPhone SE, 13, 15 Pro Max y 13 acostado + Chromium (PC 1366, Pixel 7, Galaxy S9+, plegable 280): sin scroll de lado, sin errores, la versión y el título dentro de la pantalla. En la PC de JX hay navegadores de Playwright en `%LOCALAPPDATA%\ms-playwright`: `chromium-1243` va con `playwright@1.63.0` y `webkit-2215` con `playwright@1.56.1` (instalarlos en el scratchpad, nunca en el repo).
-- **2026-11-17, 3:44 p. m. · v1.3 · nube con usuarios + pantalla de carga de turnos (sesión 3).** JX mandó un video de su Manual de turnos: «me gusta más el logo como se mueve… tiene 2,5 s… tiene una base de datos en la nube para abrirla en demás dispositivos… que solo entremos los recepcionistas, con admin y usuario». Se revisó el repo de turnos (D1 + una sola `CLAVE`) y se le preguntó a JX (AskUserQuestion): usuario por persona · admin con las 4 facultades · 30 días · ya conectado a GitHub.
+- **2026-11-17, 3:46 p. m. · v1.3 · nube con usuarios + pantalla de carga de turnos (sesión 3).** JX mandó un video de su Manual de turnos: «me gusta más el logo como se mueve… tiene 2,5 s… tiene una base de datos en la nube para abrirla en demás dispositivos… que solo entremos los recepcionistas, con admin y usuario». Se revisó el repo de turnos (D1 + una sola `CLAVE`) y se le preguntó a JX (AskUserQuestion): usuario por persona · admin con las 4 facultades · 30 días · ya conectado a GitHub.
   - Nuevo: `functions/api/[[ruta]].js`; en `index.html` la puerta `#entrar`, `#btn-cuenta`, `#dlg-cuenta`, `#admin`, `#dlg-usuario`, `#aj-nota-admin`, `#pie-privacidad` y la rampa de la pantalla de carga; en `estilos.css` §14b; en `app.js` el módulo 13 y los ganchos `tocar(que)` / `marcar(fila)` / `nubeCambio` / `nubeAnotar` / `nubeBorrar` / `nubeAjustesHoja`.
   - Historial: con la nube es de todos los equipos (hasta 90 listados en el equipo; la nube guarda 30 días), «subido por», solo el admin borra.
   - Accesibilidad: el número de versión (de la v1.2) no daba contraste AA en claro → `--texto-fuerte` en claro.
   - Falta: que JX active la base en Cloudflare (ver «Por dónde vamos»).
+  - Publicada en Cloudflare y verificada: la página dice v1.3 y `/api/yo` responde `{"error":"sin-configurar","falta":["DB","CLAVE_INICIAL"]}` (con **200**, para que la consola quede limpia en cada visita mientras no esté la base; las demás rutas, 503) → la página trabaja sola en cada equipo, sin pedir usuario, hasta que JX active la base.
 
 ---
 
