@@ -14,7 +14,8 @@
  *  4 secciones y tarjetas · 5 campos · 6 botones · 7 subir el Excel ·
  *  8 resumen, avisos y novedades · 9 lista de reservas · 10 hoja (vista
  *  previa) · 11 historial · 12 pie y crédito · 13 barra de acciones ·
- *  14 diálogos y aviso · 15 pantalla de carga en modo noche ·
+ *  14 diálogos y aviso · 14b nube: entrar, cuenta y administración (v1.3) ·
+ *  15 pantalla de carga en modo noche ·
  *  16 pantallas grandes · 17 accesibilidad y movimiento reducido ·
  *  18 IMPRESIÓN (solo sale la hoja)
  * ===================================================================== */
@@ -187,7 +188,8 @@ strong { color: var(--texto-fuerte); }
   font-variant-numeric: tabular-nums;
   max-width: 100%; text-wrap: balance;   /* plegable de 280 px: baja a 2 renglones parejos sin salirse */
 }
-.encabezado__version-num { font-weight: 800; color: var(--bronce); }
+.encabezado__version-num { font-weight: 800; color: var(--texto-fuerte); }   /* v1.3: en claro, el bronce no daba el contraste AA sobre la pastilla */
+html[data-tema="oscuro"] .encabezado__version-num { color: var(--bronce); }
 .encabezado__titulo { margin-top: 12px; font-size: clamp(23px, 6.4vw, 30px); letter-spacing: -.01em; }
 .encabezado__sub { margin-top: 6px; font-size: 14.5px; color: var(--texto-suave); max-width: 30em; text-wrap: balance; }
 
@@ -499,6 +501,89 @@ html.hay-hoja .aviso { bottom: calc(var(--alto-acciones) + var(--abajo) + 14px);
 html[data-tema="oscuro"] .aviso { background: rgba(245, 233, 210, .96); color: #2E2414; }
 html[data-tema="oscuro"] .aviso--alerta { background: #F2BE45; color: #2E2414; }
 
+/* ---------- 14b. Nube: entrar, cuenta y administración (v1.3) ----------
+   Mismos colores, radios y componentes de siempre (tarjeta, campo, botones, chips). */
+/* mientras no se entra: solo el logo, el título y la puerta */
+html.pide-entrar main > .seccion:not(#entrar),
+html.pide-entrar .ajustes-rapidos, html.pide-entrar .acciones, html.pide-entrar .encabezado__sub,
+html.pide-entrar .saltar { display: none !important; }
+.entrar { display: flex; justify-content: center; }
+.entrar__caja { width: 100%; max-width: 440px; display: flex; flex-direction: column; text-align: left; }
+.entrar__icono {
+  align-self: center; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+  color: var(--bronce); background: var(--oro-palido); border: 1px solid var(--linea-2);
+}
+.entrar__icono svg { width: 28px; height: 28px; }
+.entrar__titulo { margin: 10px 0 4px; font-size: 21px; text-align: center; }
+.entrar__sub { text-align: center; margin-bottom: 16px; }
+.entrar__mayus { margin: -6px 0 10px; color: var(--error); font-weight: 650; }
+.entrar__recordar { margin: 2px 0 14px; }
+.entrar__boton { width: 100%; }
+.entrar__ayuda { margin-top: 14px; font-size: 14px; }
+.entrar__ayuda > summary { cursor: pointer; font-weight: 700; color: var(--texto-fuerte); min-height: 40px; display: flex; align-items: center; }
+.entrar__ayuda p { margin-top: 4px; }
+.entrar__privacidad { margin-top: 12px; font-size: 13px; text-align: center; text-wrap: balance; }
+.aviso-caja {
+  margin: 0 0 14px; padding: 11px 14px; font-size: 14px; border-radius: 12px;
+  background: var(--oro-palido); border: 1px solid var(--linea-2); border-left: 4px solid var(--oro);
+}
+/* campo de contraseña con el ojo (mostrar / ocultar) */
+.campo-clave { position: relative; display: block; }
+.campo-clave input { padding-right: 52px; }
+input[type="password"] {
+  display: block; width: 100%; min-width: 0; height: 50px; padding: 0 52px 0 14px; font-size: 16px;
+  color: var(--tinta); background: var(--campo); border: 1px solid var(--linea-2); border-radius: var(--radio-campo);
+  outline: none; -webkit-appearance: none; appearance: none; transition: border-color .15s, box-shadow .15s;
+}
+input[type="password"]:focus { border-color: var(--oro); box-shadow: 0 0 0 4px rgba(217, 178, 102, .28); }
+.campo-clave__ojo {
+  position: absolute; top: 3px; right: 3px; width: 44px; height: 44px; display: grid; place-items: center;
+  padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--texto-suave); cursor: pointer;
+}
+.campo-clave__ojo svg { width: 22px; height: 22px; }
+.campo-clave__ojo[aria-pressed="true"] { color: var(--bronce); }
+.campo-clave__ojo:focus-visible { outline: 3px solid rgba(201, 156, 87, .7); outline-offset: 0; }
+/* punto de color del estado de la nube */
+.punto { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--s-gris); }
+.punto[data-color="verde"] { background: var(--s-verde); }
+.punto[data-color="amarillo"] { background: var(--s-amarillo); }
+.punto[data-color="rojo"] { background: var(--s-rojo); }
+.cuenta-boton { max-width: 100%; }
+.cuenta-boton #cuenta-texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.estado-nube {
+  display: flex; align-items: center; gap: 10px; margin: 12px 0 14px; padding: 11px 14px; font-size: 14.5px; font-weight: 600;
+  color: var(--texto-fuerte); background: var(--superficie-2); border: 1px solid var(--linea); border-radius: 12px;
+}
+.cuenta__clave { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--linea); }
+.cuenta__boton { width: 100%; }
+/* administración */
+.admin__bloque + .admin__bloque { margin-top: 12px; }
+.admin__cabeza { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 4px; }
+.admin__cabeza .subtitulo { margin: 0; }
+.usuarios, .actividad { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.usuarios li {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
+  padding: 11px 14px; background: var(--superficie-2); border: 1px solid var(--linea); border-radius: 14px;
+}
+.usuarios li[data-activo="no"] { border-style: dashed; background: var(--superficie); }   /* sin transparencia: el texto conserva su contraste */
+.usuarios__info { display: grid; gap: 2px; min-width: 0; }
+.usuarios__nombre { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 750; color: var(--texto-fuerte); overflow-wrap: anywhere; }
+.usuarios__meta { font-size: 13.5px; color: var(--texto-suave); overflow-wrap: anywhere; }
+.usuarios__botones { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.actividad { gap: 0; }
+.actividad li {
+  display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 2px 12px; padding: 9px 2px;
+  font-size: 14px; border-top: 1px solid var(--linea);
+}
+.actividad li:first-child { border-top: 0; }
+.actividad__cuando { color: var(--texto-suave); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.actividad__que { min-width: 0; overflow-wrap: anywhere; }
+.actividad__que strong { margin-right: 4px; }
+#btn-mas-actividad { margin-top: 8px; }
+@media (max-width: 520px) {
+  .actividad li { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- 15. Pantalla de carga en modo noche ----------
    El cargador trae su velo marfil; de noche se oscurece para no encandilar. */
 html[data-tema="oscuro"] .dpl { --dpl-texto: #E3D3B6; --dpl-texto-suave: #BCA57F; }
@@ -555,7 +640,7 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 /* Pantallas BAJITAS (celular acostado, iPhone SE): la barra de abajo se adelgaza
    y en el diálogo los botones Guardar / Cancelar quedan siempre a la vista. */
 @media (max-height: 640px) {
-  .dialogo__botones {
+  #form-reserva .dialogo__botones, #form-usuario .dialogo__botones {
     position: sticky; bottom: 0; z-index: 1;
     margin: 6px -18px 0; padding: 10px 18px; background: var(--superficie);
     border-top: 1px solid var(--linea);
@@ -589,6 +674,7 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 @media print {
   html, body { margin: 0 !important; padding: 0 !important; background: #FFFFFF !important; min-height: 0 !important; }
   body::before { display: none !important; }               /* el fondo marfil no va al papel */
+  html.pide-entrar body > * { display: none !important; }  /* sin entrar no se imprime nada */
   html.hay-hoja body > *:not(main) { display: none !important; }
   html.hay-hoja main { max-width: none; width: auto; margin: 0; padding: 0; }
   html.hay-hoja main > *:not(#hoja) { display: none !important; }

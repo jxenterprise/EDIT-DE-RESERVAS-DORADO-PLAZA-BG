@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.2** · 17 nov 2026, 2:57 p. m. (hora de Colombia) · [ver todas las versiones](#11-versiones)
+🏷️ **Versión actual: v1.3** · 17 nov 2026, 3:44 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -16,7 +16,9 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 | Comparar a mano la descarga de la mañana con la de la tarde | Marca las **nuevas**, las que **cambiaron** y las que **ya no están** |
 | Armar la hoja y sumar los totales | Hoja carta lista, con **total de habitaciones y de reservas** |
 
-- 🔒 **El Excel no sale de tu equipo:** se lee ahí mismo, sin servidor ni cuentas.
+- 🔒 **Solo entra recepción:** cada recepcionista entra con **su usuario y contraseña** (los crea el administrador).
+- ☁️ **El historial queda en la nube** y se ve en todos los equipos: si se borra la caché o cambias de computador, no se pierde nada. Se borra solo a los **30 días**.
+- 📄 **El Excel no sale de tu equipo:** se lee ahí mismo. A la nube solo va el listado ya armado (reserva, habitaciones, agencia y titular).
 - 💻 Hecho primero para el **computador de recepción**; funciona también en el celular (Android e iPhone).
 
 ---
@@ -29,12 +31,13 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 4. [Si bajas el Excel otra vez el mismo día (novedades)](#4-si-bajas-el-excel-otra-vez-el-mismo-día-novedades)
 5. [Imprimir, PDF y compartir](#5-imprimir-pdf-y-compartir)
 6. [Historial, modo noche y ajustes](#6-historial-modo-noche-y-ajustes)
-7. [Privacidad](#7-privacidad)
-8. [Solución de problemas](#8-solución-de-problemas)
-9. [Para quien mantiene la página](#9-para-quien-mantiene-la-página)
-10. [Pendientes `{POR CONFIRMAR}`](#10-pendientes-por-confirmar)
-11. [Versiones](#11-versiones)
-12. [Fuentes, licencias y propiedad](#12-fuentes-licencias-y-propiedad)
+7. [Entrar con tu usuario y la nube (desde v1.3)](#7-entrar-con-tu-usuario-y-la-nube-desde-v13)
+8. [Privacidad](#8-privacidad)
+9. [Solución de problemas](#9-solución-de-problemas)
+10. [Para quien mantiene la página](#10-para-quien-mantiene-la-página)
+11. [Pendientes `{POR CONFIRMAR}`](#11-pendientes-por-confirmar)
+12. [Versiones](#12-versiones)
+13. [Fuentes, licencias y propiedad](#13-fuentes-licencias-y-propiedad)
 
 ---
 
@@ -105,24 +108,52 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 ## 6. Historial, modo noche y ajustes
 
-- **Historial**: cada Excel que subes queda guardado **en ese equipo** (hasta 30 listados), con sus correcciones. Toca **Abrir** para volver a imprimir uno. Si el equipo es compartido, bórralos cuando ya no los necesites (**Borrar** o **Borrar todo el historial**).
+- **Historial**: cada Excel que subes queda guardado con sus correcciones. **Con la nube** (desde v1.3) es el historial de **todos los equipos** de recepción y cada listado se borra solo a los 30 días; solo el administrador puede borrar a mano. Sin la nube queda solo en ese equipo (hasta 30 listados). Toca **Abrir** para volver a imprimir uno; ahí ves también **quién lo subió**.
 - Al volver a abrir el editador el mismo día, sigue en pantalla el listado de hoy.
 - **Tema**: automático (modo noche de 6 p. m. a 6 a. m.), claro o noche. Solo cambia la pantalla: la hoja siempre sale en blanco.
 - **Más ajustes** (se abre encima de la página y se cierra tocando fuera o con **Esc**):
   - **Casilla «Llegó» en la hoja** (apagada): agrega una columna con un cuadrito por reserva para chulear con lapicero.
   - **Ahorrar papel** (prendido): si apretando un poco la letra la hoja cabe en menos páginas, la aprieta (por ejemplo, 20 reservas en 1 hoja en vez de 2). Apágalo si quieres siempre el espaciado original.
+  - Con la nube, estos dos ajustes son **iguales para todos los equipos** y **solo el administrador** los cambia.
 - **En el celular:** menú del navegador → **Agregar a la pantalla de inicio**, para abrirlo como una app.
 
-## 7. Privacidad
+## 7. Entrar con tu usuario y la nube (desde v1.3)
 
-- **El Excel no sale de tu equipo**: el editador lo lee ahí mismo. No hay servidor, base de datos ni cuentas. Lo que guarda (historial y ajustes) queda solo en ese navegador.
+**Entrar.** Al abrir el editador sale la pantalla **Entrar**: escribe **tu usuario** y **tu contraseña**. Sin entrar no se ve nada. Marca **«Recordar en este equipo»** solo en los computadores de recepción: así no te la pide durante 30 días. Si no la marcas, la sesión dura un turno (14 horas).
+
+**La primera vez que entras** con la contraseña temporal que te dio el administrador, la web te pide poner **una tuya** (8 letras o números o más). Nadie más la conoce.
+
+**El botón con tu nombre** (arriba, junto a «Tema») dice si todo está guardado:
+
+| Punto | Dice | Qué significa |
+|---|---|---|
+| 🟢 | **Guardado** | Todo está en la nube. |
+| 🟡 | **Falta subir** · **Guardando…** · **Trayendo…** | Está trabajando: en unos segundos queda guardado. |
+| 🟡 | **Sin señal** | Se cayó el internet. **Sigue trabajando normal**: todo queda en el equipo y se sube solo cuando vuelva la señal. |
+| 🔴 | **No se pudo guardar** | Lo vuelve a intentar solo cada 30 segundos. |
+
+Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** y **Salir de este equipo**. Al salir, en ese equipo no queda nada del historial (sigue en la nube).
+
+**Entre varios equipos.** Lo que sube o corrige un compañero te aparece solo (cada 45 segundos, o al volver a la pestaña). Si dos personas corrigen el mismo listado a la vez, se **juntan los dos cambios**: si fue la misma reserva, gana el último. Si un compañero sube un Excel más nuevo del mismo día, reemplaza al anterior en todos los equipos y conserva lo corregido a mano.
+
+**Solo el administrador** (sección **Administración**, abajo del historial):
+- **Usuarios de recepción:** **+ Nuevo usuario** (nombre, usuario y una contraseña temporal que la web inventa; entrégasela en persona), **Contraseña nueva** (si alguien la olvidó), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
+- **Quién hizo qué:** quién entró, quién subió cada Excel, quién corrigió, agregó o quitó cada reserva, quién imprimió o descargó el PDF, y a qué hora (últimos 30 días).
+- **Borrar** listados del historial (para todos los equipos).
+- **Ajustes de la hoja para todos:** casilla «Llegó» y «Ahorrar papel».
+
+> Si la página se abre con doble clic, en el computador de la casa o mientras Cloudflare no tiene la nube lista, funciona **sola en ese equipo**, como antes (sin pedir usuario).
+
+## 8. Privacidad
+
+- **El Excel no sale de tu equipo**: el editador lo lee ahí mismo. A la nube (una base de datos D1 de Cloudflare, del proyecto) solo va el **listado ya armado** —reserva, habitaciones, agencia, titular y estado del preregistro—, quién hizo cada cosa y los usuarios. Las contraseñas se guardan **cifradas** (PBKDF2): ni el administrador puede verlas.
+- **Solo entran los usuarios de recepción** y **todo se borra solo a los 30 días** (listados y «Quién hizo qué»). Son nombres de huéspedes (datos personales, Ley 1581 de 2012): conviene que el hotel lo sepa y no guardar más de lo necesario.
 - La hoja solo lleva **reserva, habitaciones, agencia, titular y estado del preregistro**. Nada de documentos, teléfonos, saldos ni tarjetas: aunque vengan en el Excel, se ignoran.
 - La página les pide a los buscadores que **no la indexen, no la guarden y no muestren nada de ella**. Por eso **no hay `robots.txt`** (Google necesita leer la página para ver esa orden). Tampoco tiene descripción, vista previa para redes, `sitemap` ni nada de SEO, y no les cuenta a otros sitios de dónde vienes (`referrer: no-referrer`).
-- Cualquier persona **con el enlace** puede abrirla, pero **no ve tus listados**: cada equipo guarda solo lo suyo.
-- **Opcional:** Cloudflare permite pedir un código por correo antes de abrir la página (**Cloudflare Access**, gratis hasta 50 usuarios).
+- Cualquier persona **con el enlace** ve solo la pantalla **Entrar**: sin usuario no ve ningún listado. Después de 5 contraseñas malas seguidas, ese usuario espera 15 minutos.
 - Es una herramienta de apoyo: antes de imprimir, revisa que la lista coincida con la extranet.
 
-## 8. Solución de problemas
+## 9. Solución de problemas
 
 | Pasa esto | Haz esto |
 |---|---|
@@ -138,9 +169,15 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 | El tema cambió solo | En automático, el modo noche va de 6 p. m. a 6 a. m. Cámbialo con el botón **Tema**. |
 | Quiero la casilla para chulear las llegadas | **Más ajustes** → **Casilla «Llegó» en la hoja**. |
 | Con el celular acostado no veo todo el diálogo | **Guardar** y **Cancelar** siempre quedan abajo a la vista; desliza dentro del diálogo para ver los demás campos. |
-| La dirección del editador da «404» | En Cloudflare falta decir que la página está en la carpeta `sitio` (ver [punto 9](#9-para-quien-mantiene-la-página)). |
+| «Usuario o contraseña incorrectos» | Las mayúsculas cuentan (usa el 👁 para ver lo que escribes). Si la olvidaste, el administrador te pone una **Contraseña nueva**. |
+| «Demasiados intentos: espera 15 minutos» | Se equivocaron 5 veces seguidas con ese usuario. Espera y vuelve a intentar, o pide una contraseña nueva. |
+| «Tu sesión se venció: entra otra vez» | Pasó el turno (o el administrador te desactivó o te cambió la contraseña). Entra otra vez: lo que habías hecho se sube al entrar. |
+| El botón dice **Sin señal** | Se cayó el internet. Sigue trabajando: todo queda en el equipo y se sube solo cuando vuelva. No toques **Salir** hasta que diga **Guardado**. |
+| No sale la pantalla **Entrar** en la dirección publicada | La nube aún no está lista en Cloudflare: la página trabaja sola en cada equipo. Revisa el [punto 10](#10-para-quien-mantiene-la-página) («Activar la nube»). |
+| El administrador olvidó su contraseña | Ver «Si el administrador olvida su contraseña» en el [punto 10](#10-para-quien-mantiene-la-página). |
+| La dirección del editador da «404» | En Cloudflare falta decir que la página está en la carpeta `sitio` (ver [punto 10](#10-para-quien-mantiene-la-página)). |
 
-## 9. Para quien mantiene la página
+## 10. Para quien mantiene la página
 
 ### Qué hay en el repositorio
 
@@ -148,6 +185,9 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 EDIT-DE-RESERVAS-DORADO-PLAZA-BG/
 ├── README.md        ← esta guía
 ├── CLAUDE.md        ← contexto técnico para trabajar con Claude (NO se publica)
+├── functions/
+│   └── api/[[ruta]].js  ← LA NUBE (v1.3): usuarios, sesiones y listados en la base D1.
+│                          Cloudflare la ejecuta en /api/…, pero no se publica como archivo
 └── sitio/           ← LO ÚNICO QUE SE PUBLICA EN CLOUDFLARE PAGES
     ├── index.html                  ← la página
     ├── css/
@@ -175,7 +215,12 @@ EDIT-DE-RESERVAS-DORADO-PLAZA-BG/
   cd sitio
   python -m http.server 8000
   ```
-  y abre `http://localhost:8000`.
+  y abre `http://localhost:8000`. Así **no hay nube**: la página trabaja sola en el equipo.
+- **Con la nube de prueba** (usuarios, historial compartido), con Node instalado, desde la carpeta del repositorio:
+  ```bash
+  npx wrangler pages dev sitio --port 8788 --d1 DB=editador-local --binding CLAVE_INICIAL=PruebaLocal123
+  ```
+  y abre `http://localhost:8788`. Es una base de prueba **en tu computador** (no toca la de verdad). Wrangler crea una carpeta `.wrangler/`: no la subas a GitHub.
 
 ### Cómo se publica (automático desde GitHub)
 
@@ -192,30 +237,53 @@ La configuración de compilación tiene que quedar así (Cloudflare → **Worker
 
 > ⚠️ Si **Build output directory** queda vacío, Cloudflare publica el repositorio entero: la dirección principal da **404** y `README.md` y `CLAUDE.md` quedan a la vista en internet. Después de cambiarlo: **Deployments** → **⋯** → **Retry deployment**.
 
+### Activar la nube en Cloudflare (una sola vez, desde v1.3)
+
+Lo mismo que se hizo en el Manual de turnos, con otros nombres. Mientras no esté, la página sigue funcionando sola en cada equipo.
+
+1. **Crear la base de datos:** dash.cloudflare.com → **Almacenamiento y bases de datos** → **D1 Base de datos SQLite** → **«+ Crear base de datos»** → nombre `editador-reservas-db` → «Ubicación» **sin escoger región** y «Especificar jurisdicción» **sin marcar** → **Crear**. (Las tablas las crea la web sola.)
+2. **Vincularla al proyecto:** **Cómputo** → **Workers y Pages** → `editador-reservas-doradoplaza-bg` → pestaña **Configuración** (arriba a la derecha: **Producción**) → **Vinculaciones** → **«+ Agregar»** → **Base de datos D1** → Nombre de variable: `DB` → Base de datos: `editador-reservas-db` → **Guardar**.
+3. **Poner la clave inicial:** en la misma pestaña → **Variables y secretos** → **«+ Agregar»** → Tipo **Secreto** → Nombre: `CLAVE_INICIAL` → Valor: una clave de **8 caracteres o más** (mejor 12 a 30, letras y números) → **Guardar**. Debe quedar «🔒 Valor cifrado».
+4. **Volver a publicar:** pestaña **Implementaciones** → primera fila → **⋯ → Reintentar implementación**. Las vinculaciones y la clave solo se activan en una publicación nueva.
+5. **Crear el administrador:** abre la página. Sale **Entrar** con el aviso «Primera vez». Escribe el usuario que quieras para ti (por ejemplo `jx`) y la `CLAVE_INICIAL`. Quedas como **administrador** y la web te pide poner **tu propia contraseña**. Desde ahí la `CLAVE_INICIAL` ya no sirve para entrar.
+6. **Crear a los recepcionistas:** sección **Administración** → **+ Nuevo usuario**. A cada uno entrégale en persona su usuario y la contraseña temporal; al entrar pone la suya.
+
+Para revisar si quedó bien, abre `https://editador-reservas-doradoplaza-bg.pages.dev/api/yo`: con todo listo responde `{"usuario":null,…}`. Si falta algo, responde `sin-configurar` y dice en `falta` si es `DB`, `CLAVE_INICIAL` o `CLAVE_INICIAL_CORTA`.
+
+**Si el administrador olvida su contraseña:** si hay otro administrador, él le pone una **Contraseña nueva**. Si no, en Cloudflare: **Variables y secretos** → **«+ Agregar»** → Tipo **Texto** → Nombre `RESCATE_ADMIN` → Valor: tu usuario (por ejemplo `jx`) → **Guardar** → **Reintentar implementación**. Entra con tu usuario y la `CLAVE_INICIAL`, pon tu contraseña nueva y **borra `RESCATE_ADMIN`** (y vuelve a **Reintentar implementación**). Los datos no se pierden.
+
+**Qué no hacer:** no borres ni le cambies el nombre a la base `editador-reservas-db`, a la vinculación `DB` ni al secreto `CLAVE_INICIAL` (ahí viven los datos y el acceso). No mandes contraseñas por chat ni en capturas. No escribas en el editador documentos de huéspedes, tarjetas ni cifras de caja.
+
+**¿Cuánto cuesta?** Nada con el plan gratis: D1 da 5 millones de lecturas, 100.000 escrituras al día y 5 GB, muchísimo más de lo que usa recepción.
+
 ### Trabajar en el computador y en la nube
 
 Una sola rama: **`main`**. Antes de empezar a editar, `git pull` (para traer lo que se hizo en el otro lado); al terminar, commit y `git push` a `main`. Los detalles están en `CLAUDE.md`.
 
-## 10. Pendientes `{POR CONFIRMAR}`
+## 11. Pendientes `{POR CONFIRMAR}`
 
+- **Activar la nube en Cloudflare** (v1.3): ver «Activar la nube en Cloudflare» en el [punto 10](#10-para-quien-mantiene-la-página). Y que el hotel esté de acuerdo con guardar 30 días los nombres de los titulares en la nube.
 - **Cómo prefieren llamar los estados** del preregistro en la hoja: hoy «Con preregistro» para «Preregistro (…) ✔ Completo» y «Web check-in completo» para «Web check-in ✔ Completo».
 - **Otras sedes** (logo, nombre y textos de la hoja): por ahora solo Bocagrande.
 
-## 11. Versiones
+## 12. Versiones
 
 La versión y la hora de la última actualización se ven en la página, debajo del logo. Fechas y horas de Colombia.
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.3** | 17 nov 2026, 3:44 p. m. | **Nube con usuarios** (pedido de JX): cada recepcionista entra con su usuario y contraseña; historial compartido entre todos los equipos (Cloudflare D1) que se borra solo a los 30 días; funciona sin señal y sube al volver; si dos equipos corrigen a la vez se juntan los cambios. **Administrador:** usuarios, «Quién hizo qué», borrar del historial y ajustes de la hoja para todos. **Pantalla de carga** igual a la del Manual de turnos (2,5 s parejos). Contraste del número de versión. |
 | **v1.2** | 17 nov 2026, 2:57 p. m. | Ahora se llama **Editador de reservas DP**. Versión y hora de actualización debajo del logo. README nuevo. Publicación en Cloudflare corregida: solo se publica `sitio/` (la dirección principal abre el editador y `CLAUDE.md` ya no sale en la web). Probado también con el motor de Safari de iPhone. |
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
 Cada cambio que se publica sube la versión (v1.3, v1.4…) y se anota aquí.
 
-## 12. Fuentes, licencias y propiedad
+## 13. Fuentes, licencias y propiedad
 
 - Publicación conectada a Git y configuración de compilación: [Cloudflare Pages · Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/) y [Build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/).
+- Nube: [Cloudflare D1](https://developers.cloudflare.com/d1/) ([precios y límites gratis](https://developers.cloudflare.com/d1/platform/pricing/)) y [Pages Functions](https://developers.cloudflare.com/pages/functions/) (la carpeta `functions/` se publica con la conexión a GitHub; arrastrando la carpeta no: [Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/)).
+- Datos personales: [Ley 1581 de 2012](https://www.unidadvictimas.gov.co/wp-content/uploads/Documentos/ley/Ley_1581_2012.pdf) y [concepto de la SIC sobre la nube](https://sedeelectronica.sic.gov.co/sites/default/files/normatividad/Concepto_14-76566.pdf) (no es asesoría legal).
 - Privacidad sin `robots.txt`: [Google · Bloquear la indexación con noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing).
 - Compartir solo el PDF (sin texto): [WebKit · bug 251500](https://bugs.webkit.org/show_bug.cgi?id=251500).
 - Formatos: el .xlsx es Office Open XML ([ECMA-376](https://ecma-international.org/publications-and-standards/standards/ecma-376/)) comprimido con DEFLATE ([RFC 1951](https://www.rfc-editor.org/rfc/rfc1951)); el PDF usa Helvetica, una de las letras estándar que trae todo lector de PDF.

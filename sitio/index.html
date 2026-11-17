@@ -39,10 +39,19 @@
 </head>
 <body>
   <!-- Pantalla de carga «Trazo de oro» (la misma de las otras webs), con fondo de
-       vidrio. Sale al entrar y mientras se lee el Excel (app.js → «Subir»). -->
-  <script src="js/cargador-dorado.min.js" data-fondo="vidrio" data-auto="inicio" data-inicio="siempre" data-minimo="1500"
+       vidrio. Sale al entrar y mientras se lee el Excel (app.js → «Subir»).
+       (v1.3, pedido de JX: «me gusta más el logo como se mueve en la de turnos»): igual que el
+       Manual de turnos v1.15 → el % sube PAREJO de 0 a 100 en 2,5 s, sin pausas, y sale rápido.
+       El recuerdo del % de otra visita se borra antes, para que siempre arranque en 0. -->
+  <script>try { window.sessionStorage.removeItem('dorado-loader:continuar'); } catch (e) { /* almacenamiento bloqueado */ }</script>
+  <script src="js/cargador-dorado.min.js" data-fondo="vidrio" data-auto="inicio" data-inicio="siempre" data-minimo="1500" data-salida="rapida"
           data-etiqueta="Editador de reservas DP"
-          data-mensajes="Preparando el listado…|Un momento…"></script>
+          data-mensajes="Preparando el editador…|Un momento…"></script>
+  <!-- el % sube parejo hasta 95 % mientras carga; app.js lo lleva a 100 % a los 2,5 s (CARGA_TOTAL_MS) y la pantalla se va -->
+  <script>if (window.DoradoLoader) { (function (L, t0) { document.documentElement.setAttribute('data-carga', String(t0));
+    L.progreso(100); L.progreso(0);   // 100 y luego 0 = el cargador reinicia su % en 0
+    window.rampaCargaInicio = setInterval(function () { var p = Math.min(95, (Date.now() - t0) / 25); L.progreso(p); if (p >= 95) { clearInterval(window.rampaCargaInicio); } }, 40);
+  })(window.DoradoLoader, Date.now()); }</script>
 
   <a class="saltar" href="#subir">Ir a subir el Excel</a>
 
@@ -57,11 +66,16 @@
          alt="Dorado Plaza · Recepción · Hotel Dorado Plaza · Bocagrande" fetchpriority="high">
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica, con fecha y hora de Colombia.
          Formato: «v1.N · DD mmm AAAA · H:MM a. m./p. m.». El mismo dato va en README.md («Versiones») y CLAUDE.md. -->
-    <p class="encabezado__version"><span class="encabezado__version-num">v1.2</span> · actualizado el 17 nov 2026, 2:57 p. m.</p>
+    <p class="encabezado__version"><span class="encabezado__version-num">v1.3</span> · actualizado el 17 nov 2026, 3:44 p. m.</p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
     <div class="ajustes-rapidos">
+      <!-- CUENTA Y NUBE (v1.3): quién entró y si todo está guardado en la nube. Abre #dlg-cuenta. Solo con la nube activa. -->
+      <button type="button" class="boton-mini cuenta-boton" id="btn-cuenta" hidden aria-haspopup="dialog">
+        <span class="punto" id="cuenta-punto" data-color="gris" aria-hidden="true"></span>
+        <span id="cuenta-texto">Cuenta</span>
+      </button>
       <button type="button" class="boton-mini" id="btn-tema" aria-label="Cambiar tema">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
         <span id="btn-tema-texto">Tema: automático</span>
@@ -77,6 +91,7 @@
             <input type="checkbox" id="aj-apretar" checked>
             <span>Ahorrar papel <small>(si apretando un poco la letra la hoja cabe en menos páginas, se aprieta)</small></span>
           </label>
+          <p class="nota ajustes__nota" id="aj-nota-admin" hidden>La casilla y «Ahorrar papel» son iguales para todos: solo el administrador los cambia.</p>
           <p class="nota ajustes__nota">El modo noche solo cambia la pantalla: la hoja siempre sale en blanco.</p>
         </div>
       </details>
@@ -84,6 +99,48 @@
   </header>
 
   <main id="contenido">
+
+    <!-- ===========================================================
+         SECCIÓN: ENTRAR (v1.3, solo con la nube activa)
+         Qué es: la puerta. Cada recepcionista entra con SU usuario y contraseña
+         (los crea el admin). Mientras no se entra, no se ve nada más.
+         La primera vez (sin usuarios), quien entre con la CLAVE_INICIAL de
+         Cloudflare queda como administrador.
+         Depende de: «Nube y cuenta» en app.js; functions/api/[[ruta]].js
+         =========================================================== -->
+    <section class="seccion entrar" id="entrar" aria-labelledby="entrar-titulo" hidden>
+      <form class="tarjeta entrar__caja" id="form-entrar" novalidate>
+        <span class="entrar__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.2-7 9.5-4-1.3-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 16.2c.9-1.7 2.2-2.5 3.8-2.5s2.9.8 3.8 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <h2 class="entrar__titulo" id="entrar-titulo">Entrar</h2>
+        <p class="nota entrar__sub" id="entrar-sub">Solo para recepción: escribe tu usuario y tu contraseña.</p>
+        <p class="aviso-caja" id="entrar-primera" hidden>Primera vez: escribe el usuario que quieras para ti (por ejemplo, <strong>jx</strong>) y la <strong>clave inicial</strong> que pusiste en Cloudflare. Quedarás como <strong>administrador</strong> y luego pondrás tu propia contraseña.</p>
+        <label class="campo" for="e-usuario">
+          <span class="campo__etiqueta">Usuario</span>
+          <input type="text" id="e-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" required>
+        </label>
+        <div class="campo">
+          <label class="campo__etiqueta" for="e-clave">Contraseña</label>
+          <span class="campo-clave">
+            <input type="password" id="e-clave" autocomplete="current-password" maxlength="100" required>
+            <button type="button" class="campo-clave__ojo" data-ojo="e-clave" aria-label="Mostrar la contraseña" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </span>
+        </div>
+        <p class="nota entrar__mayus" id="e-mayus" hidden>Ojo: tienes las MAYÚSCULAS activadas.</p>
+        <label class="interruptor entrar__recordar">
+          <input type="checkbox" id="e-recordar">
+          <span>Recordar en este equipo <small>(30 días; no lo marques en un equipo que no sea de recepción)</small></span>
+        </label>
+        <p class="campo__error" id="e-error" role="alert" hidden></p>
+        <button type="submit" class="boton boton--primario entrar__boton" id="e-entrar">Entrar</button>
+        <details class="entrar__ayuda">
+          <summary>¿No tienes usuario o olvidaste la contraseña?</summary>
+          <p>Pídeselo al administrador de la web (JX): él crea los usuarios y les pone una contraseña nueva.</p>
+        </details>
+        <p class="nota entrar__privacidad">El Excel se lee en este equipo. En la nube solo queda el listado (reserva, habitaciones, agencia y titular), lo ven solo los usuarios de recepción y se borra solo a los 30 días.</p>
+      </form>
+    </section>
 
     <!-- ===========================================================
          SECCIÓN: SUBIR EL EXCEL
@@ -98,7 +155,7 @@
           <svg class="soltar__icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7.5L19 8v12.5H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 3.5V8H19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 18v-6m0 0l-2.5 2.5M13 12l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="soltar__titulo" id="soltar-titulo">Escoge el Excel de la extranet</span>
           <span class="soltar__sub">o arrástralo y suéltalo aquí</span>
-          <span class="soltar__nota">El archivo .xlsx tal cual se descarga. Se lee en este equipo: <strong>no se sube a internet</strong>.</span>
+          <span class="soltar__nota">El archivo .xlsx tal cual se descarga. Se lee en este equipo: <strong>el Excel no se sube a internet</strong>.</span>
         </label>
       </div>
       <p class="campo__error subir__error" id="subir-error" role="alert" hidden></p>
@@ -186,6 +243,33 @@
       <p class="nota historial__nota" id="historial-nota" hidden><span id="historial-nota-texto">Se guardan hasta 30 listados, solo en este equipo. Si el equipo es compartido, bórralos cuando ya no los necesites.</span>
         <button type="button" class="enlace enlace--peligro" id="btn-borrar-historial">Borrar todo el historial</button></p>
     </section>
+
+    <!-- ===========================================================
+         SECCIÓN: ADMINISTRACIÓN (v1.3, solo el admin y solo con la nube)
+         Qué es: los usuarios de recepción (crear, contraseña nueva, activar,
+         desactivar, hacer admin) y quién hizo qué (actividad de 30 días).
+         Depende de: «Admin» en app.js; /api/usuarios y /api/actividad
+         =========================================================== -->
+    <section class="seccion" id="admin" aria-labelledby="admin-titulo" hidden>
+      <h2 class="seccion__titulo" id="admin-titulo">Administración</h2>
+      <div class="tarjeta admin__bloque">
+        <div class="admin__cabeza">
+          <h3 class="subtitulo">Usuarios de recepción</h3>
+          <button type="button" class="boton boton--secundario boton--chico" id="btn-nuevo-usuario">+ Nuevo usuario</button>
+        </div>
+        <p class="nota">Cada recepcionista entra con su usuario. Si alguien se va, desactívalo: no podrá entrar y lo demás sigue igual.</p>
+        <ul class="usuarios" id="lista-usuarios"></ul>
+      </div>
+      <div class="tarjeta admin__bloque">
+        <div class="admin__cabeza">
+          <h3 class="subtitulo">Quién hizo qué</h3>
+          <button type="button" class="boton boton--secundario boton--chico" id="btn-actualizar-actividad">Actualizar</button>
+        </div>
+        <p class="nota" id="actividad-nota">Entradas, Excel subidos, correcciones, impresiones y PDF de los últimos 30 días.</p>
+        <ol class="actividad" id="lista-actividad"></ol>
+        <button type="button" class="enlace" id="btn-mas-actividad" hidden>Ver más</button>
+      </div>
+    </section>
   </main>
 
   <!-- ===========================================================
@@ -195,7 +279,7 @@
        Depende de: .pie y .footer-dev en estilos.css
        =========================================================== -->
   <footer class="pie">
-    <p class="pie__nota">Herramienta interna de recepción. El Excel se lee en tu equipo y no se sube a internet.</p>
+    <p class="pie__nota" id="pie-privacidad">Herramienta interna de recepción. El Excel se lee en tu equipo y no se sube a internet.</p>
     <p class="pie__nota">Antes de imprimir, revisa que la lista coincida con la extranet.</p>
     <p class="footer-dev">
       <span class="footer-dev-txt">Diseño y desarrollo:</span>
@@ -271,6 +355,87 @@
       <div class="dialogo__extra">
         <button type="button" class="enlace" id="r-restaurar" hidden>Volver a lo del Excel</button>
         <button type="button" class="enlace enlace--peligro" id="r-quitar" hidden>Quitar de la hoja</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ===========================================================
+       DIÁLOGO: MI CUENTA Y LA NUBE (v1.3)
+       Qué es: quién entró, si todo está guardado en la nube, «Guardar ahora»,
+       cambiar la contraseña propia y salir. Si el admin le puso una contraseña
+       temporal, se abre solo y obliga a poner una nueva.
+       Depende de: «Nube y cuenta» en app.js
+       =========================================================== -->
+  <dialog class="dialogo" id="dlg-cuenta" aria-labelledby="cuenta-titulo">
+    <div class="dialogo__caja">
+      <h2 class="dialogo__titulo" id="cuenta-titulo" tabindex="-1">Mi cuenta</h2>
+      <p class="nota" id="cuenta-quien"></p>
+      <p class="estado-nube" id="cuenta-estado"><span class="punto" id="cuenta-estado-punto" data-color="gris" aria-hidden="true"></span><span id="cuenta-estado-texto"></span></p>
+      <div class="dialogo__botones" id="cuenta-botones">
+        <button type="button" class="boton boton--primario" id="btn-guardar-ahora">Guardar ahora</button>
+        <button type="button" class="boton boton--secundario" id="btn-cerrar-cuenta">Cerrar</button>
+      </div>
+      <form class="cuenta__clave" id="form-clave" novalidate>
+        <h3 class="subtitulo" id="clave-titulo">Cambiar mi contraseña</h3>
+        <p class="aviso-caja" id="clave-obligada" hidden>El administrador te puso una contraseña temporal: escribe una tuya para seguir.</p>
+        <label class="campo" for="c-actual">
+          <span class="campo__etiqueta">Contraseña actual</span>
+          <input type="password" id="c-actual" autocomplete="current-password" maxlength="100">
+        </label>
+        <div class="campo">
+          <label class="campo__etiqueta" for="c-nueva">Contraseña nueva <small class="nota">(8 o más letras o números)</small></label>
+          <span class="campo-clave">
+            <input type="password" id="c-nueva" autocomplete="new-password" maxlength="100">
+            <button type="button" class="campo-clave__ojo" data-ojo="c-nueva" aria-label="Mostrar la contraseña" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </span>
+        </div>
+        <p class="campo__error" id="c-error" role="alert" hidden></p>
+        <button type="submit" class="boton boton--secundario cuenta__boton" id="btn-cambiar-clave">Cambiar contraseña</button>
+      </form>
+      <div class="dialogo__extra">
+        <button type="button" class="enlace" id="btn-ir-admin" hidden>Usuarios y actividad</button>
+        <button type="button" class="enlace enlace--peligro" id="btn-salir">Salir de este equipo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- DIÁLOGO: USUARIO NUEVO O CONTRASEÑA NUEVA (solo el admin, v1.3) -->
+  <dialog class="dialogo" id="dlg-usuario" aria-labelledby="u-titulo">
+    <form class="dialogo__caja" id="form-usuario" novalidate>
+      <h2 class="dialogo__titulo" id="u-titulo" tabindex="-1">Nuevo usuario</h2>
+      <p class="nota dialogo__origen" id="u-ayuda">La persona entra con este usuario y la contraseña temporal; al entrar, la web le pide poner una suya.</p>
+      <div id="u-datos">
+        <label class="campo" for="u-nombre">
+          <span class="campo__etiqueta">Nombre</span>
+          <input type="text" id="u-nombre" maxlength="40" autocomplete="off" placeholder="Ej.: Ana María">
+        </label>
+        <label class="campo" for="u-usuario">
+          <span class="campo__etiqueta">Usuario <small class="nota">(sin espacios: letras, números, punto o guion)</small></span>
+          <input type="text" id="u-usuario" maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Ej.: ana">
+        </label>
+        <label class="campo" for="u-rol">
+          <span class="campo__etiqueta">Permisos</span>
+          <span class="selector"><select id="u-rol">
+            <option value="recepcion">Recepción (sube, corrige, imprime)</option>
+            <option value="admin">Administrador (además usuarios, actividad, borrar y ajustes)</option>
+          </select></span>
+        </label>
+      </div>
+      <div class="campo">
+        <label class="campo__etiqueta" for="u-clave">Contraseña temporal <small class="nota">(8 o más)</small></label>
+        <span class="campo-clave">
+          <input type="text" id="u-clave" maxlength="100" autocomplete="off" spellcheck="false">
+          <button type="button" class="campo-clave__ojo campo-clave__azar" id="u-azar" aria-label="Inventar una contraseña temporal">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11M4 17h11M15 4l3 3-3 3M15 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </span>
+      </div>
+      <p class="campo__error" id="u-error" role="alert" hidden></p>
+      <div class="dialogo__botones">
+        <button type="submit" class="boton boton--primario" id="u-guardar">Crear usuario</button>
+        <button type="button" class="boton boton--secundario" id="u-cancelar">Cancelar</button>
       </div>
     </form>
   </dialog>
