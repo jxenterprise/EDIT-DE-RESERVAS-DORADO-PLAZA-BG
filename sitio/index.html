@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     LISTADO DE RESERVAS DP · RECEPCIÓN · HOTEL DORADO PLAZA BOCAGRANDE
+     index.html — estructura de la página (una sola página).
+
+     Qué es: herramienta interna de recepción. Se sube el Excel del día que
+     se descarga de la extranet y la página arma la hoja «LISTADO DE
+     RESERVAS» (una línea por reserva con su número mayor de habitaciones)
+     lista para imprimir, descargar en PDF o compartir.
+
+     El Excel NO se sube a internet: se lee en el mismo equipo (js/lector-excel.js).
+     Las reglas del listado están en js/listado.js, la hoja y el PDF en
+     js/hoja.js y todo lo que se mueve en pantalla en js/app.js.
+
+     PRIVADA A PROPÓSITO: sin SEO, sin vista previa al compartir y sin
+     robots.txt. Solo se entra con el enlace. La etiqueta «robots noindex»
+     le dice a Google que NO la muestre aunque llegue a encontrarla.
+     Se publica SOLO la carpeta sitio/ (README.md y CLAUDE.md quedan fuera).
+     ===================================================================== -->
+<html lang="es" data-tema="claro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Listado de reservas DP · Recepción Dorado Plaza Bocagrande</title>
+  <!-- privada: que ningún buscador la guarde ni la muestre -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <!-- que el enlace de esta página no viaje a otros sitios -->
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#FBF8F1">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="icon" href="img/favicon-dorado-plaza.svg" type="image/svg+xml">
+  <link rel="icon" href="img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <link rel="preload" href="css/fuentes/karla-regular-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/cargador-dorado.min.css">
+  <link rel="stylesheet" href="css/estilos.css">
+  <!-- tema claro/oscuro antes de pintar (evita el destello blanco de noche) -->
+  <script src="js/tema.js"></script>
+</head>
+<body>
+  <!-- Pantalla de carga «Trazo de oro» (la misma de las otras webs), con fondo de
+       vidrio. Sale al entrar y mientras se lee el Excel (app.js → «Subir»). -->
+  <script src="js/cargador-dorado.min.js" data-fondo="vidrio" data-auto="inicio" data-inicio="siempre" data-minimo="1500"
+          data-etiqueta="Listado de reservas DP"
+          data-mensajes="Preparando el listado…|Un momento…"></script>
+
+  <a class="saltar" href="#subir">Ir a subir el Excel</a>
+
+  <!-- ===========================================================
+       ENCABEZADO
+       Qué es: logo de Recepción Bocagrande, título y ajustes (tema,
+       casilla «Llegó» de la hoja y «Ahorrar papel»).
+       Depende de: .encabezado y .ajustes en css/estilos.css; «Ajustes» en app.js
+       =========================================================== -->
+  <header class="encabezado">
+    <img class="encabezado__logo" src="img/logo-dorado-plaza-recepcion-bocagrande.webp" width="1200" height="878"
+         alt="Dorado Plaza · Recepción · Hotel Dorado Plaza · Bocagrande" fetchpriority="high">
+    <h1 class="encabezado__titulo">Listado de reservas DP</h1>
+    <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
+
+    <div class="ajustes-rapidos">
+      <button type="button" class="boton-mini" id="btn-tema" aria-label="Cambiar tema">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <span id="btn-tema-texto">Tema: automático</span>
+      </button>
+      <details class="ajustes">
+        <summary class="boton-mini">Más ajustes</summary>
+        <div class="ajustes__panel">
+          <label class="interruptor">
+            <input type="checkbox" id="aj-casilla">
+            <span>Casilla «Llegó» en la hoja <small>(un cuadrito por reserva para chulear con lapicero)</small></span>
+          </label>
+          <label class="interruptor ajustes__otro">
+            <input type="checkbox" id="aj-apretar" checked>
+            <span>Ahorrar papel <small>(si apretando un poco la letra la hoja cabe en menos páginas, se aprieta)</small></span>
+          </label>
+          <p class="nota ajustes__nota">El modo noche solo cambia la pantalla: la hoja siempre sale en blanco.</p>
+        </div>
+      </details>
+    </div>
+  </header>
+
+  <main id="contenido">
+
+    <!-- ===========================================================
+         SECCIÓN: SUBIR EL EXCEL
+         Qué es: la zona para escoger (o arrastrar) el .xlsx de la extranet.
+         Depende de: #input-excel, #zona-soltar; «Subir» en app.js
+         =========================================================== -->
+    <section class="seccion" id="subir" aria-labelledby="subir-titulo">
+      <h2 class="seccion__titulo" id="subir-titulo">Sube el Excel</h2>
+      <div class="soltar" id="zona-soltar">
+        <input type="file" id="input-excel" class="solo-lector" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+        <label for="input-excel" class="soltar__caja">
+          <svg class="soltar__icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7.5L19 8v12.5H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 3.5V8H19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 18v-6m0 0l-2.5 2.5M13 12l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="soltar__titulo" id="soltar-titulo">Escoge el Excel de la extranet</span>
+          <span class="soltar__sub">o arrástralo y suéltalo aquí</span>
+          <span class="soltar__nota">El archivo .xlsx tal cual se descarga. Se lee en este equipo: <strong>no se sube a internet</strong>.</span>
+        </label>
+      </div>
+      <p class="campo__error subir__error" id="subir-error" role="alert" hidden></p>
+      <ol class="pasos">
+        <li><span>1</span>Descarga el Excel del día en la extranet.</li>
+        <li><span>2</span>Súbelo aquí: la página deja una línea por reserva.</li>
+        <li><span>3</span>Revisa, imprime o comparte el PDF.</li>
+      </ol>
+    </section>
+
+    <!-- ===========================================================
+         SECCIÓN: RESUMEN
+         Qué es: totales del listado, de qué archivo salió, la fecha que va
+         en la hoja (por defecto, hoy), los avisos de revisión y las
+         novedades frente a la descarga anterior del mismo día.
+         Depende de: «Pintar» en app.js; reglas en js/listado.js
+         =========================================================== -->
+    <section class="seccion" id="resumen" aria-labelledby="resumen-titulo" hidden>
+      <h2 class="seccion__titulo" id="resumen-titulo">Resumen</h2>
+      <div class="tarjeta resumen">
+        <div class="resumen__totales">
+          <p class="resumen__total"><strong id="total-hab">0</strong><span id="total-hab-texto">habitaciones</span></p>
+          <p class="resumen__total"><strong id="total-res">0</strong><span id="total-res-texto">reservas</span></p>
+        </div>
+        <p class="nota resumen__origen" id="resumen-origen"></p>
+        <div class="resumen__fecha">
+          <label class="campo" for="fecha-hoja">
+            <span class="campo__etiqueta">Fecha que sale en la hoja</span>
+            <input type="date" id="fecha-hoja" required>
+          </label>
+          <button type="button" class="boton boton--secundario" id="btn-fecha-hoy">Hoy</button>
+        </div>
+        <p class="nota resumen__fecha-texto" id="fecha-texto" aria-live="polite"></p>
+      </div>
+      <ul class="avisos" id="lista-avisos"></ul>
+      <div class="tarjeta novedades" id="novedades" hidden>
+        <h3 class="subtitulo" id="novedades-titulo">Novedades</h3>
+        <p class="nota" id="novedades-resumen"></p>
+        <ul class="novedades__lista" id="novedades-lista"></ul>
+        <p class="nota" id="novedades-conservadas" hidden></p>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         SECCIÓN: REVISA LA LISTA
+         Qué es: las reservas tal como saldrán en la hoja. Tocando una se
+         corrige; también se puede agregar una que falte o quitar una.
+         Depende de: #lista-reservas, #dlg-reserva; «Editar» en app.js
+         =========================================================== -->
+    <section class="seccion" id="lista" aria-labelledby="lista-titulo" hidden>
+      <h2 class="seccion__titulo" id="lista-titulo">Revisa la lista</h2>
+      <p class="seccion__ayuda">Así saldrá en la hoja. Toca una reserva para corregirla.</p>
+      <ol class="reservas" id="lista-reservas"></ol>
+      <div class="lista__acciones">
+        <button type="button" class="boton boton--suave" id="btn-agregar">+ Agregar una reserva que falte</button>
+      </div>
+      <details class="quitadas" id="quitadas" hidden>
+        <summary>Quitadas de la hoja <span id="quitadas-num"></span></summary>
+        <ul class="quitadas__lista" id="lista-quitadas"></ul>
+      </details>
+    </section>
+
+    <!-- ===========================================================
+         SECCIÓN: HOJA LISTA
+         Qué es: la vista previa exacta de la hoja tamaño carta (lo mismo
+         que sale por la impresora y en el PDF). La dibuja js/hoja.js.
+         Depende de: #hojas; «Hoja» en app.js; @media print en estilos.css
+         =========================================================== -->
+    <section class="seccion" id="hoja" aria-labelledby="hoja-titulo" hidden>
+      <h2 class="seccion__titulo" id="hoja-titulo">Hoja lista</h2>
+      <p class="seccion__ayuda" id="hoja-ayuda"></p>
+      <div class="hojas" id="hojas"></div>
+    </section>
+
+    <!-- ===========================================================
+         SECCIÓN: HISTORIAL
+         Qué es: los listados de los últimos días, guardados SOLO en este
+         equipo, para volver a imprimirlos sin subir el Excel otra vez.
+         Depende de: #lista-historial; «Historial» en app.js
+         =========================================================== -->
+    <section class="seccion" id="historial" aria-labelledby="historial-titulo">
+      <h2 class="seccion__titulo" id="historial-titulo">Historial</h2>
+      <p class="nota" id="historial-vacio">Todavía no hay listados guardados. Cada Excel que subas queda aquí para volver a imprimirlo.</p>
+      <ul class="historial" id="lista-historial"></ul>
+      <p class="nota historial__nota" id="historial-nota" hidden><span id="historial-nota-texto">Se guardan hasta 30 listados, solo en este equipo. Si el equipo es compartido, bórralos cuando ya no los necesites.</span>
+        <button type="button" class="enlace enlace--peligro" id="btn-borrar-historial">Borrar todo el historial</button></p>
+    </section>
+  </main>
+
+  <!-- ===========================================================
+       PIE
+       Qué es: nota de privacidad + crédito de JX Company (formato exacto
+       de JX). La hoja impresa NO lleva el crédito.
+       Depende de: .pie y .footer-dev en estilos.css
+       =========================================================== -->
+  <footer class="pie">
+    <p class="pie__nota">Herramienta interna de recepción. El Excel se lee en tu equipo y no se sube a internet.</p>
+    <p class="pie__nota">Antes de imprimir, revisa que la lista coincida con la extranet.</p>
+    <p class="footer-dev">
+      <span class="footer-dev-txt">Diseño y desarrollo:</span>
+      <span class="footer-dev-jx">JX</span>
+      <span class="footer-dev-co">Company</span>
+    </p>
+  </footer>
+
+  <!-- ===========================================================
+       BARRA DE ACCIONES (fija abajo cuando hay una hoja lista)
+       Qué es: Imprimir · Descargar PDF · Compartir.
+       Depende de: .acciones en estilos.css; «Salida» en app.js
+       =========================================================== -->
+  <section class="acciones" id="acciones" aria-label="Sacar la hoja" hidden>
+    <button type="button" class="boton boton--primario" id="btn-imprimir">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1.5 1.5 0 0 1-1.5-1.5v-5A1.5 1.5 0 0 1 5 9h14a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 19 17h-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M7 14h10v6H7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      Imprimir
+    </button>
+    <button type="button" class="boton boton--secundario" id="btn-pdf" aria-label="Descargar PDF">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span><span class="acciones__largo">Descargar </span>PDF</span>
+    </button>
+    <button type="button" class="boton boton--secundario" id="btn-compartir">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="18" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.6 10.8l6.3-3.6M8.6 13.2l6.3 3.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      Compartir
+    </button>
+  </section>
+
+  <!-- ===========================================================
+       DIÁLOGO: CORREGIR / AGREGAR UNA RESERVA
+       Qué es: los 4 datos de la hoja + el estado del preregistro. Para
+       las que vienen del Excel permite restaurar lo original o quitarla.
+       Depende de: «Editar» en app.js
+       =========================================================== -->
+  <dialog class="dialogo" id="dlg-reserva" aria-labelledby="dlg-reserva-titulo">
+    <form class="dialogo__caja" id="form-reserva" method="dialog" novalidate>
+      <h2 class="dialogo__titulo" id="dlg-reserva-titulo" tabindex="-1">Corregir reserva</h2>
+      <p class="nota dialogo__origen" id="r-origen"></p>
+      <div class="fila fila--2">
+        <label class="campo" for="r-cod">
+          <span class="campo__etiqueta">Nro. reserva</span>
+          <input type="text" id="r-cod" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" required placeholder="Ej.: DP130033">
+        </label>
+        <label class="campo" for="r-hab">
+          <span class="campo__etiqueta">Nro. hab</span>
+          <input type="text" id="r-hab" inputmode="numeric" maxlength="3" autocomplete="off" required placeholder="Ej.: 2">
+        </label>
+      </div>
+      <label class="campo" for="r-ag">
+        <span class="campo__etiqueta">Agencia</span>
+        <input type="text" id="r-ag" maxlength="90" autocomplete="off" autocapitalize="characters">
+      </label>
+      <div class="sugerencias" id="r-var-ag" hidden></div>
+      <label class="campo" for="r-ti">
+        <span class="campo__etiqueta">Titular</span>
+        <input type="text" id="r-ti" maxlength="90" autocomplete="off" autocapitalize="characters">
+      </label>
+      <div class="sugerencias" id="r-var-ti" hidden></div>
+      <label class="campo" for="r-pre">
+        <span class="campo__etiqueta">Debajo del código</span>
+        <span class="selector"><select id="r-pre">
+          <option value="sin">Sin preregistro</option>
+          <option value="con">Con preregistro</option>
+          <option value="web">Web check-in completo</option>
+          <option value="">No poner nada</option>
+        </select></span>
+      </label>
+      <p class="campo__error" id="r-error" role="alert" hidden></p>
+      <div class="dialogo__botones">
+        <button type="submit" class="boton boton--primario" id="r-guardar">Guardar</button>
+        <button type="button" class="boton boton--secundario" id="r-cancelar">Cancelar</button>
+      </div>
+      <div class="dialogo__extra">
+        <button type="button" class="enlace" id="r-restaurar" hidden>Volver a lo del Excel</button>
+        <button type="button" class="enlace enlace--peligro" id="r-quitar" hidden>Quitar de la hoja</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- DIÁLOGO: CONFIRMAR (reemplaza al confirm() del navegador) -->
+  <dialog class="dialogo" id="dlg-confirmar" aria-labelledby="conf-texto">
+    <div class="dialogo__caja">
+      <p class="dialogo__texto" id="conf-texto"></p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--primario" id="conf-si">Sí</button>
+        <button type="button" class="boton boton--secundario" id="conf-no">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Aviso flotante («PDF descargado», «Reserva agregada», etc.) -->
+  <div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+
+  <script src="js/logo-vector.js" defer></script>
+  <script src="js/lector-excel.js" defer></script>
+  <script src="js/listado.js" defer></script>
+  <script src="js/hoja.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
