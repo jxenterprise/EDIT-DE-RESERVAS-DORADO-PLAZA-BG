@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.5** · 17 nov 2026, 5:40 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.6** · 17 nov 2026, 5:51 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -277,10 +277,11 @@ Una sola rama: **`main`**. Antes de empezar a editar, `git pull` (para traer lo 
 
 ## 12. Versiones
 
-En la página, debajo del logo, se ve **solo el número de la versión** con «V» mayúscula (desde v1.4/v1.5, pedido de JX). La fecha y la hora de cada versión se anotan aquí y en `CLAUDE.md`. Horas de Colombia.
+En la página, debajo del logo, se ve **solo el número de la versión** con «v» minúscula (desde v1.6, pedido de JX). La fecha y la hora de cada versión se anotan aquí y en `CLAUDE.md`. Horas de Colombia.
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.6** | 17 nov 2026, 5:51 p. m. | La versión debajo del logo vuelve a la «v» minúscula (pedido de JX). |
 | **v1.5** | 17 nov 2026, 5:40 p. m. | **Ventanitas como las del Manual de turnos**: basurita roja que se dibuja en 360° en todo lo que se elimina (con «Deshacer» 10 s), ✓ verde en todo lo que sale bien (se quita solo a los 8 s), ✗ roja en los errores y puerta dorada al salir. Guía **«Tu hoja está aquí abajo ↓»** (una vez por entrada, 8 s). La versión debajo del logo un poco más pequeña y con «V» mayúscula. Arreglo para Safari: el ✓ de la fecha salía dos veces. |
 | **v1.4** | 17 nov 2026, 4:23 p. m. | Botón **Eliminar** (🗑 rojo) en la barra de abajo, junto a Imprimir / PDF / Compartir: solo aparece con un Excel subido y quita ese listado (también del historial) después de confirmar. Debajo del logo queda **solo la versión** (sin fecha ni hora). La barra cabe con 4 botones desde el plegable de 280 px hasta PC. |
 | **v1.3** | 17 nov 2026, 3:46 p. m. | **Nube con usuarios** (pedido de JX): cada recepcionista entra con su usuario y contraseña; historial compartido entre todos los equipos (Cloudflare D1) que se borra solo a los 30 días; funciona sin señal y sube al volver; si dos equipos corrigen a la vez se juntan los cambios. **Administrador:** usuarios, «Quién hizo qué», borrar del historial y ajustes de la hoja para todos. **Pantalla de carga** igual a la del Manual de turnos (2,5 s parejos). Contraste del número de versión. |
@@ -288,7 +289,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «V
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.6, v1.7…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.7, v1.8…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
