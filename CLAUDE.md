@@ -1,4 +1,6 @@
-# CLAUDE.md · Listado de reservas DP · Recepción · Hotel Dorado Plaza Bocagrande
+# CLAUDE.md · Editador de reservas DP · Recepción · Hotel Dorado Plaza Bocagrande
+
+> **Nombre:** el proyecto se llama **«Editador de reservas DP»** (decisión de JX, 2026-11-17; «editador» es el nombre que JX escogió, no corregirlo a «editor»). La HOJA impresa sigue titulada «LISTADO DE RESERVAS» (eso no cambia).
 
 Contexto para que cualquier chat futuro (de Claude u otra IA) retome este proyecto sin adivinar. **Se amplía, nunca se borra lo anterior.**
 
@@ -8,7 +10,9 @@ Contexto para que cualquier chat futuro (de Claude u otra IA) retome este proyec
 - **🔄 Sincronizar PC ↔ GitHub ↔ nube (pedido de JX el 2026-11-17):** se trabaja en los dos lados con **una sola rama: `main`**. Al EMPEZAR cualquier sesión: `git pull` (traer lo que se hizo en el otro lado). Al TERMINAR: commit + `git push` a `main`. Si una sesión en la nube crea una rama `claude/…`, al final se une a `main` (avance directo) para que la PC la reciba con `git pull`.
   - **En la PC de JX (Windows)** la carpeta es `C:\Users\jampi\Documents\JX COMPANY\PAGINAS WEBS JX\Listado_Reservas_DP_Recepcion_Dorado_Plaza_Bocagrande\Listado_Reservas_DP_Recepcion_Dorado_Plaza_Bocagrande`. GitHub CLI tiene dos cuentas: la activa (`Jampier-Developer`) **no puede subir** a este repo; la que sube es `jxenterprise`. Por eso el repo local usa `origin = https://jxenterprise@github.com/…` y un ayudante de credenciales **local de este repo** que pide `gh auth token -u jxenterprise` al momento (no hay token guardado en archivos). Si un push falla por permisos, revisar con `git config --local --get-all credential.https://github.com.helper`. No cambiar la cuenta activa global de JX sin preguntarle.
 - **Sesión 2 (revisión de errores y responsive, prioridad PC):** se probó en 15 pantallas (PC 1024/1280/1366/1536/1920/2560, iPad Mini, Galaxy S9+ 320, Pixel 7, iPhone SE, iPhone 13, iPhone 15 Pro Max, iPhone 13 y Pixel 7 acostados, plegable 280 px), en claro y noche, + 28 pruebas de funciones. Lo corregido está en la tabla de la v1.1 (sección Historial).
-- **Lo que falta (no es código, son datos de JX):** los `{POR CONFIRMAR}` del final. Publicar la carpeta `sitio/` en Cloudflare Pages (README §9) lo hace JX.
+- **Publicada:** <https://editador-reservas-doradoplaza-bg.pages.dev> (Cloudflare Pages conectado a GitHub, publica solo con cada push a `main`). **El 2026-11-17 daba 404** porque el «Build output directory» estaba vacío y se publicaba la raíz del repo (y `README.md`/`CLAUDE.md` quedaban públicos). Se le pidió a JX poner `sitio` en Settings → Build → Build configuration y hacer «Retry deployment». Verificar con `curl -s -o /dev/null -w "%{http_code}" <url>/` (debe dar 200) y `<url>/CLAUDE.md` (debe dar 404).
+- **El repo de GitHub es PÚBLICO**: todo lo que se escriba en `CLAUDE.md` y `README.md` lo puede leer cualquiera. No poner datos sensibles.
+- **Lo que falta (no es código, son datos de JX):** los `{POR CONFIRMAR}` del final.
 - **Ideas propuestas a JX y aún NO aprobadas** (no construir sin preguntarle, con AskUserQuestion): «Ideas pendientes de aprobar», al final de este archivo.
 - **Cómo probar rápido:** `cd sitio && python3 -m http.server 8765` y abrir `http://localhost:8765/`. Para probar en serio: Playwright (viene instalado en las sesiones en la nube) + Excel de prueba hechos con `openpyxl` (fila 1 vacía, títulos en la fila 2: «Nro reserva», «Nro hab», «Agencia», «Titular», «Checkin»…; la celda de reserva tipo `DP130000      Preregistro (EXTRANET)⚠ Incompleto`). Los scripts de prueba NO se suben al repo (regla de archivos de JX).
 - **Ojo al medir con scripts:** el panel de «Más ajustes» cerrado (`<details>`) devuelve medidas aunque no se vea; no es un desborde real.
@@ -22,7 +26,7 @@ Contexto para que cualquier chat futuro (de Claude u otra IA) retome este proyec
 - **Preregistro** (viene pegado en la celda «Nro reserva»; JX: «Dame lo mejor»): «… ⚠ Incompleto» o «Sin preregistro» → **Sin preregistro** · «Preregistro (…) ✔ Completo» o «Con preregistro» → **Con preregistro** · «Web check-in ✔ Completo» → **Web check-in completo** · cualquier otro estado → tal cual (limpio, máx. 40 letras) + aviso en pantalla. Sale en letra pequeña debajo del código, como en el PDF de JX.
 - **Crédito:** `Diseño y desarrollo: JX Company` **solo en el pie de la web**, con el formato exacto (`.footer-dev`). **La hoja impresa NO lleva crédito.** Nunca «JX Studio».
 - **Proyectos hermanos:** Web Check-in Dorado Plaza (sistema de diseño, letra Karla, pantalla de carga «Trazo de oro» v2.1 con fondo de vidrio) y Manual de turnos de recepción (estructura, `tema.js`, logo «RECEPCIÓN · HOTEL DORADO PLAZA · BOCAGRANDE», crédito). De ahí se copiaron el cargador, el logo WebP, los favicons y Karla.
-- **Dónde se publica:** Cloudflare Pages, proyecto `reservas-dp-bg` → `https://reservas-dp-bg.pages.dev` {POR CONFIRMAR: la dirección exacta la asigna Cloudflare si el nombre está ocupado}. Se sube **solo la carpeta `sitio/`** (arrastrar y soltar).
+- **Dónde se publica:** Cloudflare Pages, proyecto `editador-reservas-doradoplaza-bg` → `https://editador-reservas-doradoplaza-bg.pages.dev`, **conectado a GitHub** (rama `main`). Configuración: Framework `None`, Build command vacío, **Build output directory `sitio`**, Root directory vacío. Se publica **solo `sitio/`**.
 
 ## Reglas de trabajo con JX
 
@@ -170,13 +174,12 @@ Copiados tal cual del Manual de turnos (generados con las herramientas de `fuent
 
 ## `{POR CONFIRMAR}` pendientes
 
-1. **Dirección final en Cloudflare** (`reservas-dp-bg.pages.dev` si el nombre está libre).
-2. **Nombre oficial de los estados del preregistro** en el hotel: hoy «Preregistro (…) ✔ Completo» sale «Con preregistro» y «Web check-in ✔ Completo» sale «Web check-in completo». Confirmar con JX que así le sirven (se cambian en `listado.js → TEXTO_PRE`).
-3. **Otras sedes** (logo, nombre, subtítulo y pie de la hoja): hoy solo Bocagrande.
-4. **Foto del 16-11:** trae 12 reservas / 23 hab; el Excel del 16-11 que mandó JX da 10 / 21 (DP130033 y DP127613 no vienen en ese archivo, y el orden de DP130280/DP125379 difiere). Lo más probable: la foto salió de otra descarga. Con el Excel del 17-11 todo coincide exacto con su PDF.
+1. **Nombre oficial de los estados del preregistro** en el hotel: hoy «Preregistro (…) ✔ Completo» sale «Con preregistro» y «Web check-in ✔ Completo» sale «Web check-in completo». Confirmar con JX que así le sirven (se cambian en `listado.js → TEXTO_PRE`).
+2. **Otras sedes** (logo, nombre, subtítulo y pie de la hoja): hoy solo Bocagrande.
+3. **Foto del 16-11:** trae 12 reservas / 23 hab; el Excel del 16-11 que mandó JX da 10 / 21 (DP130033 y DP127613 no vienen en ese archivo, y el orden de DP130280/DP125379 difiere). Lo más probable: la foto salió de otra descarga. Con el Excel del 17-11 todo coincide exacto con su PDF.
 
 ## Fuentes
-`background-attachment: fixed` en iOS (soporte parcial con fallas; se usa `::before` fijo): https://caniuse.com/mdn-css_properties_background-attachment_fixed · https://bugs.webkit.org/show_bug.cgi?id=275247 · Áreas seguras con `env(safe-area-inset-*)` y `viewport-fit=cover`: https://css-tricks.com/?p=260090 · https://web.dev/learn/design/screen-configurations · Cloudflare Pages · Direct Upload (pasos de arrastrar y soltar, 1.000 archivos / 25 MiB por archivo, actualizado el 21-04-2026): https://developers.cloudflare.com/pages/get-started/direct-upload/ · Google · Bloquear la indexación con noindex: https://developers.google.com/search/docs/crawling-indexing/block-indexing · WebKit bug 251500 (compartir archivo + texto): https://bugs.webkit.org/show_bug.cgi?id=251500 · RFC 1951 (DEFLATE): https://www.rfc-editor.org/rfc/rfc1951 · ECMA-376 (Office Open XML): https://ecma-international.org/publications-and-standards/standards/ecma-376/ · Métricas de Helvetica: las AFM estándar de Adobe (vía ReportLab).
+`background-attachment: fixed` en iOS (soporte parcial con fallas; se usa `::before` fijo): https://caniuse.com/mdn-css_properties_background-attachment_fixed · https://bugs.webkit.org/show_bug.cgi?id=275247 · Áreas seguras con `env(safe-area-inset-*)` y `viewport-fit=cover`: https://css-tricks.com/?p=260090 · https://web.dev/learn/design/screen-configurations · Cloudflare Pages · Git integration y Build configuration (root directory vacío = raíz del repo; output directory = carpeta que se publica): https://developers.cloudflare.com/pages/get-started/git-integration/ · https://developers.cloudflare.com/pages/configuration/build-configuration/ · Google · Bloquear la indexación con noindex: https://developers.google.com/search/docs/crawling-indexing/block-indexing · WebKit bug 251500 (compartir archivo + texto): https://bugs.webkit.org/show_bug.cgi?id=251500 · RFC 1951 (DEFLATE): https://www.rfc-editor.org/rfc/rfc1951 · ECMA-376 (Office Open XML): https://ecma-international.org/publications-and-standards/standards/ecma-376/ · Métricas de Helvetica: las AFM estándar de Adobe (vía ReportLab).
 
 ## Historial
 - **2026-11-16 · base.** Preguntas a JX y respuestas; lector de Excel, reglas, hoja (SVG + PDF) y logo vectorial.
