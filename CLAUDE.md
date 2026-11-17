@@ -2,6 +2,15 @@
 
 Contexto para que cualquier chat futuro (de Claude u otra IA) retome este proyecto sin adivinar. **Se amplía, nunca se borra lo anterior.**
 
+## 📍 Por dónde vamos (LÉEME PRIMERO) — actualizado 2026-11-17, sesión 2
+
+- **Estado:** v1.1 terminada y en GitHub (`jxenterprise/EDIT-DE-RESERVAS-DORADO-PLAZA-BG`, rama de trabajo `claude/gallant-lovelace-cqk0qq`). Funciona completa: subir Excel → lista → corregir/agregar/quitar → hoja → Imprimir / PDF / Compartir → historial. **No hay errores conocidos abiertos.**
+- **Sesión 2 (revisión de errores y responsive, prioridad PC):** se probó en 15 pantallas (PC 1024/1280/1366/1536/1920/2560, iPad Mini, Galaxy S9+ 320, Pixel 7, iPhone SE, iPhone 13, iPhone 15 Pro Max, iPhone 13 y Pixel 7 acostados, plegable 280 px), en claro y noche, + 28 pruebas de funciones. Lo corregido está en la tabla de la v1.1 (sección Historial).
+- **Lo que falta (no es código, son datos de JX):** los `{POR CONFIRMAR}` del final. Publicar la carpeta `sitio/` en Cloudflare Pages (README §9) lo hace JX.
+- **Ideas propuestas a JX y aún NO aprobadas** (no construir sin preguntarle, con AskUserQuestion): «Ideas pendientes de aprobar», al final de este archivo.
+- **Cómo probar rápido:** `cd sitio && python3 -m http.server 8765` y abrir `http://localhost:8765/`. Para probar en serio: Playwright (viene instalado en las sesiones en la nube) + Excel de prueba hechos con `openpyxl` (fila 1 vacía, títulos en la fila 2: «Nro reserva», «Nro hab», «Agencia», «Titular», «Checkin»…; la celda de reserva tipo `DP130000      Preregistro (EXTRANET)⚠ Incompleto`). Los scripts de prueba NO se suben al repo (regla de archivos de JX).
+- **Ojo al medir con scripts:** el panel de «Más ajustes» cerrado (`<details>`) devuelve medidas aunque no se vea; no es un desborde real.
+
 ## De qué trata
 
 - **Qué es:** herramienta interna de una sola página (HTML + CSS + JS, sin servidor ni librerías). Recepción sube el **Excel del día que descarga de la extranet** (`https://extranet.doradoplaza.com/extranet/`) y la página arma la hoja **«LISTADO DE RESERVAS»** tamaño carta, igual al PDF de referencia de JX (`Reservas_DP_17-11-2026.pdf`, hecho con ReportLab) y a su foto de la hoja del 16-11: logo dorado, título, «Códigos DP · Recepción Hotel Dorado Plaza Bocagrande», fecha, tabla de 4 columnas, totales y pie. Se imprime, se descarga en PDF o se comparte.
@@ -44,8 +53,8 @@ Cualquier sección, componente, botón o página que se agregue a futuro debe us
 - **Tamaños:** cuerpo 16 px (campos 16 px: el iPhone no hace zoom), etiquetas 14–14.5 px, ayudas 13 px, h1 `clamp(23px, 6.4vw, 30px)`, totales 34 px (≤ 380) / 40 / 46 px (≥ 760), número de habitaciones en la lista 17–20 px, chips 12.5 px.
 - **Radios:** tarjetas `--radio 18px`, campos `--radio-campo 12px`, botones 14 px, avisos 12–14 px, diálogos 20 px, píldoras 999 px.
 - **Sombras:** `--sombra` (tarjetas), `--sombra-boton` (botón dorado), `--sombra-papel` (las hojas de la vista previa).
-- **Espaciados:** márgenes laterales 16 px (12 px ≤ 380 px), tarjetas 16 px de relleno (20 px desde 520 px), ancho máximo del contenido 760 → 820 (≥ 1000 px) → 880 px (≥ 1440 px).
-- **Patrones de componente:** `.tarjeta`; botones `.boton--primario` (degradado `--boton-oro`), `.boton--secundario`, `.boton-mini` (píldora 44 px), `.enlace` (`--peligro` en rojo); `.interruptor` (casillas de ajustes); `.soltar` (zona punteada dorada para el Excel; se compacta cuando ya hay hoja); `.resumen__total` (número grande + palabra); `.avisos li[data-tipo=bien|info|ojo]`; `.chip` (`--nueva`, `--cambio`, `--revisar`, `--mano`); `.reserva` (botón-tarjeta con círculo del número de habitaciones y borde izquierdo de color según la marca); `.hoja__pagina` (papel 612:792 con sombra); `.historial`; barra `.acciones` fija abajo (desde 760 px, flotante centrada); `<dialog class="dialogo">`; aviso flotante `.aviso` (`--alerta`); pantalla de carga «Trazo de oro» v2.1 (`data-fondo="vidrio"`), oscurecida en modo noche.
+- **Espaciados:** márgenes laterales 16 px (12 px ≤ 380 px) **+ el área segura** (`--izq`/`--der` = `env(safe-area-inset-left/right)`, para el «notch» del iPhone acostado; también en encabezado, pie y barra), tarjetas 16 px de relleno (20 px desde 520 px), ancho máximo del contenido 760 → 820 (≥ 1000 px) → 880 px (≥ 1440 px).
+- **Patrones de componente:** `.tarjeta`; botones `.boton--primario` (degradado `--boton-oro`), `.boton--secundario`, `.boton-mini` (píldora 44 px), `.enlace` (`--peligro` en rojo); `.interruptor` (casillas de ajustes); `.ajustes__panel` (panel FLOTANTE de «Más ajustes», centrado bajo los botones, `position:absolute` respecto a `.ajustes-rapidos`: al abrirlo no mueve nada; se cierra tocando fuera o con Escape, en `app.js → eventosAjustes`); `.soltar` (zona punteada dorada para el Excel; se compacta cuando ya hay hoja); `.resumen__total` (número grande + palabra); `.avisos li[data-tipo=bien|info|ojo]`; `.chip` (`--nueva`, `--cambio`, `--revisar`, `--mano`); `.reserva` (botón-tarjeta con círculo del número de habitaciones y borde izquierdo de color según la marca); `.hoja__pagina` (papel 612:792 con sombra); `.historial`; barra `.acciones` fija abajo (desde 760 px, flotante centrada); `<dialog class="dialogo">`; aviso flotante `.aviso` (`--alerta`); pantalla de carga «Trazo de oro» v2.1 (`data-fondo="vidrio"`), oscurecida en modo noche.
 
 **Ficha de diseño — la HOJA impresa** (`sitio/js/hoja.js`, sección 1; medidas en puntos, carta 612 × 792, **copiadas del PDF de JX**):
 - Colores: bronce `#A67C3D` (marco, línea, banda de la tabla, bordes, subtítulo y números) · tinta `#2E2418` · gris `#7A6E5E` (preregistro y pie) · cebra `#F6EFE2` (filas pares y caja de totales) · rayitas `#E3D5BA` · papel `#FFFFFF`.
@@ -102,7 +111,7 @@ Cualquier sección, componente, botón o página que se agregue a futuro debe us
 Una sola página; en el `<head>`: privacidad (robots/referrer), íconos, `preload` de Karla, `cargador-dorado.min.css`, `estilos.css` y `tema.js` (síncrono). Primer elemento del `<body>`: el cargador con `data-fondo="vidrio" data-auto="inicio" data-inicio="siempre" data-minimo="1500" data-etiqueta="Listado de reservas DP"`. Al final, con `defer` y en este orden: `logo-vector.js`, `lector-excel.js`, `listado.js`, `hoja.js`, `app.js`. Resumen, lista, hoja y barra empiezan `hidden` y aparecen con la clase `html.hay-hoja`.
 
 ### `sitio/css/estilos.css` (18 secciones, índice al inicio)
-1 variables, temas y letras (Karla y «Hoja Sans») · 2 base · 3 encabezado y ajustes · 4 secciones y tarjetas · 5 campos · 6 botones · 7 subir el Excel (+ velo «Suelta el Excel…» al arrastrar: `html.arrastrando`) · 8 resumen, avisos y novedades · 9 lista de reservas · 10 hoja (papel blanco siempre) · 11 historial · 12 pie y crédito JX (formato exacto) · 13 barra de acciones (columnas `auto` para que ningún botón corte su texto) · 14 diálogos y aviso · 15 cargador en modo noche · 16 pantallas (440: «Descargar PDF» completo; 520, 760, 1000, 1440; ≤ 380) · 17 accesibilidad y movimiento reducido · 18 **impresión** (`@page letter, margin 0`; solo se imprime `#hojas`, cada página 8.5 × 11 in).
+1 variables, temas y letras (Karla y «Hoja Sans»; `--abajo`, `--izq`, `--der` = áreas seguras) · 2 base (el fondo marfil va en `body::before` fijo, NO con `background-attachment: fixed`) · 3 encabezado y ajustes · 4 secciones y tarjetas · 5 campos · 6 botones · 7 subir el Excel (+ velo «Suelta el Excel…» al arrastrar: `html.arrastrando`) · 8 resumen, avisos y novedades · 9 lista de reservas · 10 hoja (papel blanco siempre) · 11 historial · 12 pie y crédito JX (formato exacto) · 13 barra de acciones (columnas `auto` para que ningún botón corte su texto) · 14 diálogos y aviso · 15 cargador en modo noche · 16 pantallas (440: «Descargar PDF» completo; 520, 760, 1000, 1440; ≤ 380; **bajitas**: `max-height: 640px` → Guardar/Cancelar del diálogo pegados abajo (sticky); `max-height: 500px` acostado → barra de 62 px y logo de 180 px) · 17 accesibilidad y movimiento reducido · 18 **impresión** (`@page letter, margin 0`; solo se imprime `#hojas`, cada página 8.5 × 11 in; `body::before` escondido).
 
 ### `sitio/js/tema.js`
 Lee `reservas-dp-bg:ajustes.tema` y pone `data-tema` + `theme-color` antes de pintar (sin destello blanco de noche).
@@ -126,10 +135,10 @@ El logo de la hoja en vectores (`ancho 997.8`, `alto 730.1`, `remolino` con degr
 4. **Estado:** `ajustes`, saneadores `filaSana`/`listadoSano` (un dato viejo nunca rompe la página), `listados` (máx. 30), `actual`, `maqueta`, `tocar()`.
 5. **Subir y leer:** `procesar(archivo)` (máx. 25 MB) → `Lector.leer` → `Reglas.armar` → `etapas()` (mensajes del cargador: «Leyendo el Excel…», «Dejando solo reserva, habitaciones, agencia y titular…», «Uniendo las habitaciones de cada reserva…», «Armando la hoja…») → `cargarListado` (`esElMismo` + `Reglas.fusionar`; respeta una fecha cambiada a mano); errores en `#subir-error`; arrastrar y soltar en toda la página.
 6. **Pintar:** `pintarTodo`, `pintarResumen`, `pintarAvisos` (fecha ≠ check-in con botón «Usar…», sin número, letras dañadas con «Corregir las sugeridas», no DP, otro estado, variantes, tildes arregladas, filas sin código, «no deja guardar», «Todo en orden»), `pintarNovedades`, `pintarLista` (botones con nombre completo para lector de pantalla), `pintarHoja`.
-7. **Corregir / agregar / quitar:** `abrirEditor` (con mouse el cursor va al campo; en pantallas táctiles al título, para que no salte el teclado), `pintarSugerencias` («Usar: …»), `guardarEditor` (código único, hab 1–999), restaurar, quitar/borrar, acciones `data-accion` (devolver, aplicar-sugerencias, fecha-checkin, volver-a-agregar), fecha y «Hoy».
+7. **Corregir / agregar / quitar:** `abrirEditor` (con mouse el cursor va al campo; en pantallas táctiles — `(pointer: coarse), (hover: none)` — al título, para que no salte el teclado), `pintarSugerencias` («Usar: …»), `guardarEditor` (código único, hab 1–999), restaurar, quitar/borrar, acciones `data-accion` (devolver, aplicar-sugerencias, fecha-checkin, volver-a-agregar), fecha y «Hoy».
 8. **Salida:** imprimir (`beforeprint` pone el título `Reservas_DP_DD-MM-AAAA` para «Guardar como PDF»), `hacerPdf`, `descargar`, compartir (`navigator.canShare({files})`; si no, descarga y avisa).
 9. **Historial:** `pintarHistorial`, abrir, borrar, borrar todo (con confirmación).
-10. **Tema y ajustes:** `temaEfectivo`, `aplicarTema`, casilla «Llegó», «Ahorrar papel».
+10. **Tema y ajustes:** `temaEfectivo`, `aplicarTema`, casilla «Llegó», «Ahorrar papel», cerrar «Más ajustes» al tocar fuera / Escape.
 11. **Confirmar y aviso:** `confirmar()` con `<dialog>`, `aviso()` flotante.
 12. **Arranque:** `iniciar()` → eventos, recupera el listado de hoy, y `DoradoLoader.seguir([letras de la hoja, document.fonts.ready])` para que la pantalla de carga se vaya cuando todo está listo.
 
@@ -148,6 +157,11 @@ Copiados tal cual del Manual de turnos (generados con las herramientas de `fuent
 - Abierta con doble clic (`file://`): funciona todo (Excel, hoja, PDF); solo el `preload` de Karla da un aviso de CORS en la consola.
 - Los scripts de prueba no se entregan (regla de archivos de JX). Para repetirlas: servir `sitio/` con `python3 -m http.server`, Playwright + los Excel de ejemplo de JX.
 
+### Pruebas de la sesión 2 (2026-11-17, Chromium + Playwright 1.63, `python3 -m http.server`)
+- **Pantallas (claro y noche):** PC 1024×768, 1280×720, 1366×768, 1536×864, 1920×1080, 2560×1440 · iPad Mini · Galaxy S9+ (320) · Pixel 7 · iPhone SE · iPhone 13 · iPhone 15 Pro Max · iPhone 13 y Pixel 7 acostados · plegable 280 px. En todas: sin scroll horizontal, nada se sale, la barra no tapa el pie, el diálogo cabe (acostado: Guardar/Cancelar visibles sin scroll), 0 errores ni advertencias en consola. Con 8, 23 y 60 reservas.
+- **Funciones (28/28):** «Más ajustes» no mueve los botones, se cierra fuera/Escape y no al tocar dentro · 2 archivos malos con su mensaje · 23 reservas / 42 hab en 2 hojas · «Corregir la sugerida» · agregar · código repetido · corregir y «Volver a lo del Excel» · quitar y devolver · PDF `Reservas_DP_17-11-2026.pdf` · impresión: solo la hoja, 2 páginas carta, sin el fondo · novedades con un segundo Excel (conserva la agregada) · Excel del 18 → «Usar 18/11/2026» · historial (2 listados, abrir) · recargar · 60 reservas en 3 hojas. ESLint en modo ES5: 0 errores.
+- **No se pudo probar aquí:** Safari real de iPhone (solo hay Chromium; se emularon los tamaños) ni el «notch» real (`env(safe-area-inset-*)` vale 0 en Chromium). Si JX ve algo raro en su iPhone, pedirle captura.
+
 ### Auditoría de 24 puntos (skill de JX) — herramienta interna privada
 ✅ 2 HTML real (la estructura está en el HTML; lo del Excel lo pinta JS porque sale del archivo) · ✅ 4 `<title>` real · ✅ 5 un solo HTML · ✅ 9–10 un `<h1>` · ✅ 14 favicon + apple-touch-icon + theme-color · ✅ 16 `lang="es"`, charset, viewport · ✅ 17 `alt` en el logo · ✅ 18 sin `.map`, `.env` ni carpetas de build · ✅ 19 cero errores y advertencias en consola (servido por http) · ✅ 20 sin frameworks, WebP, `fetchpriority` en el logo, `defer`, fuentes locales · ✅ 23 sin panel (opción c): zonas editables documentadas aquí y en el README · ✅ 24 código sin minificar (el cargador trae su versión legible), propiedad en el README.
 ➖ No aplican por la regla de privacidad de JX (herramienta interna que no debe aparecer en Google): 1 dominio propio (va en `*.pages.dev`), 3 `404.html`, 6 description, 7 Open Graph, 8 JSON-LD, 11 canonical, 12 `llms.txt`, 13 `robots.txt`, 15 sitemap, 21 páginas legales y cookies (no hay cookies, analítica ni datos que salgan del equipo), 22 Google Analytics.
@@ -160,11 +174,23 @@ Copiados tal cual del Manual de turnos (generados con las herramientas de `fuent
 4. **Foto del 16-11:** trae 12 reservas / 23 hab; el Excel del 16-11 que mandó JX da 10 / 21 (DP130033 y DP127613 no vienen en ese archivo, y el orden de DP130280/DP125379 difiere). Lo más probable: la foto salió de otra descarga. Con el Excel del 17-11 todo coincide exacto con su PDF.
 
 ## Fuentes
-Cloudflare Pages · Direct Upload (pasos de arrastrar y soltar, 1.000 archivos / 25 MiB por archivo, actualizado el 21-04-2026): https://developers.cloudflare.com/pages/get-started/direct-upload/ · Google · Bloquear la indexación con noindex: https://developers.google.com/search/docs/crawling-indexing/block-indexing · WebKit bug 251500 (compartir archivo + texto): https://bugs.webkit.org/show_bug.cgi?id=251500 · RFC 1951 (DEFLATE): https://www.rfc-editor.org/rfc/rfc1951 · ECMA-376 (Office Open XML): https://ecma-international.org/publications-and-standards/standards/ecma-376/ · Métricas de Helvetica: las AFM estándar de Adobe (vía ReportLab).
+`background-attachment: fixed` en iOS (soporte parcial con fallas; se usa `::before` fijo): https://caniuse.com/mdn-css_properties_background-attachment_fixed · https://bugs.webkit.org/show_bug.cgi?id=275247 · Áreas seguras con `env(safe-area-inset-*)` y `viewport-fit=cover`: https://css-tricks.com/?p=260090 · https://web.dev/learn/design/screen-configurations · Cloudflare Pages · Direct Upload (pasos de arrastrar y soltar, 1.000 archivos / 25 MiB por archivo, actualizado el 21-04-2026): https://developers.cloudflare.com/pages/get-started/direct-upload/ · Google · Bloquear la indexación con noindex: https://developers.google.com/search/docs/crawling-indexing/block-indexing · WebKit bug 251500 (compartir archivo + texto): https://bugs.webkit.org/show_bug.cgi?id=251500 · RFC 1951 (DEFLATE): https://www.rfc-editor.org/rfc/rfc1951 · ECMA-376 (Office Open XML): https://ecma-international.org/publications-and-standards/standards/ecma-376/ · Métricas de Helvetica: las AFM estándar de Adobe (vía ReportLab).
 
 ## Historial
 - **2026-11-16 · base.** Preguntas a JX y respuestas; lector de Excel, reglas, hoja (SVG + PDF) y logo vectorial.
 - **2026-11-17 · v1.** Hoja calcada del PDF de JX (`Reservas_DP_17-11-2026.pdf`); Excel completo y de 4 columnas; estados del preregistro de hoy (incluido «Web check-in completo»); casilla «Llegó» apagada por defecto; «Ahorrar papel»; botón «Usar fecha de llegada»; página probada completa (funciones, impresión, PDF, celular, accesibilidad); README y este archivo.
+- **2026-11-17 · v1.1 (sesión 2) · revisión de errores y responsive.** JX pidió «busca errores, el más mínimo, y responsive para Android e iPhone, prioridad PC». La hoja, las reglas y el PDF NO se tocaron.
+
+  | Error corregido | Dónde | Arreglo |
+  |---|---|---|
+  | Al abrir «Más ajustes» los botones saltaban (en PC «Tema» se corría a la izquierda; en celular «Más ajustes» se bajaba de renglón bajo el dedo) | `estilos.css` §3, `app.js` §10 | Panel flotante centrado (`position:absolute`), se cierra tocando fuera o con Escape |
+  | iPhone acostado: con `viewport-fit=cover` el contenido podía quedar debajo del «notch» | `estilos.css` §1, 3, 4, 12, 13, 16 | Márgenes laterales + `env(safe-area-inset-left/right)` |
+  | Celular acostado e iPhone SE: Guardar/Cancelar del diálogo quedaban fuera de la vista | `estilos.css` §16 | Botones del diálogo pegados abajo (sticky) con ≤ 640 px de alto |
+  | Celular acostado: la barra de abajo ocupaba ~22 % de la pantalla | `estilos.css` §16 | Barra de 62 px y logo más pequeño con ≤ 500 px de alto |
+  | Fondo con `background-attachment: fixed`: tirones al hacer scroll en Android y degradado estirado en iPhone | `estilos.css` §2 y §18 | Fondo en `body::before` fijo (oculto al imprimir) |
+  | `100dvh` sin respaldo (navegadores viejos ignoraban el alto máximo del diálogo) | `estilos.css` §14 | `max-height: calc(100vh - 24px)` antes del `dvh` |
+  | Algunos celulares/tabletas no se detectaban como táctiles y el teclado saltaba al abrir el diálogo | `app.js` §7 | `(pointer: coarse), (hover: none)` |
+  | «Corregir las sugeridas» no refrescaba el historial | `app.js` §7 | `pintarHistorial()` |
 
 ---
 
@@ -255,3 +281,12 @@ for (const q in dRem) { dRem[q] = Math.round(dRem[q] * 10) / 10; }
 //   letras, colorLetras: '#A87B3F', lineaIzq, lineaDer, colorLinea: '#CEA860' } (+ module.exports para Node).
 // Copiar el encabezado y la forma del objeto del logo-vector.js actual al escribir la salida.
 ```
+
+## 💡 Ideas pendientes de aprobar (propuestas a JX en la sesión 2 — NO construir sin su «sí»)
+1. **Atajos de teclado en PC** (Ctrl+P ya imprime; agregar p. ej. Ctrl+S = descargar PDF, Ctrl+O = subir Excel).
+2. **Buscador en «Revisa la lista»** (por código, agencia o titular) para listas largas en temporada alta.
+3. **Resumen por agencia** en pantalla (cuántas reservas/habitaciones trae cada agencia), sin cambiar la hoja.
+4. **Abrir sin internet (PWA con service worker)**: implica `sw.js` y `manifest`, que hoy no permite la regla de archivos → preguntar.
+5. **Marcar llegadas en pantalla** (la casilla «Llegó» digital, guardada en el equipo) y ver «faltan N por llegar».
+6. **Comparar con el día anterior** desde el historial.
+7. **Exportar CSV** del listado limpio (las 4 columnas).

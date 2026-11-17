@@ -99,6 +99,8 @@ Un Excel de **otro día** crea un listado nuevo (el anterior queda en el histori
 - **Más ajustes**:
   - **Casilla «Llegó» en la hoja** (apagada): agrega una columna con un cuadrito por reserva para chulear con lapicero.
   - **Ahorrar papel** (prendido): si apretando un poco la letra la hoja cabe en menos páginas, la aprieta (por ejemplo, 20 reservas en 1 hoja en vez de 2). Apágalo si quieres siempre el espaciado original.
+  - El panel se abre encima de la página (no mueve nada) y se cierra tocando fuera o con la tecla **Esc**.
+- **Pantallas probadas** (17-11-2026): computadores de 1024 a 2560 px de ancho (la prioridad), iPad, Android (Galaxy S9+, Pixel 7) e iPhone (SE, 13, 15 Pro Max), también con el celular acostado, en claro y noche.
 
 ## 7. Qué hay en esta carpeta
 
@@ -174,6 +176,7 @@ Listado_Reservas_DP_Recepcion_Dorado_Plaza_Bocagrande/
 | Al imprimir salen márgenes raros o la hoja se ve pequeña | En la ventana de impresión: tamaño **Carta**, márgenes **Predeterminados** o **Ninguno**, escala **100 %**. |
 | El tema cambió solo | En automático, el modo noche va de 6 p. m. a 6 a. m. Cámbialo con el botón **Tema**. |
 | Quiero la casilla para chulear las llegadas | **Más ajustes** → **Casilla «Llegó» en la hoja**. |
+| Con el celular acostado no veo todo el diálogo | **Guardar** y **Cancelar** siempre quedan abajo a la vista; desliza dentro del diálogo para ver los demás campos. |
 
 ## 12. Datos pendientes `{POR CONFIRMAR}`
 

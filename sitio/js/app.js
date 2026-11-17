@@ -508,7 +508,7 @@
     if (typeof dlg.showModal === 'function') { dlg.showModal(); } else { dlg.setAttribute('open', ''); }
     // con mouse: el cursor queda listo para escribir. En celular no: el teclado taparía medio diálogo.
     setTimeout(function () {
-      var tactil = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      var tactil = window.matchMedia && window.matchMedia('(pointer: coarse), (hover: none)').matches;   // celular o tableta
       if (tactil) { $('#dlg-reserva-titulo').focus(); } else { (f ? $('#r-ag') : $('#r-cod')).focus(); }
     }, 30);
   }
@@ -592,7 +592,7 @@
           var ag = Reglas.aplicarSugerencias(x.ag), ti = Reglas.aplicarSugerencias(x.ti);
           if (ag !== x.ag || ti !== x.ti) { x.ag = ag; x.ti = ti; n += 1; }
         });
-        tocar(); pintarListado(); aviso(plural(n, 'reserva corregida', 'reservas corregidas') + '. Revísalas en la lista.', 2800);
+        tocar(); pintarListado(); pintarHistorial(); aviso(plural(n, 'reserva corregida', 'reservas corregidas') + '. Revísalas en la lista.', 2800);
       } else if (acc === 'fecha-checkin') {
         if (actual.checkin.length !== 1) { return; }
         actual.fecha = actual.checkin[0]; actual.fechaManual = actual.fecha !== hoyISO();
@@ -748,6 +748,16 @@
       if (actual) { pintarHoja(); }
     });
     setInterval(function () { if (ajustes.tema === 'auto') { aplicarTema(); } }, 60000);
+    /* «Más ajustes» es un panel flotante: se cierra al tocar fuera de él o con Escape */
+    var panel = $('.ajustes');
+    document.addEventListener('click', function (e) {
+      if (panel.open && !panel.contains(e.target)) { panel.open = false; }
+    });
+    document.addEventListener('keydown', function (e) {
+      if ((e.key === 'Escape' || e.key === 'Esc') && panel.open && !document.querySelector('dialog[open]')) {
+        panel.open = false; panel.querySelector('summary').focus();
+      }
+    });
   }
 
   /* ================================================================
