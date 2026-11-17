@@ -238,6 +238,9 @@ async function cambiarClave(db, request, quien) {
   const c = await cuerpoDe(request);
   const actual = limpiaClave(c.actual), nueva = limpiaClave(c.nueva);
   const fila = await db.prepare('SELECT * FROM usuarios WHERE id = ?1').bind(quien.id).first();
+  // v1.7 (JX: «yo agrego los usuarios y la contraseña… yo mismo se las doy»): recepción NO cambia su contraseña;
+  // solo el admin (y quien tiene el cambio obligado: el primer admin con CLAVE_INICIAL o el rescate)
+  if (fila && fila.rol !== 'admin' && !fila.cambiar) { return error('solo-admin', 403); }
   if (!fila || !iguales(await pbkdf2(actual, fila.sal), fila.hash)) { await new Promise((ok) => setTimeout(ok, 600)); return error('clave', 403); }
   if (nueva.length < 8) { return error('corta', 400); }
   if (nueva === actual) { return error('igual', 400); }
@@ -345,7 +348,8 @@ async function crearUsuario(db, request, quien) {
   const existe = await db.prepare('SELECT id FROM usuarios WHERE usuario = ?1').bind(usuario).first();
   if (existe) { return error('existe', 409); }
   const sal = azar(16);
-  await db.prepare('INSERT INTO usuarios (usuario, nombre, rol, sal, hash, activo, cambiar, creado) VALUES (?1, ?2, ?3, ?4, ?5, 1, 1, ?6)')
+  // v1.7: cambiar = 0 → entra con la contraseña que le puso el admin, sin que se la pidan cambiar
+  await db.prepare('INSERT INTO usuarios (usuario, nombre, rol, sal, hash, activo, cambiar, creado) VALUES (?1, ?2, ?3, ?4, ?5, 1, 0, ?6)')
     .bind(usuario, nombre, rol, sal, await pbkdf2(clave, sal), Date.now()).run();
   await anotar(db, quien, 'Creó el usuario «' + usuario + '» (' + nombre + (rol === 'admin' ? ', administrador' : '') + ')');
   return verUsuarios(db);
@@ -376,7 +380,7 @@ async function cambiarUsuario(db, request, quien, id) {
     const clave = limpiaClave(c.clave);
     if (clave.length < 8) { return error('corta', 400); }
     const sal = azar(16);
-    cambios.push(['sal', sal], ['hash', await pbkdf2(clave, sal)], ['cambiar', propio ? 0 : 1]);
+    cambios.push(['sal', sal], ['hash', await pbkdf2(clave, sal)], ['cambiar', 0]);   // v1.7: la que pone el admin es la definitiva
     hechos.push('le puso una contraseña nueva');
     if (!propio) { ops.push(db.prepare('DELETE FROM sesiones WHERE usuario_id = ?1').bind(id)); }
   }

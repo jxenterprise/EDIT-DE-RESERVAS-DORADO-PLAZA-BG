@@ -378,6 +378,17 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 
 /* ---------- 9. Lista de reservas (lo que saldrá en la hoja) ---------- */
 .reservas { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+/* v1.8: cada reserva = la tarjeta (botón para corregir) + la basurita roja afuerita, a la derecha */
+.reservas > li { display: flex; align-items: center; gap: 8px; }
+.reservas > li > .reserva { flex: 1 1 auto; min-width: 0; }
+.reserva__borrar {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 14px; cursor: pointer;
+  color: var(--error); background: var(--superficie); border: 1px solid var(--linea);
+  transition: border-color .15s, background-color .15s;
+}
+.reserva__borrar svg { width: 21px; height: 21px; }
+.reserva__borrar:focus-visible { outline: 3px solid var(--oro); outline-offset: 2px; }
+.soltar__archivo { white-space: nowrap; }
 .reserva {
   display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; align-items: center; gap: 4px 12px;
   width: 100%; padding: 11px 14px 11px 12px; text-align: left; color: inherit;
@@ -432,7 +443,7 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 .historial__botones { display: flex; align-items: center; gap: 4px 14px; }
 .historial__nota { margin-top: 10px; }
 
-/* ---------- 12. Pie y crédito de JX Company ---------- */
+/* ---------- 12. Pie y crédito de JX Enterprise ---------- */
 .pie { max-width: 760px; margin: 36px auto 0; padding: 18px calc(16px + var(--der)) 10px calc(16px + var(--izq)); text-align: center; border-top: 1px solid var(--linea); }
 .pie__nota { font-size: 13px; color: var(--texto-suave); max-width: 34em; margin: 0 auto 6px; text-wrap: balance; }
 /* Crédito con el formato EXACTO de JX (no cambiar clases ni tipografía) */
@@ -721,6 +732,8 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
   .reserva { grid-template-columns: 40px minmax(0, 1fr); gap: 4px 10px; padding: 10px 12px 10px 10px; }
   .reserva__hab { width: 40px; height: 40px; font-size: 17px; }
   .reserva__editar { display: none; }
+  .reservas > li { gap: 6px; }
+  .reserva__borrar { width: 40px; height: 44px; border-radius: 12px; }
   .acciones { gap: 6px; padding-left: calc(8px + var(--izq)); padding-right: calc(8px + var(--der)); }
   .acciones .boton { font-size: 13.5px; padding: 0 6px; gap: 5px; }
   .acciones .boton svg { width: 18px; height: 18px; }
@@ -751,7 +764,7 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 /* ---------- 17. Accesibilidad y movimiento reducido ---------- */
 @media (hover: hover) {
   .boton--secundario:hover, .boton-mini:hover, .reserva:hover, .soltar__caja:hover { border-color: var(--oro); }
-  .boton--eliminar:hover { border-color: var(--error); background: var(--error-fondo); }
+  .boton--eliminar:hover, .reserva__borrar:hover { border-color: var(--error); background: var(--error-fondo); }
   .soltar__caja:hover { background: var(--oro-palido); }
   .boton--primario:hover { box-shadow: 0 1px 0 rgba(255, 255, 255, .6) inset, 0 8px 20px rgba(168, 123, 63, .32); }
 }

@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.6** · 17 nov 2026, 5:51 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.8** · 17 nov 2026, 6:45 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -43,7 +43,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 ## 1. Uso diario en 6 pasos
 
-1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el Excel de las llegadas del día, como siempre.
+1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el listado de reservas del día, como siempre. El archivo se llama **«EXTRANET  DORADO PLAZA.xlsx»**.
 2. Abre el editador y toca **«Escoge el Excel de la extranet»**. En el computador también puedes arrastrar el archivo encima de la página.
 3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja.
 4. Mira el **Resumen** (total de habitaciones y de reservas) y los **avisos**. Si todo está bien, dice «Todo en orden».
@@ -84,7 +84,7 @@ Toca cualquier reserva de la lista para abrir **Corregir reserva**:
 
 - Cambia la agencia, el titular, el número de habitaciones o el estado del preregistro y toca **Guardar**. Si el Excel traía otra forma de escribirlo, te la ofrece en **«Usar: …»**.
 - **Volver a lo del Excel**: deshace lo que corregiste.
-- **Quitar de la hoja**: la saca de la hoja. No se borra: queda en **«Quitadas de la hoja»**, con el botón **Devolver a la hoja**.
+- **Quitar de la hoja** (o la **basurita roja** 🗑 que está a la derecha de cada reserva, desde v1.8): pregunta **dos veces** («¿Eliminar esta reserva?» y «¿Segurísimo…?», porque viene del listado original de la extranet). La saca de la hoja: **no sale al imprimir ni en el PDF**. No se borra: queda en **«Quitadas de la hoja»**, con el botón **Devolver a la hoja**, y tienes 10 s para «Deshacer». Las reservas **agregadas a mano** se borran con una sola pregunta.
 - **+ Agregar una reserva que falte**: para una reserva que no vino en el Excel (número, habitaciones, agencia, titular y preregistro).
 
 Lo hecho a mano queda **marcado en la pantalla** («Corregida a mano», «Agregada a mano»), **nunca en la hoja**: la hoja sale limpia, igual a las demás.
@@ -122,7 +122,7 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 - **Todo lo que se elimina pregunta primero** con una ventanita roja y una basurita que se dibuja: eliminar el listado, borrar del historial (uno o todo), quitar una reserva de la hoja, borrar una reserva agregada a mano y desactivar un usuario. El botón «Sí» no funciona en el primer medio segundo, para que un doble toque no borre sin querer. Después sale **«Deshacer (10)»** por 10 segundos.
 - **Todo lo que sale bien muestra un ✓ verde**: listado listo al subir el Excel, reserva guardada o agregada, restaurada, devuelta a la hoja, letras corregidas, fecha cambiada, PDF descargado o compartido, listado abierto del historial, «se deshizo», y con la nube: bienvenida al entrar, contraseña cambiada, usuario creado, administrador, guardado en la nube. **Se quita solo a los 8 segundos** («Entendido (8)»).
-- **Los errores (✗ roja) y las preguntas de eliminar se quedan** hasta que la persona las cierre. También la que muestra la contraseña temporal de un usuario nuevo (hay que anotarla).
+- **Los errores (✗ roja) y las preguntas de eliminar se quedan** hasta que la persona las cierre. También la que muestra la contraseña de un usuario nuevo (hay que anotarla).
 - **Salir de la cuenta** pregunta con una puerta dorada y al final dice «Sesión cerrada».
 - **«Tu hoja está aquí abajo ↓»**: después de subir el Excel, una pastilla dorada a la derecha indica que la hoja está abajo (con la nube dice tu nombre: «Jx, tu hoja está aquí abajo»). Sale **una sola vez por cada vez que entras con tu usuario** (sin la nube, una vez por equipo), nunca al recargar, y se quita sola a los 8 segundos, al bajar hasta la hoja o al tocarla (te lleva a la hoja).
 
@@ -130,7 +130,7 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 **Entrar.** Al abrir el editador sale la pantalla **Entrar**: escribe **tu usuario** y **tu contraseña**. Sin entrar no se ve nada. Marca **«Recordar en este equipo»** solo en los computadores de recepción: así no te la pide durante 30 días. Si no la marcas, la sesión dura un turno (14 horas).
 
-**La primera vez que entras** con la contraseña temporal que te dio el administrador, la web te pide poner **una tuya** (8 letras o números o más). Nadie más la conoce.
+**Tu contraseña te la da el administrador** (desde v1.7): entras con esa y listo. Recepción no la puede cambiar; si la olvidas, el administrador te pone una nueva. Solo el administrador, **la primera vez** que entra con la `CLAVE_INICIAL`, pone su propia contraseña.
 
 **El botón con tu nombre** (arriba, junto a «Tema») dice si todo está guardado:
 
@@ -146,7 +146,7 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 **Entre varios equipos.** Lo que sube o corrige un compañero te aparece solo (cada 45 segundos, o al volver a la pestaña). Si dos personas corrigen el mismo listado a la vez, se **juntan los dos cambios**: si fue la misma reserva, gana el último. Si un compañero sube un Excel más nuevo del mismo día, reemplaza al anterior en todos los equipos y conserva lo corregido a mano.
 
 **Solo el administrador** (sección **Administración**, abajo del historial):
-- **Usuarios de recepción:** **+ Nuevo usuario** (nombre, usuario y una contraseña temporal que la web inventa; entrégasela en persona), **Contraseña nueva** (si alguien la olvidó), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
+- **Usuarios de recepción:** **+ Nuevo usuario** (nombre, usuario y **la contraseña que tú escribes**; el dado inventa una si quieres; entrégasela en persona: con esa entra siempre), **Contraseña nueva** (si alguien la olvidó o quieres cambiársela), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
 - **Quién hizo qué:** quién entró, quién subió cada Excel, quién corrigió, agregó o quitó cada reserva, quién imprimió o descargó el PDF, y a qué hora (últimos 30 días).
 - **Borrar** listados del historial y **Eliminar** el que está en pantalla (para todos los equipos).
 - **Ajustes de la hoja para todos:** casilla «Llegó» y «Ahorrar papel».
@@ -167,7 +167,8 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 | Pasa esto | Haz esto |
 |---|---|
 | «Ese archivo es un Excel antiguo (.xls) o tiene clave» | Descarga otra vez de la extranet el **.xlsx** (no lo abras y guardes en otro formato). |
-| «No encontré las columnas de la extranet» | Ese no es el listado de llegadas, o le borraron alguna de las 4 columnas (Nro reserva, Nro hab, Agencia, Titular). |
+| ✗ **«Excel incorrecto»** («Ese Excel no es el listado de reservas de la extranet…») | Subiste otro archivo, o le borraron alguna de las 4 columnas (Nro reserva, Nro hab, Agencia, Titular). Descarga otra vez de la extranet **«EXTRANET  DORADO PLAZA.xlsx»** y súbelo tal cual. |
+| Aviso amarillo **«Ojo: este archivo no se llama EXTRANET  DORADO PLAZA.xlsx»** | Se leyó igual porque trae las columnas de la extranet, pero el nombre es otro: revisa que sea el listado de reservas del día. (Si el navegador lo bajó como «… (1).xlsx» no sale el aviso.) |
 | «El Excel llegó dañado o incompleto» | Se cortó la descarga: descárgalo otra vez. |
 | «El Excel trae los títulos pero ninguna reserva» | No hay llegadas en ese Excel. |
 | Falta una reserva que sí está en la extranet | Puede que la descarga sea vieja: baja el Excel otra vez (te marca las novedades) o usa **+ Agregar una reserva que falte**. |
@@ -255,7 +256,7 @@ Lo mismo que se hizo en el Manual de turnos, con otros nombres. Mientras no est�
 3. **Poner la clave inicial:** en la misma pestaña → **Variables y secretos** → **«+ Agregar»** → Tipo **Secreto** → Nombre: `CLAVE_INICIAL` → Valor: una clave de **8 caracteres o más** (mejor 12 a 30, letras y números) → **Guardar**. Debe quedar «🔒 Valor cifrado».
 4. **Volver a publicar:** pestaña **Implementaciones** → primera fila → **⋯ → Reintentar implementación**. Las vinculaciones y la clave solo se activan en una publicación nueva.
 5. **Crear el administrador:** abre la página. Sale **Entrar** con el aviso «Primera vez». Escribe el usuario que quieras para ti (por ejemplo `jx`) y la `CLAVE_INICIAL`. Quedas como **administrador** y la web te pide poner **tu propia contraseña**. Desde ahí la `CLAVE_INICIAL` ya no sirve para entrar.
-6. **Crear a los recepcionistas:** sección **Administración** → **+ Nuevo usuario**. A cada uno entrégale en persona su usuario y la contraseña temporal; al entrar pone la suya.
+6. **Crear a los recepcionistas:** sección **Administración** → **+ Nuevo usuario**. Escribe tú la contraseña de cada uno y entrégasela en persona: entran con esa y no la pueden cambiar (solo tú, con **Contraseña nueva**).
 
 Para revisar si quedó bien, abre `https://editador-reservas-doradoplaza-bg.pages.dev/api/yo`: con todo listo responde `{"usuario":null,…}`. Si falta algo, responde `{"error":"sin-configurar","falta":[…]}` y dice en `falta` si es `DB`, `CLAVE_INICIAL` o `CLAVE_INICIAL_CORTA`.
 
@@ -281,6 +282,8 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.8** | 17 nov 2026, 6:45 p. m. | **Excel incorrecto**: si suben otro archivo, sale la ✗ roja «Excel incorrecto» pidiendo el verdadero listado de reservas de la extranet (**«EXTRANET  DORADO PLAZA.xlsx»**, nombre que ahora aparece en la zona de subir y en los errores). Si el archivo trae las columnas pero se llama distinto, se lee igual y sale el aviso amarillo «Ojo». **Basurita roja en cada reserva** (a la derecha de «Corregir»): doble pregunta para las de la extranet; quedan en «Quitadas de la hoja» y no salen en la hoja ni en el PDF. Crédito: **JX Enterprise**. |
+| **v1.7** | 17 nov 2026, 5:56 p. m. | **Las contraseñas las pone el administrador** (pedido de JX): al crear un usuario escribes tú su contraseña y entra con esa, sin que la web le pida cambiarla; recepción ya no puede cambiar su contraseña (solo el admin, con «Contraseña nueva»). Solo la primera entrada del admin con la `CLAVE_INICIAL` pide poner la suya. |
 | **v1.6** | 17 nov 2026, 5:51 p. m. | La versión debajo del logo vuelve a la «v» minúscula (pedido de JX). |
 | **v1.5** | 17 nov 2026, 5:40 p. m. | **Ventanitas como las del Manual de turnos**: basurita roja que se dibuja en 360° en todo lo que se elimina (con «Deshacer» 10 s), ✓ verde en todo lo que sale bien (se quita solo a los 8 s), ✗ roja en los errores y puerta dorada al salir. Guía **«Tu hoja está aquí abajo ↓»** (una vez por entrada, 8 s). La versión debajo del logo un poco más pequeña y con «V» mayúscula. Arreglo para Safari: el ✓ de la fecha salía dos veces. |
 | **v1.4** | 17 nov 2026, 4:23 p. m. | Botón **Eliminar** (🗑 rojo) en la barra de abajo, junto a Imprimir / PDF / Compartir: solo aparece con un Excel subido y quita ese listado (también del historial) después de confirmar. Debajo del logo queda **solo la versión** (sin fecha ni hora). La barra cabe con 4 botones desde el plegable de 280 px hasta PC. |
@@ -289,7 +292,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.7, v1.8…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.9, v1.10…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
@@ -306,4 +309,4 @@ Letras: **Karla** © 2019 The Karla Project Authors y **Arimo** © 2020 The Arim
 
 ---
 
-**Diseño y desarrollo: JX Company**
+**Diseño y desarrollo: JX Enterprise**

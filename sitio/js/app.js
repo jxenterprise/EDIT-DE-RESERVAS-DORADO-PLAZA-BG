@@ -189,20 +189,28 @@
    *    Todo pasa en este equipo. La pantalla de carga «se toma su tiempo»
    *    y va contando lo que hace (pedido de JX).
    * ================================================================ */
+  /* v1.8 (JX): el Excel de la extranet siempre se llama así. Se muestra en los textos y en los errores; si el
+     archivo se llama distinto se lee igual (lo que decide son las columnas) pero sale un aviso amarillo «Ojo». */
+  var NOMBRE_EXCEL = 'EXTRANET  DORADO PLAZA.xlsx';
+  /** ¿Ese nombre es el de la extranet? (sin importar mayúsculas, espacios ni el «(1)» que pone el navegador al repetir la descarga) */
+  function esNombreExtranet(n) {
+    var limpio = String(n || '').toLowerCase().replace(/\.xlsx$/, '').replace(/\s*\(\d+\)\s*$/, '').replace(/[\s_]+/g, ' ').trim();
+    return limpio === 'extranet dorado plaza';
+  }
   var ERRORES = {
     'vacio': 'El archivo está vacío. Descárgalo otra vez de la extranet.',
-    'xls-viejo': 'Ese archivo es un Excel antiguo (.xls) o tiene clave. Tiene que ser el .xlsx tal cual lo descarga la extranet.',
-    'no-xlsx': 'Ese archivo no es el Excel de la extranet. Tiene que ser el .xlsx tal cual se descarga (no una foto, un PDF ni un Word).',
+    'xls-viejo': 'Ese archivo es un Excel antiguo (.xls) o tiene clave. Tiene que ser el listado de reservas tal cual lo descarga la extranet («' + NOMBRE_EXCEL + '»).',
+    'no-xlsx': 'Ese archivo no es un Excel. Sube el listado de reservas tal cual se descarga de la extranet («' + NOMBRE_EXCEL + '»), no una foto, un PDF ni un Word.',
     'danado': 'El Excel llegó dañado o incompleto. Descárgalo otra vez de la extranet y vuelve a subirlo.',
     'muy-grande': 'El archivo es demasiado grande para ser el listado del día. Revisa que sea el Excel de la extranet.',
-    'sin-hojas': 'El Excel no trae ninguna hoja con datos. Descárgalo otra vez de la extranet.',
+    'sin-hojas': 'El Excel no trae ninguna hoja con datos. Descarga otra vez de la extranet el listado de reservas («' + NOMBRE_EXCEL + '»).',
     'sin-reservas': 'El Excel trae los títulos pero ninguna reserva. Si no hay llegadas, no hay hoja que imprimir.'
   };
   function textoError(e) {
     var c = e && e.codigo;
     if (c === 'sin-columnas') {
-      return 'No encontré las columnas de la extranet en ese Excel. ' + (e.faltan && e.faltan.length ? 'Falta' + (e.faltan.length === 1 ? ' la columna ' : 'n las columnas ') + e.faltan.join(', ') + '. ' : '') +
-        'Debe ser el listado de llegadas, con Nro reserva, Nro hab, Agencia y Titular.';
+      return 'Ese Excel no es el listado de reservas de la extranet: ' + (e.faltan && e.faltan.length ? 'le falta' + (e.faltan.length === 1 ? ' la columna ' : 'n las columnas ') + e.faltan.join(', ') + '. ' : 'no trae sus columnas. ') +
+        'Asegúrate de subir el verdadero listado de reservas que se descarga de la extranet («' + NOMBRE_EXCEL + '»).';
     }
     return ERRORES[c] || 'No pude leer ese archivo. Vuelve a descargar el Excel de la extranet e inténtalo otra vez.';
   }
@@ -265,6 +273,9 @@
         L.mensaje(null);
         ocupado = false;
         mostrarError(textoError(e));
+        // v1.8 (JX): además la ✗ roja; si es otro archivo, «Excel incorrecto». Se queda hasta que la cierren.
+        var c = e && e.codigo, otro = c === 'sin-columnas' || c === 'no-xlsx' || c === 'xls-viejo' || c === 'sin-hojas';
+        resultado('error', otro ? 'Excel incorrecto' : 'No se pudo leer el Excel', textoError(e));
       }, Math.max(0, 700 - (ahora() - t0)));
     });
   }
@@ -361,6 +372,10 @@
     var a = Reglas.avisos(actual.filas), li = [];
     function linea(tipo, html) { li.push('<li data-tipo="' + tipo + '">' + html + '</li>'); }
     var codigos = function (filas) { return esc(lista(filas.map(function (f) { return f.cod; }))); };
+    /* v1.8: el archivo no se llama como el de la extranet (se leyó igual porque trae sus columnas) */
+    if (actual.archivo && actual.archivo !== 'Excel' && !esNombreExtranet(actual.archivo)) {
+      linea('ojo', 'Ojo: este archivo no se llama <strong>' + esc(NOMBRE_EXCEL) + '</strong> (se llama «' + esc(actual.archivo) + '»). Revisa que sea el listado de reservas de la extranet.');
+    }
     /* la fecha de la hoja frente al check-in que trae el Excel */
     if (actual.checkin.length && actual.checkin.indexOf(actual.fecha) < 0) {
       // típico del turno de noche: se saca de noche la hoja de las llegadas del día siguiente
@@ -446,7 +461,11 @@
           '<span class="reserva__ti">' + (f.ti ? esc(f.ti) : '<small>Sin titular</small>') + '</span>' +
           '<span class="reserva__marcas">' + marcas.join('') + '</span>' +
           (f.novDetalle ? '<span class="reserva__detalle">' + esc(f.novDetalle) + '</span>' : '') +
-        '</span><span class="reserva__editar" aria-hidden="true">Corregir</span></button></li>';
+        '</span><span class="reserva__editar" aria-hidden="true">Corregir</span></button>' +
+        // v1.8 (JX): basurita roja «afuerita», después de «Corregir» (un botón no puede ir dentro de otro)
+        '<button type="button" class="reserva__borrar" data-borrar="' + esc(f.id) + '" aria-label="Eliminar la reserva ' + esc(f.cod) + '">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5h15M9.5 6.5V4.8c0-.7.6-1.3 1.3-1.3h2.4c.7 0 1.3.6 1.3 1.3v1.7M6.5 6.5l.8 12.2c.1.9.8 1.6 1.7 1.6h6c.9 0 1.6-.7 1.7-1.6l.8-12.2M10.2 10.5v6M13.8 10.5v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        '</button></li>';
     }).join('') : '<li class="tarjeta nota">No queda ninguna reserva en la hoja. Agrega una o devuelve alguna de las quitadas.</li>';
     var q = actual.filas.filter(function (f) { return f.quitada; });
     $('#quitadas').hidden = !q.length;
@@ -561,6 +580,8 @@
 
   function eventosEditar() {
     $('#lista-reservas').addEventListener('click', function (e) {
+      var t = e.target.closest('[data-borrar]');
+      if (t) { eliminarFila(filaPorId(t.getAttribute('data-borrar'))); return; }   // la basurita (v1.8)
       var b = e.target.closest('.reserva');
       if (b) { abrirEditor(b.getAttribute('data-id')); }
     });
@@ -587,7 +608,15 @@
       var f = editando ? filaPorId(editando) : null;
       if (!f) { return; }
       cerrarEditor();
-      var lst = actual, quien = f.cod + (f.ti ? ' · ' + f.ti : '');
+      eliminarFila(f);
+    });
+  }
+  /** Eliminar una reserva (basurita de la lista o «Quitar de la hoja» del diálogo). v1.8 (JX): las que vienen del
+   *  Excel de la extranet preguntan DOS veces («¿Eliminar?» y «¿Segurísimo?»: es el listado original) y quedan en
+   *  «Quitadas de la hoja» para devolverlas; las agregadas a mano se borran. Las dos con «Deshacer» 10 s. */
+  function eliminarFila(f) {
+    if (!f || !actual) { return; }
+    var lst = actual, quien = f.cod + (f.ti ? ' · ' + f.ti : '');
       if (f.origen === 'manual') {
         preguntar({ titulo: '¿Eliminar esta reserva?', texto: quien + '. La agregaste a mano: sale de la hoja y de la lista.', si: 'Sí, eliminar' }).then(function (si) {
           if (!si || actual !== lst) { return; }
@@ -604,7 +633,14 @@
         });
         return;
       }
-      preguntar({ titulo: '¿Quitar esta reserva de la hoja?', texto: quien + '. Queda abajo, en «Quitadas de la hoja», por si la quieres devolver.', si: 'Sí, quitar' }).then(function (si) {
+      preguntar({ titulo: '¿Eliminar esta reserva?', texto: quien + '. Sale de la hoja que se imprime.', si: 'Sí, eliminar' }).then(function (si) {
+        if (!si || actual !== lst) { return false; }
+        return preguntar({
+          titulo: '¿Segurísimo que la quieres quitar?',
+          texto: 'Esta reserva viene del listado original de la extranet («' + NOMBRE_EXCEL + '»). Si la quitas no sale en la hoja; queda abajo, en «Quitadas de la hoja», por si te equivocaste.',
+          si: 'Sí, quitarla de la hoja', no: 'No, dejarla'
+        });
+      }).then(function (si) {
         if (!si || actual !== lst) { return; }
         f.quitada = true; marcar(f);
         tocar('Quitó de la hoja la reserva ' + f.cod); pintarListado(); pintarHistorial();
@@ -614,7 +650,8 @@
           resultado('ok', '¡Listo, se deshizo!', 'La reserva ' + f.cod + ' volvió a la hoja.');
         });
       });
-    });
+  }
+  function eventosEditar2() {
     /* acciones de los avisos, las novedades y las quitadas */
     document.addEventListener('click', function (e) {
       var b = e.target.closest('[data-accion]');
@@ -910,11 +947,10 @@
       $('#preg-texto').hidden = !op.texto;
       si.textContent = op.si || (tipo === 'salir' ? 'Sí, salir' : 'Sí, eliminar');
       si.className = 'boton ' + (tipo === 'salir' ? 'boton--primario' : 'boton--peligro');
-      var parar = function () {};
+      no.textContent = op.no || 'Cancelar';
       function fin(v) {
         if (finPregunta !== fin) { return; }
         finPregunta = null;
-        parar();
         si.removeEventListener('click', alSi); no.removeEventListener('click', alNo);
         dlg.removeEventListener('cancel', alCancelar); dlg.removeEventListener('close', alCerrar);
         if (dlg.open && dlg.close) { dlg.close(); } else { dlg.removeAttribute('open'); }
@@ -1475,8 +1511,12 @@
     pintarNube();
     $('#clave-obligada').hidden = !obligada;
     $('#cuenta-botones').hidden = !!obligada;
+    // v1.7: recepción no cambia su contraseña (se la pone el admin); solo el admin ve el formulario
+    var puedeCambiar = obligada || esAdmin();
+    $('#form-clave').hidden = !puedeCambiar;
+    $('#clave-nota-recepcion').hidden = puedeCambiar;
     $('#clave-titulo').textContent = obligada ? 'Pon tu contraseña' : 'Cambiar mi contraseña';
-    $('#c-actual').previousElementSibling.textContent = obligada ? 'Contraseña temporal (la que te dieron)' : 'Contraseña actual';
+    $('#c-actual').previousElementSibling.textContent = obligada ? 'Contraseña con la que entraste (la CLAVE_INICIAL)' : 'Contraseña actual';
     $('#c-actual').value = ''; $('#c-nueva').value = ''; $('#c-error').hidden = true;
     abrirDialogo('#dlg-cuenta');
     setTimeout(function () { (obligada ? $('#c-actual') : $('#cuenta-titulo')).focus(); }, 40);
@@ -1544,13 +1584,14 @@
     dlgUsuario = { modo: modo, id: li ? +li.getAttribute('data-id') : 0 };
     var nuevo = modo === 'nuevo', soloNombre = modo === 'nombre';
     $('#u-titulo').textContent = nuevo ? 'Nuevo usuario' : soloNombre ? 'Nombre de «' + li.getAttribute('data-usuario') + '»' : 'Contraseña nueva para ' + li.getAttribute('data-nombre');
-    $('#u-ayuda').textContent = nuevo ? 'La persona entra con este usuario y la contraseña temporal; al entrar, la web le pide poner una suya.'
+    $('#u-ayuda').textContent = nuevo ? 'La persona entra con este usuario y la contraseña que escribas aquí. Entrégasela en persona.'
       : soloNombre ? 'Así sale en «Quién hizo qué», en el historial y en «subido por». El usuario para entrar no cambia.'
-        : 'Se cierra su sesión en todos los equipos. Al entrar con esta contraseña temporal, la web le pide poner una suya.';
+        : 'Se cierra su sesión en todos los equipos y desde ahora entra con la contraseña que escribas aquí. Entrégasela en persona.';
     $('#u-datos').hidden = !(nuevo || soloNombre);
     $('#u-usuario').closest('.campo').hidden = soloNombre; $('#u-rol').closest('.campo').hidden = soloNombre;
     $('#u-clave').closest('.campo').hidden = soloNombre;
-    $('#u-nombre').value = soloNombre ? li.getAttribute('data-nombre') : ''; $('#u-usuario').value = ''; $('#u-rol').value = 'recepcion'; $('#u-clave').value = claveAlAzar();
+    $('#u-nombre').value = soloNombre ? li.getAttribute('data-nombre') : ''; $('#u-usuario').value = ''; $('#u-rol').value = 'recepcion';
+    $('#u-clave').value = '';                                // v1.7: la contraseña la escribe el admin (el dado inventa una si quiere)
     $('#u-guardar').textContent = nuevo ? 'Crear usuario' : soloNombre ? 'Guardar nombre' : 'Poner contraseña';
     $('#u-error').hidden = true;
     abrirDialogo('#dlg-usuario');
@@ -1576,18 +1617,18 @@
       cuerpo = { clave: clave };
       peticion = function () { return pedir('PATCH', 'usuarios/' + dlgUsuario.id, cuerpo); };
     }
-    if (clave.length < 8) { mal('La contraseña temporal debe tener 8 o más letras o números.', $('#u-clave')); return; }
+    if (clave.length < 8) { mal(clave ? 'La contraseña debe tener 8 o más letras o números.' : 'Escribe la contraseña (8 o más letras o números).', $('#u-clave')); return; }
     var b = $('#u-guardar'); b.disabled = true;
     peticion().then(function (r) {
       pintarUsuarios(r.usuarios || []);
       cerrarDialogo('#dlg-usuario');
       if (dlgUsuario.modo === 'nombre' && nube.usuario && dlgUsuario.id === nube.usuario.id) { nube.usuario.nombre = cuerpo.nombre; guardarNube(); pintarNube(); }
       if (dlgUsuario.modo === 'nuevo') {
-        resultado('ok', '¡Usuario creado!', cuerpo.nombre + ' entra con el usuario «' + cuerpo.usuario + '» y esta contraseña temporal (entrégasela en persona; al entrar pone una suya):', clave);
+        resultado('ok', '¡Usuario creado!', cuerpo.nombre + ' entra con el usuario «' + cuerpo.usuario + '» y esta contraseña (entrégasela en persona):', clave);
       } else if (dlgUsuario.modo === 'nombre') {
         resultado('ok', '¡Nombre guardado!', 'Así sale en el historial y en «Quién hizo qué»: ' + cuerpo.nombre + '.');
       } else {
-        resultado('ok', '¡Contraseña nueva puesta!', 'Su sesión se cerró en todos los equipos. Entrégale en persona esta contraseña temporal:', clave);
+        resultado('ok', '¡Contraseña nueva puesta!', 'Su sesión se cerró en todos los equipos. Desde ahora entra con esta contraseña (entrégasela en persona):', clave);
       }
       cargarAdmin();
     }, function (e) {
@@ -1652,7 +1693,7 @@
     });
     $('#btn-cuenta').addEventListener('click', function () { abrirCuenta(!!(nube.usuario && nube.usuario.cambiar)); });
     $('#btn-cerrar-cuenta').addEventListener('click', function () { cerrarDialogo('#dlg-cuenta'); });
-    $('#dlg-cuenta').addEventListener('cancel', function (e) { if (nube.usuario && nube.usuario.cambiar) { e.preventDefault(); } });   // la contraseña temporal hay que cambiarla
+    $('#dlg-cuenta').addEventListener('cancel', function (e) { if (nube.usuario && nube.usuario.cambiar) { e.preventDefault(); } });   // la primera vez del admin hay que poner la suya
     $('#form-clave').addEventListener('submit', function (e) { e.preventDefault(); cambiarMiClave(); });
     $('#btn-guardar-ahora').addEventListener('click', function () {
       var b = this; b.disabled = true;
@@ -1704,7 +1745,7 @@
 
   function iniciar() {
     aplicarTema();
-    eventosSubir(); eventosEditar(); eventosSalida(); eventosHistorial(); eventosAjustes(); eventosNube(); eventosDeshacer(); eventosGuia();
+    eventosSubir(); eventosEditar(); eventosSalida(); eventosHistorial(); eventosAjustes(); eventosNube(); eventosDeshacer(); eventosGuia(); eventosEditar2();
     /* si el último listado es de hoy (o tiene fecha de hoy en adelante), vuelve a estar en pantalla */
     var id = leer('actual', null), hoy = hoyISO();
     var ultimo = listados.filter(function (x) { return x.id === id; })[0];

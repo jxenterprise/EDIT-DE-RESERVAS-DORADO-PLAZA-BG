@@ -67,7 +67,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.6</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.8</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -156,7 +156,7 @@
           <svg class="soltar__icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7.5L19 8v12.5H7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 3.5V8H19" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M13 18v-6m0 0l-2.5 2.5M13 12l2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           <span class="soltar__titulo" id="soltar-titulo">Escoge el Excel de la extranet</span>
           <span class="soltar__sub">o arrástralo y suéltalo aquí</span>
-          <span class="soltar__nota">El archivo .xlsx tal cual se descarga. Se lee en este equipo: <strong>el Excel no se sube a internet</strong>.</span>
+          <span class="soltar__nota">El listado de reservas tal cual se descarga de la extranet: <strong class="soltar__archivo">EXTRANET&nbsp;&nbsp;DORADO PLAZA.xlsx</strong>. Se lee en este equipo: <strong>el Excel no se sube a internet</strong>.</span>
         </label>
       </div>
       <p class="campo__error subir__error" id="subir-error" role="alert" hidden></p>
@@ -275,7 +275,7 @@
 
   <!-- ===========================================================
        PIE
-       Qué es: nota de privacidad + crédito de JX Company (formato exacto
+       Qué es: nota de privacidad + crédito de JX Enterprise (formato exacto
        de JX). La hoja impresa NO lleva el crédito.
        Depende de: .pie y .footer-dev en estilos.css
        =========================================================== -->
@@ -285,7 +285,7 @@
     <p class="footer-dev">
       <span class="footer-dev-txt">Diseño y desarrollo:</span>
       <span class="footer-dev-jx">JX</span>
-      <span class="footer-dev-co">Company</span>
+      <span class="footer-dev-co">Enterprise</span>
     </p>
   </footer>
 
@@ -370,8 +370,8 @@
   <!-- ===========================================================
        DIÁLOGO: MI CUENTA Y LA NUBE (v1.3)
        Qué es: quién entró, si todo está guardado en la nube, «Guardar ahora»,
-       cambiar la contraseña propia y salir. Si el admin le puso una contraseña
-       temporal, se abre solo y obliga a poner una nueva.
+       cambiar la contraseña propia (SOLO el admin, v1.7: a recepción se la pone el admin) y salir.
+       La primera vez del admin (entró con la CLAVE_INICIAL) se abre sola y le pide poner la suya.
        Depende de: «Nube y cuenta» en app.js
        =========================================================== -->
   <dialog class="dialogo" id="dlg-cuenta" aria-labelledby="cuenta-titulo">
@@ -385,7 +385,7 @@
       </div>
       <form class="cuenta__clave" id="form-clave" novalidate>
         <h3 class="subtitulo" id="clave-titulo">Cambiar mi contraseña</h3>
-        <p class="aviso-caja" id="clave-obligada" hidden>El administrador te puso una contraseña temporal: escribe una tuya para seguir.</p>
+        <p class="aviso-caja" id="clave-obligada" hidden>Es tu primera entrada como administrador: pon tu propia contraseña para seguir. Desde ahora la CLAVE_INICIAL ya no sirve para entrar.</p>
         <label class="campo" for="c-actual">
           <span class="campo__etiqueta">Contraseña actual</span>
           <input type="password" id="c-actual" autocomplete="current-password" maxlength="100">
@@ -402,6 +402,7 @@
         <p class="campo__error" id="c-error" role="alert" hidden></p>
         <button type="submit" class="boton boton--secundario cuenta__boton" id="btn-cambiar-clave">Cambiar contraseña</button>
       </form>
+      <p class="nota cuenta__nota-clave" id="clave-nota-recepcion" hidden>Tu contraseña te la da el administrador. Si la olvidas, pídele una nueva.</p>
       <div class="dialogo__extra">
         <button type="button" class="enlace" id="btn-ir-admin" hidden>Usuarios y actividad</button>
         <button type="button" class="enlace enlace--peligro" id="btn-salir">Salir de este equipo</button>
@@ -413,7 +414,7 @@
   <dialog class="dialogo" id="dlg-usuario" aria-labelledby="u-titulo">
     <form class="dialogo__caja" id="form-usuario" novalidate>
       <h2 class="dialogo__titulo" id="u-titulo" tabindex="-1">Nuevo usuario</h2>
-      <p class="nota dialogo__origen" id="u-ayuda">La persona entra con este usuario y la contraseña temporal; al entrar, la web le pide poner una suya.</p>
+      <p class="nota dialogo__origen" id="u-ayuda">La persona entra con este usuario y la contraseña que escribas aquí. Entrégasela en persona.</p>
       <div id="u-datos">
         <label class="campo" for="u-nombre">
           <span class="campo__etiqueta">Nombre</span>
@@ -432,10 +433,10 @@
         </label>
       </div>
       <div class="campo">
-        <label class="campo__etiqueta" for="u-clave">Contraseña temporal <small class="nota">(8 o más)</small></label>
+        <label class="campo__etiqueta" for="u-clave">Contraseña <small class="nota">(8 o más letras o números; la escribes tú)</small></label>
         <span class="campo-clave">
-          <input type="text" id="u-clave" maxlength="100" autocomplete="off" spellcheck="false">
-          <button type="button" class="campo-clave__ojo campo-clave__azar" id="u-azar" aria-label="Inventar una contraseña temporal">
+          <input type="text" id="u-clave" maxlength="100" autocomplete="off" spellcheck="false" placeholder="Escribe la contraseña">
+          <button type="button" class="campo-clave__ojo campo-clave__azar" id="u-azar" aria-label="Inventar una contraseña al azar">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11M4 17h11M15 4l3 3-3 3M15 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </span>
