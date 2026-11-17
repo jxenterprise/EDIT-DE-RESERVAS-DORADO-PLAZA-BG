@@ -179,7 +179,16 @@ strong { color: var(--texto-fuerte); }
   padding: calc(24px + env(safe-area-inset-top, 0px)) calc(16px + var(--der)) 6px calc(16px + var(--izq));
 }
 .encabezado__logo { width: clamp(210px, 64vw, 290px); height: auto; }
-.encabezado__titulo { margin-top: 18px; font-size: clamp(23px, 6.4vw, 30px); letter-spacing: -.01em; }
+/* Versión bajo el logo: pastilla discreta en dorado (se cambia en index.html en cada versión) */
+.encabezado__version {
+  margin-top: 10px; padding: 3px 11px; border-radius: 999px;
+  font-size: 12.5px; line-height: 1.5; letter-spacing: .02em; color: var(--texto-suave);
+  background: var(--oro-palido); border: 1px solid var(--linea-2);
+  font-variant-numeric: tabular-nums;
+  max-width: 100%; text-wrap: balance;   /* plegable de 280 px: baja a 2 renglones parejos sin salirse */
+}
+.encabezado__version-num { font-weight: 800; color: var(--bronce); }
+.encabezado__titulo { margin-top: 12px; font-size: clamp(23px, 6.4vw, 30px); letter-spacing: -.01em; }
 .encabezado__sub { margin-top: 6px; font-size: 14.5px; color: var(--texto-suave); max-width: 30em; text-wrap: balance; }
 
 .ajustes-rapidos {

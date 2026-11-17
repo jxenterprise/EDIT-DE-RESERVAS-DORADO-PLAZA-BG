@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- =====================================================================
-     LISTADO DE RESERVAS DP · RECEPCIÓN · HOTEL DORADO PLAZA BOCAGRANDE
+     EDITADOR DE RESERVAS DP · RECEPCIÓN · HOTEL DORADO PLAZA BOCAGRANDE
      index.html — estructura de la página (una sola página).
 
      Qué es: herramienta interna de recepción. Se sube el Excel del día que
@@ -21,7 +21,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Listado de reservas DP · Recepción Dorado Plaza Bocagrande</title>
+  <title>Editador de reservas DP · Recepción Dorado Plaza Bocagrande</title>
   <!-- privada: que ningún buscador la guarde ni la muestre -->
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <!-- que el enlace de esta página no viaje a otros sitios -->
@@ -41,7 +41,7 @@
   <!-- Pantalla de carga «Trazo de oro» (la misma de las otras webs), con fondo de
        vidrio. Sale al entrar y mientras se lee el Excel (app.js → «Subir»). -->
   <script src="js/cargador-dorado.min.js" data-fondo="vidrio" data-auto="inicio" data-inicio="siempre" data-minimo="1500"
-          data-etiqueta="Listado de reservas DP"
+          data-etiqueta="Editador de reservas DP"
           data-mensajes="Preparando el listado…|Un momento…"></script>
 
   <a class="saltar" href="#subir">Ir a subir el Excel</a>
@@ -55,7 +55,10 @@
   <header class="encabezado">
     <img class="encabezado__logo" src="img/logo-dorado-plaza-recepcion-bocagrande.webp" width="1200" height="878"
          alt="Dorado Plaza · Recepción · Hotel Dorado Plaza · Bocagrande" fetchpriority="high">
-    <h1 class="encabezado__titulo">Listado de reservas DP</h1>
+    <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica, con fecha y hora de Colombia.
+         Formato: «v1.N · DD mmm AAAA · H:MM a. m./p. m.». El mismo dato va en README.md («Versiones») y CLAUDE.md. -->
+    <p class="encabezado__version"><span class="encabezado__version-num">v1.2</span> · actualizado el 17 nov 2026, 2:57 p. m.</p>
+    <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
     <div class="ajustes-rapidos">

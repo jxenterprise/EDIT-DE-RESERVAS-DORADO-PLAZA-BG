@@ -447,8 +447,8 @@
     var local = new Date(f.getTime() - 5 * 3600000);
     var sello = 'D:' + local.getUTCFullYear() + dos(local.getUTCMonth() + 1) + dos(local.getUTCDate()) + dos(local.getUTCHours()) + dos(local.getUTCMinutes()) + dos(local.getUTCSeconds()) + "-05'00'";
     var datosInfo = nuevo('<< /Title ' + cadenaPdf(imprimible(info.titulo || TEXTOS.titulo)) + ' /Subject ' + cadenaPdf(imprimible(info.asunto || TEXTOS.subtitulo)) +
-      ' /Author ' + cadenaPdf(imprimible('Recepción · Hotel Dorado Plaza Bocagrande')) + ' /Creator ' + cadenaPdf('Listado de reservas DP') +
-      ' /Producer ' + cadenaPdf('Listado de reservas DP (hoja.js)') + ' /CreationDate (' + sello + ') >>');
+      ' /Author ' + cadenaPdf(imprimible('Recepción · Hotel Dorado Plaza Bocagrande')) + ' /Creator ' + cadenaPdf('Editador de reservas DP') +
+      ' /Producer ' + cadenaPdf('Editador de reservas DP (hoja.js)') + ' /CreationDate (' + sello + ') >>');
 
     /* armado del archivo: cabecera, objetos, tabla de posiciones y cierre */
     var salida = '%PDF-1.4\n%' + String.fromCharCode(0xE2, 0xE3, 0xCF, 0xD3) + '\n', posiciones = [];

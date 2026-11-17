@@ -6,6 +6,8 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
+🏷️ **Versión actual: v1.2** · 17 nov 2026, 2:57 p. m. (hora de Colombia) · [ver todas las versiones](#11-versiones)
+
 | Antes (a mano) | Con el editador |
 |---|---|
 | Borrar 13 columnas del Excel | Usa solo **Nro reserva, Nro hab, Agencia y Titular**. Lo demás se ignora solo |
@@ -31,7 +33,8 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 8. [Solución de problemas](#8-solución-de-problemas)
 9. [Para quien mantiene la página](#9-para-quien-mantiene-la-página)
 10. [Pendientes `{POR CONFIRMAR}`](#10-pendientes-por-confirmar)
-11. [Fuentes, licencias y propiedad](#11-fuentes-licencias-y-propiedad)
+11. [Versiones](#11-versiones)
+12. [Fuentes, licencias y propiedad](#12-fuentes-licencias-y-propiedad)
 
 ---
 
@@ -198,7 +201,19 @@ Una sola rama: **`main`**. Antes de empezar a editar, `git pull` (para traer lo 
 - **Cómo prefieren llamar los estados** del preregistro en la hoja: hoy «Con preregistro» para «Preregistro (…) ✔ Completo» y «Web check-in completo» para «Web check-in ✔ Completo».
 - **Otras sedes** (logo, nombre y textos de la hoja): por ahora solo Bocagrande.
 
-## 11. Fuentes, licencias y propiedad
+## 11. Versiones
+
+La versión y la hora de la última actualización se ven en la página, debajo del logo. Fechas y horas de Colombia.
+
+| Versión | Fecha y hora | Qué cambió |
+|---|---|---|
+| **v1.2** | 17 nov 2026, 2:57 p. m. | Ahora se llama **Editador de reservas DP**. Versión y hora de actualización debajo del logo. README nuevo. Publicación en Cloudflare corregida: solo se publica `sitio/` (la dirección principal abre el editador y `CLAUDE.md` ya no sale en la web). Probado también con el motor de Safari de iPhone. |
+| **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
+| **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
+
+Cada cambio que se publica sube la versión (v1.3, v1.4…) y se anota aquí.
+
+## 12. Fuentes, licencias y propiedad
 
 - Publicación conectada a Git y configuración de compilación: [Cloudflare Pages · Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/) y [Build configuration](https://developers.cloudflare.com/pages/configuration/build-configuration/).
 - Privacidad sin `robots.txt`: [Google · Bloquear la indexación con noindex](https://developers.google.com/search/docs/crawling-indexing/block-indexing).
