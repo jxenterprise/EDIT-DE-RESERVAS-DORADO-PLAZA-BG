@@ -140,6 +140,8 @@
     etiqueta: 'Hotel Dorado Plaza Bocagrande',   // lo que leen los lectores de pantalla antes de «Cargando»
     intervaloMensajes: 2800,   // ms entre un mensaje y el siguiente
     porcentaje: true,          // true = el logo se dibuja con el % de carga y se ve la cifra
+    vueltas: 1,                // (Editador de reservas DP, v1.9) con porcentaje: cuántas veces se dibuja el logo completo
+                               // mientras el % va de 0 a 100 (cada vuelta se completa y vuelve a empezar; la última termina en 100)
     retraso: 0,                // ms de espera antes de mostrarse (0 = de inmediato)
     minimoVisible: 650,        // ms mínimos en pantalla (evita parpadeos)
     salida: 'auto',            // 'auto' | 'telon' | 'enfoque' | 'rapida' | 'desvanecer' | 'cancelada' | 'inmediata'
@@ -870,7 +872,12 @@
     var E;
     if (CFG.porcentaje) {
       avanzarProgreso(now, dt);
-      E = st.reducido ? estadoReducido(st.pct, now) : estadoProgreso(st.pct, now);
+      if (!st.reducido && CFG.vueltas > 1) {                 // v1.9: el logo da varias vueltas completas; la cifra sigue el % real
+        E = estadoProgreso(st.pct >= 0.999 ? 1 : (st.pct * CFG.vueltas) % 1, now);
+        E.pct = st.pct;
+      } else {
+        E = st.reducido ? estadoReducido(st.pct, now) : estadoProgreso(st.pct, now);
+      }
     } else {
       E = st.reducido ? estadoReducido(-1, now) : estadoCiclo(Math.max(0, now - st.t0) % CICLO);
     }

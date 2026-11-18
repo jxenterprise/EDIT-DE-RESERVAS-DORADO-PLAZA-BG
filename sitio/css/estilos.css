@@ -361,6 +361,9 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
   background: var(--superficie); border: 1px solid var(--linea); border-left: 4px solid var(--s-gris);
 }
 .avisos li[data-tipo="ojo"] { border-left-color: var(--s-amarillo); }
+/* v1.9: el nombre equivocado del archivo, en rojo fuerte de peligro con su ícono (dentro del paréntesis) */
+.aviso-nombre-malo { color: var(--error); font-weight: 800; white-space: normal; overflow-wrap: anywhere; }
+.aviso-nombre-malo svg { display: inline-block; width: 1.05em; height: 1.05em; margin: 0 .22em 0 .08em; vertical-align: -.16em; }
 .avisos li[data-tipo="bien"] { border-left-color: var(--s-verde); }
 .avisos .enlace { margin-left: 4px; }
 .avisos small { display: block; margin-top: 3px; font-size: 13px; color: var(--texto-suave); word-break: break-word; }

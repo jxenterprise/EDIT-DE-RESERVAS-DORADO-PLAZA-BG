@@ -232,8 +232,11 @@
   /** Pantalla de carga al leer el Excel (v1.3, igual que al abrir): el % sube PAREJO de 0 a 100 en
    *  2,5 s (CARGA_TOTAL_MS) sin pausas, y va diciendo cada paso. Termina cuando llega a 100. */
   function etapas(t0) {
-    var total = CARGA_TOTAL_MS * (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.45 : 1);
-    var pasos = [[0.26, 'Dejando solo reserva, habitaciones, agencia y titular…'], [0.52, 'Uniendo las habitaciones de cada reserva…'], [0.78, 'Armando la hoja…']];
+    // v1.9 (JX): al leer el Excel la pantalla de carga se toma 12 s (CARGA_EXCEL_MS) y el logo da VUELTAS_EXCEL vueltas
+    // completas (se completa y vuelve a empezar) mientras el % sube parejo hasta 100; la última vuelta termina en 100.
+    var total = CARGA_EXCEL_MS * (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.45 : 1);
+    var pasos = [[0.16, 'Revisando que sea el listado de la extranet…'], [0.34, 'Dejando solo reserva, habitaciones, agencia y titular…'],
+      [0.52, 'Uniendo las habitaciones de cada reserva…'], [0.7, 'Ordenando por habitaciones…'], [0.86, 'Armando la hoja…']];
     return new Promise(function (ok) {
       var dicho = 0, t = setInterval(function () {
         var f = Math.min(1, (ahora() - t0) / total);
@@ -251,6 +254,7 @@
     if (archivo.size > 25 * 1024 * 1024) { mostrarError(ERRORES['muy-grande']); return; }
     ocupado = true;
     var t0 = ahora();
+    if (L.configurar) { L.configurar({ vueltas: VUELTAS_EXCEL }); }
     L.mostrar({ motivo: 'excel', mensaje: 'Leyendo el Excel…' });
     L.progreso(100); L.progreso(0);                          // arranca en 0 (el cargador recuerda el % anterior)
     leerBytes(archivo).then(function (buffer) {
@@ -259,7 +263,7 @@
     }).then(function (armado) {
       var nov = cargarListado(armado, archivo.name || 'Excel');
       L.progreso(100);
-      L.ocultar({ motivo: 'excel' });
+      L.ocultar({ motivo: 'excel' }); vueltasNormales();
       L.mensaje(null);
       ocupado = false;
       irA('#resumen');
@@ -269,7 +273,7 @@
         .then(mostrarGuia);                                  // y al cerrarlo, la guía «tu hoja está aquí abajo» (una vez)
     }).catch(function (e) {
       setTimeout(function () {                               // un instante mínimo para que no parpadee
-        L.ocultar({ motivo: 'excel', salida: 'cancelada' });
+        L.ocultar({ motivo: 'excel', salida: 'cancelada' }); vueltasNormales();
         L.mensaje(null);
         ocupado = false;
         mostrarError(textoError(e));
@@ -374,7 +378,10 @@
     var codigos = function (filas) { return esc(lista(filas.map(function (f) { return f.cod; }))); };
     /* v1.8: el archivo no se llama como el de la extranet (se leyó igual porque trae sus columnas) */
     if (actual.archivo && actual.archivo !== 'Excel' && !esNombreExtranet(actual.archivo)) {
-      linea('ojo', 'Ojo: este archivo no se llama <strong>' + esc(NOMBRE_EXCEL) + '</strong> (se llama «' + esc(actual.archivo) + '»). Revisa que sea el listado de reservas de la extranet.');
+      // v1.9 (JX): lo de «(se llama «…»)» en rojo fuerte de peligro, con un ícono dentro del paréntesis
+      linea('ojo', 'Ojo: este archivo no se llama <strong>' + esc(NOMBRE_EXCEL) + '</strong> <span class="aviso-nombre-malo">(' +
+        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.6 22 20.4H2L12 3.6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 9.6v5M12 17.4v.1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>' +
+        'se llama «' + esc(actual.archivo) + '»)</span>. Revisa que sea el listado de reservas de la extranet.');
     }
     /* la fecha de la hoja frente al check-in que trae el Excel */
     if (actual.checkin.length && actual.checkin.indexOf(actual.fecha) < 0) {
@@ -1732,6 +1739,9 @@
      igual que el Manual de turnos v1.15 → el % sube parejo de 0 a 100 en 2,5 s, sin pausas (empieza
      en el <script> de index.html), se alcanza a ver el 100 % y se va con la salida rápida. */
   var CARGA_TOTAL_MS = 2500, CARGA_MIN_MS = 300, CARGA_VER_100_MS = 150, tRampa = 0;
+  var CARGA_EXCEL_MS = 12000, VUELTAS_EXCEL = 4;             // v1.9: al leer el Excel, 12 s y 4 vueltas del logo (JX: «mejor 12 segundos»)
+  /** Al irse la pantalla de carga del Excel, el logo vuelve a una sola vuelta (la carga de la página no cambia). */
+  function vueltasNormales() { setTimeout(function () { if (L.configurar && !L.estaVisible()) { L.configurar({ vueltas: 1 }); } }, 1600); }
   function rampaCarga(t0, hasta) {
     clearInterval(tRampa);
     var paso = function () {

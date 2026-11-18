@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.8** · 17 nov 2026, 6:45 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.9** · 17 nov 2026, 7:05 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -45,7 +45,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el listado de reservas del día, como siempre. El archivo se llama **«EXTRANET  DORADO PLAZA.xlsx»**.
 2. Abre el editador y toca **«Escoge el Excel de la extranet»**. En el computador también puedes arrastrar el archivo encima de la página.
-3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja.
+3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja: se toma **12 segundos** a propósito (desde v1.9). El logo se dibuja completo **4 veces** mientras el % sube parejo hasta 100, y después aparece la lista.
 4. Mira el **Resumen** (total de habitaciones y de reservas) y los **avisos**. Si todo está bien, dice «Todo en orden».
 5. Repasa **«Revisa la lista»**: así va a salir la hoja. Si algo está mal, toca la reserva y corrígela ([punto 3](#3-revisar-y-corregir-antes-de-imprimir)).
 6. Abajo está la **hoja** tal cual sale por la impresora. Usa la barra de abajo: **Imprimir**, **Descargar PDF**, **Compartir** o **Eliminar**.
@@ -168,7 +168,7 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 |---|---|
 | «Ese archivo es un Excel antiguo (.xls) o tiene clave» | Descarga otra vez de la extranet el **.xlsx** (no lo abras y guardes en otro formato). |
 | ✗ **«Excel incorrecto»** («Ese Excel no es el listado de reservas de la extranet…») | Subiste otro archivo, o le borraron alguna de las 4 columnas (Nro reserva, Nro hab, Agencia, Titular). Descarga otra vez de la extranet **«EXTRANET  DORADO PLAZA.xlsx»** y súbelo tal cual. |
-| Aviso amarillo **«Ojo: este archivo no se llama EXTRANET  DORADO PLAZA.xlsx»** | Se leyó igual porque trae las columnas de la extranet, pero el nombre es otro: revisa que sea el listado de reservas del día. (Si el navegador lo bajó como «… (1).xlsx» no sale el aviso.) |
+| Aviso amarillo **«Ojo: este archivo no se llama EXTRANET  DORADO PLAZA.xlsx (⚠ se llama «…»)»** (el nombre equivocado sale en rojo) | Se leyó igual porque trae las columnas de la extranet, pero el nombre es otro: revisa que sea el listado de reservas del día. (Si el navegador lo bajó como «… (1).xlsx» no sale el aviso.) |
 | «El Excel llegó dañado o incompleto» | Se cortó la descarga: descárgalo otra vez. |
 | «El Excel trae los títulos pero ninguna reserva» | No hay llegadas en ese Excel. |
 | Falta una reserva que sí está en la extranet | Puede que la descarga sea vieja: baja el Excel otra vez (te marca las novedades) o usa **+ Agregar una reserva que falte**. |
@@ -282,6 +282,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.9** | 17 nov 2026, 7:05 p. m. | **Pantalla de carga del Excel de 12 s** (pedido de JX: «que se tome su tiempo»): el logo se completa y vuelve a empezar, 4 vueltas, mientras el % sube parejo hasta 100; después sale la lista. La carga al abrir la página sigue igual (2,5 s). En el aviso «Ojo», el nombre equivocado del archivo sale **en rojo con un ícono ⚠**. |
 | **v1.8** | 17 nov 2026, 6:45 p. m. | **Excel incorrecto**: si suben otro archivo, sale la ✗ roja «Excel incorrecto» pidiendo el verdadero listado de reservas de la extranet (**«EXTRANET  DORADO PLAZA.xlsx»**, nombre que ahora aparece en la zona de subir y en los errores). Si el archivo trae las columnas pero se llama distinto, se lee igual y sale el aviso amarillo «Ojo». **Basurita roja en cada reserva** (a la derecha de «Corregir»): doble pregunta para las de la extranet; quedan en «Quitadas de la hoja» y no salen en la hoja ni en el PDF. Crédito: **JX Enterprise**. |
 | **v1.7** | 17 nov 2026, 5:56 p. m. | **Las contraseñas las pone el administrador** (pedido de JX): al crear un usuario escribes tú su contraseña y entra con esa, sin que la web le pida cambiarla; recepción ya no puede cambiar su contraseña (solo el admin, con «Contraseña nueva»). Solo la primera entrada del admin con la `CLAVE_INICIAL` pide poner la suya. |
 | **v1.6** | 17 nov 2026, 5:51 p. m. | La versión debajo del logo vuelve a la «v» minúscula (pedido de JX). |
@@ -292,7 +293,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.9, v1.10…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.10, v1.11…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
