@@ -267,10 +267,11 @@
       L.mensaje(null);
       ocupado = false;
       irA('#resumen');
-      var t = Reglas.totales(actual.filas);
-      resultado('ok', '¡Listado listo!', plural(t.reservas, 'reserva', 'reservas') + ' y ' + plural(t.habitaciones, 'habitación', 'habitaciones') +
-        (nov ? '. Es una descarga más nueva del mismo día: mira las novedades.' : '. Revisa la lista y saca la hoja.'))   // v1.5: ✓ verde (pedido de JX)
-        .then(mostrarGuia);                                  // y al cerrarlo, la guía «tu hoja está aquí abajo» (una vez)
+      var t = Reglas.totales(actual.filas), lst = actual;
+      (lst.checkin.length > 1 && !lst.fechaManual ? elegirFecha(lst) : Promise.resolve()).then(function () {
+        return resultado('ok', '¡Listado listo!', plural(t.reservas, 'reserva', 'reservas') + ' y ' + plural(t.habitaciones, 'habitación', 'habitaciones') +
+          ' del ' + fechaHoja(lst.fecha) + (nov ? '. Es una descarga más nueva del mismo día: mira las novedades.' : '. Revisa la lista y saca la hoja.'));   // v1.5: ✓ verde (pedido de JX)
+      }).then(mostrarGuia);                                  // y al cerrarlo, la guía «tu hoja está aquí abajo» (una vez)
     }).catch(function (e) {
       setTimeout(function () {                               // un instante mínimo para que no parpadee
         L.ocultar({ motivo: 'excel', salida: 'cancelada' }); vueltasNormales();
@@ -290,12 +291,44 @@
     return diaDe(x.creado) === hoy;
   }
   function idListado() { return 'l' + ahora().toString(36) + Math.floor(Math.random() * 1296).toString(36); }
+  /** La fecha que trae el Excel (un solo día de check-in); '' si trae varios; hoy si no trae (v1.10). */
+  function fechaDelExcel(l) { return l.checkin.length === 1 ? l.checkin[0] : (l.checkin.length ? '' : hoyISO()); }
+  /** «sábado 22/11/2026»: así sale la fecha en la hoja (v1.10). */
+  function fechaHoja(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? DIAS[new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])).getUTCDay()] + ' ' + fechaTexto(iso) : fechaTexto(iso);
+  }
+  /** Varios días en el mismo Excel (casi nunca): «¿De qué fecha es la hoja?» con un botón por fecha. Esc = la primera. */
+  function elegirFecha(l) {
+    return new Promise(function (ok) {
+      var dlg = $('#dlg-fecha'), caja = $('#fecha-opciones');
+      caja.innerHTML = l.checkin.slice(0, 6).map(function (d, i) {
+        return '<button type="button" class="boton ' + (i ? 'boton--secundario' : 'boton--primario') + '" data-fecha="' + esc(d) + '">' + esc(fechaHoja(d)) + '</button>';
+      }).join('');
+      function fin(d) {
+        caja.removeEventListener('click', alClic); dlg.removeEventListener('cancel', alCancelar);
+        if (dlg.open && dlg.close) { dlg.close(); } else { dlg.removeAttribute('open'); }
+        if (d && actual === l) {
+          l.fecha = d; l.fechaManual = true; l.tFecha = ahora();
+          tocar('Escogió la fecha de la hoja: ' + fechaTexto(d)); pintarResumen(); pintarAvisos(); pintarHoja(); pintarHistorial();
+        }
+        ok();
+      }
+      function alClic(e) { var b = e.target.closest('[data-fecha]'); if (b) { fin(b.getAttribute('data-fecha')); } }
+      function alCancelar(e) { if (e && e.preventDefault) { e.preventDefault(); } fin(null); }
+      caja.addEventListener('click', alClic); dlg.addEventListener('cancel', alCancelar);
+      abrirDialogo('#dlg-fecha');
+      setTimeout(function () { var b = caja.querySelector('button'); if (b) { b.focus(); } }, 40);
+    });
+  }
   /** Crea el listado a partir del Excel ya leído. Si es una descarga más nueva del mismo día, compara y conserva lo hecho a mano. */
   function cargarListado(armado, nombre) {
     var hoy = hoyISO(), momento = ahora();
     var previo = listados.filter(function (x) { return esElMismo(x, armado.checkin, hoy); })[0] || null;
     var nuevo = {
-      id: idListado(), fecha: hoy, fechaManual: false, creado: momento, actualizado: momento, archivo: nombre,
+      // v1.10 (JX): la hoja lleva la fecha de las reservas (la del check-in del Excel), no la de hoy.
+      // Sin columna de check-in → hoy. Varios días (casi nunca) → la primera y luego se pregunta (elegirFecha).
+      id: idListado(), fecha: armado.checkin.length ? armado.checkin[0] : hoy, fechaManual: false, creado: momento, actualizado: momento, archivo: nombre,
       filasExcel: armado.filasExcel, sinCodigo: armado.sinCodigo, checkin: armado.checkin, filas: armado.filas, seq: 0, novedades: null,
       autor: nube.usuario ? nube.usuario.nombre : '', borradas: [], tFecha: 0
     };
@@ -368,8 +401,9 @@
       ' · subido ' + esc(cuando(actual.creado)) + (actual.autor ? ' por <strong>' + esc(actual.autor) + '</strong>' : '') + (partes.length ? '<br>Cambios a mano: ' + partes.join(' · ') + '.' : '');
     $('#fecha-hoja').value = actual.fecha;
     $('#btn-fecha-hoy').disabled = actual.fecha === hoyISO();
-    $('#fecha-texto').innerHTML = 'En la hoja sale: <strong>Fecha: ' + esc(fechaTexto(actual.fecha)) + '</strong> · ' +
-      esc(fechaLarga(actual.fecha)) + (actual.fecha === hoyISO() ? ' (hoy)' : '');
+    var fx = fechaDelExcel(actual);
+    $('#fecha-texto').innerHTML = 'En la hoja sale: <strong>Reservas del: ' + esc(fechaHoja(actual.fecha)) + '</strong> · ' +
+      esc(fechaLarga(actual.fecha)) + (actual.fecha === hoyISO() ? ' (hoy)' : '') + (actual.fecha === fx ? ' · la fecha que trae el Excel' : '');
   }
 
   function pintarAvisos() {
@@ -486,14 +520,58 @@
   /** Acomoda la hoja (js/hoja.js) y la muestra. Lo mismo que se ve es lo que se imprime y lo que va al PDF. */
   function pintarHoja() {
     var v = Reglas.visibles(actual.filas);
+    var cuandoImp = ahora(), quien = nombreImprime();
+    minutoHoja = Math.floor(cuandoImp / 60000);
     maqueta = Hoja.maquetar({
-      fecha: fechaTexto(actual.fecha), casilla: ajustes.casilla === true, apretar: ajustes.apretar !== false,
+      // v1.10 (JX): «reservas del día tal, a la hora tal e impreso por tal persona»
+      fecha: fechaHoja(actual.fecha),
+      impreso: fechaTexto(diaDe(cuandoImp)) + ', ' + horaDe(cuandoImp).replace(/\u00A0/g, ' '),
+      por: quien || '(tu nombre se escribe al imprimir)',
+      casilla: ajustes.casilla === true, apretar: ajustes.apretar !== false,
       filas: v.map(function (f) { return { cod: f.cod, hab: f.hab, ag: f.ag, ti: f.ti, pre: Reglas.textoPre(f) }; })
     });
     $('#hojas').innerHTML = maqueta.paginas.map(function (p, i) { return '<div class="hoja__pagina">' + Hoja.svg(maqueta, i) + '</div>'; }).join('');
     var n = maqueta.paginas.length;
     $('#hoja-ayuda').textContent = 'Así sale por la impresora y en el PDF: ' + plural(n, 'hoja', 'hojas') + ' tamaño carta' +
       (n > 1 ? ' (son muchas reservas y no caben en una).' : maqueta.densidad !== 'amplia' ? ' (con la letra un poco más apretada para que quepa en una).' : '.');
+  }
+
+  /* ---------- quién imprime (v1.10, pedido de JX: «el nombre de la persona que imprimió… obligatoriamente») ----------
+     Con la nube: el usuario que entró. Sin la nube: la ventanita «¿Quién imprime?» (el nombre se recuerda en el equipo). */
+  var minutoHoja = 0, impresionPintada = 0, imprimiendo = false;   // v1.10: mientras se imprime no se repinta la hoja
+  function nombreImprime() {
+    if (nubeActiva() && nube.usuario && nube.usuario.nombre) { return nube.usuario.nombre; }
+    return leer('imprime-nombre', '') || '';
+  }
+  /** Antes de imprimir / PDF / compartir: devuelve (promesa) el nombre de quien imprime, o null si canceló. */
+  function conNombre(accion) {
+    if (nubeActiva() && nube.usuario && nube.usuario.nombre) { return Promise.resolve(nube.usuario.nombre); }
+    return new Promise(function (ok) { abrirNombre(accion, ok); });
+  }
+  function abrirNombre(accion, ok) {
+    var dlg = $('#dlg-nombre'), form = $('#form-nombre'), campo = $('#n-nombre'), no = $('#n-no');
+    $('#n-si').textContent = accion;
+    campo.value = leer('imprime-nombre', '') || '';
+    function soltar() {
+      form.removeEventListener('submit', alSi); no.removeEventListener('click', alNo); dlg.removeEventListener('cancel', alNo);
+      if (dlg.open && dlg.close) { dlg.close(); } else { dlg.removeAttribute('open'); }
+    }
+    function alSi(e) {
+      if (e && e.preventDefault) { e.preventDefault(); }
+      var n = Reglas.limpiar(campo.value).slice(0, 40);
+      soltar();
+      if (n.length < 2) {                                    // sin nombre no se imprime: ✗ roja y vuelve a preguntar
+        resultado('error', 'Primero escribe tu nombre', 'Para imprimir, descargar o compartir la hoja escribe tu nombre: sale impreso en la hoja («Impreso el … por …»).')
+          .then(function () { abrirNombre(accion, ok); });
+        return;
+      }
+      guardar('imprime-nombre', n, true);
+      ok(n);
+    }
+    function alNo(e) { if (e && e.preventDefault) { e.preventDefault(); } soltar(); ok(null); }
+    form.addEventListener('submit', alSi); no.addEventListener('click', alNo); dlg.addEventListener('cancel', alNo);
+    abrirDialogo('#dlg-nombre');
+    setTimeout(function () { campo.focus(); campo.select(); }, 40);
   }
 
   function irA(sel) {
@@ -677,7 +755,7 @@
         resultado('ok', '¡Letras corregidas!', plural(n, 'reserva corregida', 'reservas corregidas') + '. Revísalas en la lista.');
       } else if (acc === 'fecha-checkin') {
         if (actual.checkin.length !== 1) { return; }
-        actual.fecha = actual.checkin[0]; actual.fechaManual = actual.fecha !== hoyISO(); actual.tFecha = ahora();
+        actual.fecha = actual.checkin[0]; actual.fechaManual = false; actual.tFecha = ahora();
         tocar('Puso la fecha de la hoja en ' + fechaTexto(actual.fecha)); pintarResumen(); pintarAvisos(); pintarHoja(); pintarHistorial();
         resultado('ok', '¡Fecha cambiada!', 'La hoja sale con fecha ' + fechaTexto(actual.fecha) + '.');
       } else if (acc === 'volver-a-agregar') {
@@ -695,7 +773,7 @@
       if (!actual) { return; }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(this.value)) { this.value = actual.fecha; return; }
       if (this.value === actual.fecha) { return; }          // Safari repite «change» al perder el foco (al abrirse el ✓): si no cambió, nada
-      actual.fecha = this.value; actual.fechaManual = this.value !== hoyISO(); actual.tFecha = ahora();
+      actual.fecha = this.value; actual.fechaManual = this.value !== fechaDelExcel(actual); actual.tFecha = ahora();
       tocar('Puso la fecha de la hoja en ' + fechaTexto(actual.fecha)); pintarResumen(); pintarAvisos(); pintarHoja(); pintarHistorial();
       // v1.5: ✓ verde 1,2 s después del último cambio (al escribir la fecha con el teclado, «change» sale con cada número)
       clearTimeout(tFechaOk);
@@ -704,7 +782,7 @@
     $('#btn-fecha-hoy').addEventListener('click', function () {
       if (!actual) { return; }
       clearTimeout(tFechaOk);
-      actual.fecha = hoyISO(); actual.fechaManual = false; actual.tFecha = ahora();
+      actual.fecha = hoyISO(); actual.fechaManual = actual.fecha !== fechaDelExcel(actual); actual.tFecha = ahora();
       tocar('Puso la fecha de la hoja en hoy (' + fechaTexto(actual.fecha) + ')'); pintarResumen(); pintarAvisos(); pintarHoja(); pintarHistorial();
       resultado('ok', '¡Fecha de hoy!', 'La hoja sale con fecha ' + fechaTexto(actual.fecha) + '.');
     });
@@ -726,19 +804,46 @@
   function eventosSalida() {
     $('#btn-imprimir').addEventListener('click', function () {
       if (!actual || !maqueta) { return; }
-      nubeAnotar('Imprimió la hoja del ' + fechaTexto(actual.fecha));
-      window.print();                                        // @media print (estilos.css) deja solo la hoja
+      conNombre('Imprimir').then(function (n) {
+        if (!n || !actual) { return; }
+        // v1.10: primero se termina de cerrar la ventanita «¿Quién imprime?» y se pinta la hoja con la hora
+        // exacta; DESPUÉS se abre la impresión (si se abría en el mismo instante, Chrome se quedaba en
+        // «Cargando vista previa…»). Mientras la impresión está abierta, la hoja no se vuelve a pintar.
+        pintarHoja(); impresionPintada = ahora();
+        nubeAnotar('Imprimió la hoja del ' + fechaTexto(actual.fecha));
+        setTimeout(function () { requestAnimationFrame(function () { window.print(); }); }, 180);   // @media print deja solo la hoja
+      });
+    });
+    /* v1.10: Ctrl+P / Cmd+P pasa por el mismo botón (pide el nombre si hace falta) */
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === 'p' || e.key === 'P') && actual && maqueta && !document.querySelector('dialog[open]')) {
+        e.preventDefault(); $('#btn-imprimir').click();
+      }
     });
     // al imprimir (botón o Ctrl+P), «Guardar como PDF» propone el mismo nombre que la descarga
     var tituloPagina = document.title;
-    window.addEventListener('beforeprint', function () { if (actual && maqueta) { document.title = Hoja.nombreArchivo(actual.fecha).replace(/\.pdf$/i, ''); } });
-    window.addEventListener('afterprint', function () { document.title = tituloPagina; });
+    window.addEventListener('beforeprint', function () {
+      if (!actual || !maqueta) { return; }
+      document.title = Hoja.nombreArchivo(actual.fecha).replace(/\.pdf$/i, '');
+      // v1.10: desde el menú del navegador sin nombre → no sale la hoja, sale el aviso; con nombre → hora exacta
+      imprimiendo = true;
+      if (!nombreImprime()) { document.documentElement.classList.add('falta-nombre'); }
+      else if (ahora() - impresionPintada > 4000) { pintarHoja(); }   // solo desde el menú del navegador (el botón ya la pintó)
+    });
+    window.addEventListener('afterprint', function () {
+      imprimiendo = false; document.title = tituloPagina;
+      if (document.documentElement.classList.contains('falta-nombre')) { document.documentElement.classList.remove('falta-nombre'); }
+    });
     $('#btn-pdf').addEventListener('click', function () {
       if (!actual || !maqueta) { return; }
-      var nombre = Hoja.nombreArchivo(actual.fecha);
-      descargar(hacerPdf(), nombre);
-      resultado('ok', '¡PDF descargado!', nombre + ' quedó en tus descargas.');
-      nubeAnotar('Descargó el PDF ' + nombre);
+      conNombre('Descargar PDF').then(function (n) {
+        if (!n || !actual) { return; }
+        pintarHoja();                                        // v1.10: hora exacta y nombre en el PDF
+        var nombre = Hoja.nombreArchivo(actual.fecha);
+        descargar(hacerPdf(), nombre);
+        resultado('ok', '¡PDF descargado!', nombre + ' quedó en tus descargas.');
+        nubeAnotar('Descargó el PDF ' + nombre);
+      });
     });
     /* «Eliminar» (v1.4, pedido de JX): quita el Excel / listado que está en pantalla —también del historial—
        y deja la página lista para subir otro. Pide confirmación porque no se puede recuperar. */
@@ -759,6 +864,9 @@
     });
     $('#btn-compartir').addEventListener('click', function () {
       if (!actual || !maqueta) { return; }
+      conNombre('Compartir').then(function (n) { if (n && actual) { pintarHoja(); compartirHoja(); } });
+    });
+    function compartirHoja() {
       var nombre = Hoja.nombreArchivo(actual.fecha), blob = hacerPdf(), archivo = null;
       nubeAnotar('Compartió el PDF ' + nombre);
       try { archivo = new File([blob], nombre, { type: 'application/pdf' }); } catch (e) { archivo = null; }
@@ -775,7 +883,7 @@
         descargar(blob, nombre);
         resultado('ok', '¡PDF descargado!', 'Este navegador no comparte archivos directamente: ' + nombre + ' quedó en tus descargas para que lo adjuntes en WhatsApp.');
       }
-    });
+    }
   }
 
   /* ================================================================
@@ -1756,6 +1864,8 @@
   function iniciar() {
     aplicarTema();
     eventosSubir(); eventosEditar(); eventosSalida(); eventosHistorial(); eventosAjustes(); eventosNube(); eventosDeshacer(); eventosGuia(); eventosEditar2();
+    /* v1.10: la hora de «Impreso el …» de la vista de la hoja se pone al día cada minuto (al imprimir se pone la exacta) */
+    setInterval(function () { if (actual && maqueta && !imprimiendo && !document.hidden && Math.floor(ahora() / 60000) !== minutoHoja) { pintarHoja(); } }, 15000);
     /* si el último listado es de hoy (o tiene fecha de hoy en adelante), vuelve a estar en pantalla */
     var id = leer('actual', null), hoy = hoyISO();
     var ultimo = listados.filter(function (x) { return x.id === id; })[0];

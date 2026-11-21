@@ -549,6 +549,8 @@ html[data-tema="oscuro"] .aviso { background: rgba(245, 233, 210, .96); color: #
   .guia-hoja { bottom: calc(var(--alto-acciones) + 30px + var(--abajo)); right: calc(24px + var(--der)); }
 }
 @media print { .guia-hoja { display: none !important; } }
+.imprimir-falta { display: none; }                      /* v1.10: solo se ve al imprimir sin nombre (sección 18) */
+#fecha-opciones .boton { flex: 1 1 100%; }             /* v1.10: una fecha por renglón en «¿De qué fecha es la hoja?» */
 
 /* ---------- 14c. Ventanitas de pregunta y de resultado (v1.5, pedido de JX) ----------
    Copiadas del Manual de turnos (v1.9 y v1.13): el mismo diálogo de la web (radio 20 px), más angosto
@@ -792,7 +794,10 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
   html.hay-hoja main { max-width: none; width: auto; margin: 0; padding: 0; }
   html.hay-hoja main > *:not(#hoja) { display: none !important; }
   html.hay-hoja #hoja { padding: 0; }
-  html.hay-hoja #hoja > *:not(#hojas) { display: none !important; }
+  html.hay-hoja #hoja > *:not(#hojas):not(.imprimir-falta) { display: none !important; }
+  /* v1.10: impresión desde el menú del navegador sin nombre → en vez de la hoja, el aviso */
+  html.falta-nombre #hojas { display: none !important; }
+  html.falta-nombre .imprimir-falta { display: block !important; margin: 1in .8in; font: 700 16pt/1.4 Arial, sans-serif; color: #000; }
   .hojas { display: block; }
   .hoja__pagina {
     width: 8.5in; height: 11in; max-width: none; aspect-ratio: auto; margin: 0;

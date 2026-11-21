@@ -29,7 +29,9 @@
   var TEXTOS = {
     titulo: 'LISTADO DE RESERVAS',
     subtitulo: 'Códigos DP · Recepción Hotel Dorado Plaza Bocagrande',
-    fecha: 'Fecha: ',
+    fecha: 'Reservas del: ',   // v1.10 (JX): la fecha de las reservas (la del Excel), no la de hoy
+    impreso: 'Impreso el ',    // v1.10: «Impreso el 21/11/2026, 3:45 p. m.» (momento exacto de imprimir / PDF / compartir)
+    por: 'por ',               // v1.10: «por Jx Martínez» (el usuario que entró, o el nombre de la ventanita «¿Quién imprime?»)
     columnas: { reserva: 'NRO. RESERVA', hab: 'NRO. HAB', agencia: 'AGENCIA', titular: 'TITULAR', casilla: 'LLEGÓ' },
     totalHab: 'TOTAL DE HABITACIONES: ',
     totalRes: 'TOTAL DE RESERVAS: ',
@@ -54,7 +56,8 @@
     logoX: 50.4, logoY: 49.8, logoAncho: 123,
     tituloX: 191.4, tituloY: 86.8, tituloTam: 21,
     subY: 100.8, subTam: 10,
-    fechaY: 120.8, fechaTam: 11,
+    fechaY: 116.6, fechaTam: 11,                // v1.10: sube un poco para que quepan las dos líneas de impresión
+    impresoY: 129.8, porY: 140.6, impresoTam: 8,  // «Impreso el …» y «por …», en gris, debajo de la fecha
     reglaY: 149.8,
     tablaY: 165.8,                              // primera página (debajo del encabezado)
     tablaY2: 46.8,                              // páginas siguientes: la tabla arranca arriba (sin encabezado)
@@ -235,6 +238,8 @@
         o.push({ k: 'txt', x: M.tituloX, y: M.tituloY, t: TEXTOS.titulo, z: M.tituloTam, b: 1, c: COLOR.tinta, a: 'i' });
         o.push({ k: 'txt', x: M.tituloX, y: M.subY, t: imprimible(TEXTOS.subtitulo), z: M.subTam, b: 0, c: COLOR.bronce, a: 'i' });
         o.push({ k: 'txt', x: M.tituloX, y: M.fechaY, t: imprimible(TEXTOS.fecha + (datos.fecha || '')), z: M.fechaTam, b: 1, c: COLOR.tinta, a: 'i' });
+        if (datos.impreso) { o.push({ k: 'txt', x: M.tituloX, y: M.impresoY, t: imprimible(TEXTOS.impreso + datos.impreso), z: M.impresoTam, b: 0, c: COLOR.gris, a: 'i' }); }
+        if (datos.por) { o.push({ k: 'txt', x: M.tituloX, y: M.porY, t: imprimible(TEXTOS.por + datos.por), z: M.impresoTam, b: 1, c: COLOR.gris, a: 'i' }); }
         o.push({ k: 'linea', x1: M.x0, y1: M.reglaY, x2: M.x1, y2: M.reglaY, s: COLOR.bronce, g: 1.5 });
         yTabla = M.tablaY;
       }

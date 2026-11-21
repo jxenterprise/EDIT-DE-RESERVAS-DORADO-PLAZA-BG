@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.9** · 17 nov 2026, 7:05 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.10** · 21 nov 2026, 10:21 a. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -50,7 +50,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 5. Repasa **«Revisa la lista»**: así va a salir la hoja. Si algo está mal, toca la reserva y corrígela ([punto 3](#3-revisar-y-corregir-antes-de-imprimir)).
 6. Abajo está la **hoja** tal cual sale por la impresora. Usa la barra de abajo: **Imprimir**, **Descargar PDF**, **Compartir** o **Eliminar**.
 
-> **La fecha de la hoja es la de hoy** (hora de Colombia). Si el Excel trae llegadas de otro día (por ejemplo, en el turno de noche sacas la hoja de mañana), sale un aviso con el botón **«Usar DD/MM/AAAA»** para ponerle esa fecha con un toque. También la puedes cambiar a mano en **«Fecha que sale en la hoja»**.
+> **La fecha de la hoja es la de las reservas, la que trae el Excel** (desde v1.10): si subes las llegadas del 22, la hoja dice **«Reservas del: domingo 22/11/2026»**, aunque la saques hoy. Si el Excel no trae fecha de llegada, sale la de hoy. Si un día trae reservas de **varios días** (casi nunca pasa), sale la ventanita **«¿De qué fecha es la hoja?»** para escoger. También la puedes cambiar a mano en **«Fecha que sale en la hoja»** (y si la cambias, sale un aviso con **«Usar DD/MM/AAAA»** para volver a la del Excel).
 
 ## 2. Qué hace con el Excel
 
@@ -101,6 +101,7 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 ## 5. Imprimir, PDF y compartir
 
+- **En cada hoja sale quién y cuándo** (desde v1.10): debajo de «Reservas del: …» va **«Impreso el 21/11/2026, 3:45 p. m.»** (la hora exacta en que tocas Imprimir, Descargar PDF o Compartir) y **«por …»** (quien la sacó). Con la nube es el nombre del usuario que entró. **Sin la nube** sale la ventanita **«¿Quién imprime?»**: el nombre es obligatorio (si lo dejas vacío sale la ✗ «Primero escribe tu nombre») y el equipo lo recuerda para la próxima vez (sale ya escrito, solo confirmas o lo cambias). Ctrl+P también pasa por esa ventanita; si alguien imprime desde el menú del navegador sin haber puesto su nombre, en vez de la hoja sale un aviso para usar el botón «Imprimir».
 - **Imprimir**: abre la ventana de impresión con **solo la hoja** (sin botones ni nada de la página), tamaño **carta**. Si escoges «Guardar como PDF», el archivo ya se llama `Reservas_DP_DD-MM-AAAA`.
 - **Descargar PDF**: baja `Reservas_DP_DD-MM-AAAA.pdf` (por ejemplo, `Reservas_DP_17-11-2026.pdf`), idéntico a lo que ves en pantalla.
 - **Compartir** (en el celular): abre el menú de compartir del teléfono con el PDF, para mandarlo al grupo de WhatsApp. Si el navegador no lo permite (por ejemplo, en el computador), descarga el PDF para que lo adjuntes.
@@ -172,7 +173,8 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 | «El Excel llegó dañado o incompleto» | Se cortó la descarga: descárgalo otra vez. |
 | «El Excel trae los títulos pero ninguna reserva» | No hay llegadas en ese Excel. |
 | Falta una reserva que sí está en la extranet | Puede que la descarga sea vieja: baja el Excel otra vez (te marca las novedades) o usa **+ Agregar una reserva que falte**. |
-| Sale el aviso de la fecha | El Excel es de otro día: toca **«Usar DD/MM/AAAA»** o deja la de hoy. |
+| Sale el aviso de la fecha | Le cambiaste la fecha a mano y ya no es la del Excel: toca **«Usar DD/MM/AAAA»** para volver a la del Excel, o déjala si fue a propósito. |
+| Sale «¿Quién imprime?» | No hay nadie con su usuario (sin la nube): escribe tu nombre; sale en la hoja. |
 | Un nombre sale con una letra rara | Toca la reserva y corrígelo, o usa **«Corregir las sugeridas»** del aviso. |
 | «Este navegador no deja guardar» | Estás en modo incógnito o con el almacenamiento bloqueado: funciona, pero al cerrar se pierde. Imprime o descarga el PDF antes de cerrar, o ábrelo en una ventana normal. |
 | Al imprimir salen márgenes raros o la hoja se ve pequeña | En la ventana de impresión: tamaño **Carta**, márgenes **Predeterminados** o **Ninguno**, escala **100 %**. |
@@ -282,6 +284,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.10** | 21 nov 2026, 10:21 a. m. | **La hoja lleva la fecha de las reservas** (la del Excel, no la de hoy: «Reservas del: domingo 22/11/2026»); con varios días pregunta cuál. **«Impreso el …, h:mm … por …»** en la hoja, el PDF y lo que se comparte: hora exacta y nombre de quien la sacó (el usuario de la nube, o la ventanita obligatoria «¿Quién imprime?» que se recuerda en el equipo). Ctrl+P pasa por la ventanita; desde el menú del navegador sin nombre no sale la hoja. |
 | **v1.9** | 17 nov 2026, 7:05 p. m. | **Pantalla de carga del Excel de 12 s** (pedido de JX: «que se tome su tiempo»): el logo se completa y vuelve a empezar, 4 vueltas, mientras el % sube parejo hasta 100; después sale la lista. La carga al abrir la página sigue igual (2,5 s). En el aviso «Ojo», el nombre equivocado del archivo sale **en rojo con un ícono ⚠**. |
 | **v1.8** | 17 nov 2026, 6:45 p. m. | **Excel incorrecto**: si suben otro archivo, sale la ✗ roja «Excel incorrecto» pidiendo el verdadero listado de reservas de la extranet (**«EXTRANET  DORADO PLAZA.xlsx»**, nombre que ahora aparece en la zona de subir y en los errores). Si el archivo trae las columnas pero se llama distinto, se lee igual y sale el aviso amarillo «Ojo». **Basurita roja en cada reserva** (a la derecha de «Corregir»): doble pregunta para las de la extranet; quedan en «Quitadas de la hoja» y no salen en la hoja ni en el PDF. Crédito: **JX Enterprise**. |
 | **v1.7** | 17 nov 2026, 5:56 p. m. | **Las contraseñas las pone el administrador** (pedido de JX): al crear un usuario escribes tú su contraseña y entra con esa, sin que la web le pida cambiarla; recepción ya no puede cambiar su contraseña (solo el admin, con «Contraseña nueva»). Solo la primera entrada del admin con la `CLAVE_INICIAL` pide poner la suya. |
@@ -293,7 +296,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.10, v1.11…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.11, v1.12…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

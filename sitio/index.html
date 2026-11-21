@@ -67,7 +67,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.9</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.10</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -229,6 +229,8 @@
       <h2 class="seccion__titulo" id="hoja-titulo">Hoja lista</h2>
       <p class="seccion__ayuda" id="hoja-ayuda"></p>
       <div class="hojas" id="hojas"></div>
+      <!-- v1.10: si alguien imprime desde el menú del navegador sin haber dicho su nombre, sale esto en vez de la hoja -->
+      <p class="imprimir-falta" id="imprimir-falta">Para imprimir la hoja usa el botón «Imprimir» de la página y escribe tu nombre: sale impreso en la hoja.</p>
     </section>
 
     <!-- ===========================================================
@@ -499,6 +501,36 @@
       <div class="dialogo__botones">
         <button type="button" class="boton boton--primario" id="res-ok">Entendido</button>
       </div>
+    </div>
+  </dialog>
+
+  <!-- ===========================================================
+       VENTANITA «¿QUIÉN IMPRIME?» (v1.10, pedido de JX: «el nombre de la persona que imprimió sale
+       impreso en la hoja… obligatoriamente»). Sale al tocar Imprimir / Descargar PDF / Compartir SOLO si
+       nadie entró con su usuario (sin nube). El nombre se recuerda en el equipo y sale ya escrito.
+       Vacío → ✗ roja «Primero escribe tu nombre». Depende de: conNombre() en app.js
+       =========================================================== -->
+  <dialog class="dialogo" id="dlg-nombre" aria-labelledby="nombre-titulo" aria-describedby="nombre-ayuda">
+    <form class="dialogo__caja" id="form-nombre" novalidate>
+      <h2 class="dialogo__titulo" id="nombre-titulo">¿Quién imprime?</h2>
+      <p class="nota dialogo__origen" id="nombre-ayuda">Tu nombre sale en la hoja: «Impreso el … por …». Es obligatorio.</p>
+      <label class="campo" for="n-nombre">
+        <span class="campo__etiqueta">Tu nombre</span>
+        <input type="text" id="n-nombre" maxlength="40" autocomplete="name" spellcheck="false" placeholder="Ej.: Ana María">
+      </label>
+      <div class="dialogo__botones">
+        <button type="submit" class="boton boton--primario" id="n-si">Imprimir</button>
+        <button type="button" class="boton boton--secundario" id="n-no">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- VENTANITA «¿DE QUÉ FECHA ES LA HOJA?» (v1.10): solo si el Excel trae reservas de VARIOS días (casi nunca). -->
+  <dialog class="dialogo" id="dlg-fecha" aria-labelledby="fecha-preg-titulo" aria-describedby="fecha-preg-texto">
+    <div class="dialogo__caja">
+      <h2 class="dialogo__titulo" id="fecha-preg-titulo">¿De qué fecha es la hoja?</h2>
+      <p class="dialogo__texto" id="fecha-preg-texto">Este Excel trae reservas de varios días. Escoge la fecha que sale en la hoja:</p>
+      <div class="dialogo__botones" id="fecha-opciones"></div>
     </div>
   </dialog>
 
