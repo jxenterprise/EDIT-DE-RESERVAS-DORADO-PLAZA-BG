@@ -1404,7 +1404,7 @@
     if (esAdmin()) { cargarAdmin(); }
   }
   function entrar() {
-    var usuario = $('#e-usuario').value.trim().toLowerCase(), clave = $('#e-clave').value, boton = $('#e-entrar');
+    var usuario = $('#e-usuario').value.replace(/\s+/g, ' ').trim(), clave = $('#e-clave').value, boton = $('#e-entrar');   // v1.13: la nube lo compara sin mayúsculas ni tildes
     var err = $('#e-error');
     if (!usuario || !clave) { err.textContent = 'Escribe tu usuario y tu contraseña.'; err.hidden = false; return; }
     boton.disabled = true; boton.textContent = 'Entrando…'; err.hidden = true;
@@ -1428,7 +1428,7 @@
       var t = {
         clave: 'Usuario o contraseña incorrectos. Las mayúsculas cuentan.',
         espera: 'Demasiados intentos: espera ' + ((e.datos && e.datos.minutos) || 15) + ' minutos e inténtalo otra vez.',
-        datos: 'El usuario va sin espacios (letras, números, punto o guion).',
+        datos: 'Escribe tu nombre y apellido como te lo dio el administrador.',
         'sin-conexion': 'Sin conexión: revisa el internet e inténtalo otra vez.'
       }[e.tipo] || 'No se pudo entrar. Inténtalo otra vez en un momento.';
       err.textContent = t; err.hidden = false;
@@ -1698,7 +1698,7 @@
     $('#btn-cuenta').setAttribute('aria-label', 'Mi cuenta: ' + u.nombre + '. ' + e[1]);
     $('#cuenta-estado-punto').setAttribute('data-color', e[2]);
     $('#cuenta-estado-texto').textContent = e[1] + (nube.ultima && nube.estado !== 'subiendo' && nube.estado !== 'bajando' ? ' Última vez: ' + cuando(nube.ultima) : '');
-    $('#cuenta-quien').innerHTML = 'Entraste como <strong>' + esc(u.nombre) + '</strong> (usuario «' + esc(u.usuario) + '») · ' + (u.rol === 'admin' ? 'Administrador' : 'Recepción') + '.';
+    $('#cuenta-quien').innerHTML = 'Entraste como <strong>' + esc(u.nombre) + '</strong> · ' + (u.rol === 'admin' ? 'Administrador' : 'Recepción') + '.';
     $('#btn-ir-admin').hidden = !esAdmin();
   }
   function abrirCuenta(obligada) {
@@ -1755,7 +1755,7 @@
           '<button type="button" class="enlace' + (u.activo ? ' enlace--peligro' : '') + '" data-u="activo">' + (u.activo ? 'Desactivar' : 'Activar') + '</button>');
       return '<li data-activo="' + (u.activo ? 'si' : 'no') + '" data-id="' + esc(u.id) + '" data-nombre="' + esc(u.nombre) + '" data-usuario="' + esc(u.usuario) + '" data-rol="' + esc(u.rol) + '" data-act="' + (u.activo ? '1' : '0') + '">' +
         '<span class="usuarios__info"><span class="usuarios__nombre">' + esc(u.nombre) + ' ' + chips.join('') + '</span>' +
-        '<span class="usuarios__meta">Usuario «' + esc(u.usuario) + '» · creado el ' + esc(fechaTexto(diaDe(u.creado))) + '</span></span>' +
+        '<span class="usuarios__meta">' + (/\s/.test(u.usuario) ? 'Entra con su nombre' : 'Entra con «' + esc(u.usuario) + '» (ponle su nombre completo)') + ' · creado el ' + esc(fechaTexto(diaDe(u.creado))) + '</span></span>' +
         '<span class="usuarios__botones">' + botones + '</span></li>';
     }).join('');
   }
@@ -1778,12 +1778,12 @@
   function abrirUsuario(modo, li) {
     dlgUsuario = { modo: modo, id: li ? +li.getAttribute('data-id') : 0 };
     var nuevo = modo === 'nuevo', soloNombre = modo === 'nombre';
-    $('#u-titulo').textContent = nuevo ? 'Nuevo usuario' : soloNombre ? 'Nombre de «' + li.getAttribute('data-usuario') + '»' : 'Contraseña nueva para ' + li.getAttribute('data-nombre');
-    $('#u-ayuda').textContent = nuevo ? 'La persona entra con este usuario y la contraseña que escribas aquí. Entrégasela en persona.'
-      : soloNombre ? 'Así sale en «Quién hizo qué», en el historial y en «subido por». El usuario para entrar no cambia.'
+    $('#u-titulo').textContent = nuevo ? 'Nuevo usuario' : soloNombre ? 'Nombre de ' + li.getAttribute('data-nombre') : 'Contraseña nueva para ' + li.getAttribute('data-nombre');
+    $('#u-ayuda').textContent = nuevo ? 'La persona entra con su nombre y apellido y la contraseña que escribas aquí. Entrégasela en persona.'
+      : soloNombre ? 'Con este nombre entra (sin importar mayúsculas ni tildes) y así sale en la hoja, en el historial y en «Quién hizo qué». La contraseña no cambia.'
         : 'Se cierra su sesión en todos los equipos y desde ahora entra con la contraseña que escribas aquí. Entrégasela en persona.';
     $('#u-datos').hidden = !(nuevo || soloNombre);
-    $('#u-usuario').closest('.campo').hidden = soloNombre; $('#u-rol').closest('.campo').hidden = soloNombre;
+    $('#u-rol').closest('.campo').hidden = soloNombre;   // v1.13: el campo «Usuario» ya no se muestra (es el nombre)
     $('#u-clave').closest('.campo').hidden = soloNombre;
     $('#u-nombre').value = soloNombre ? li.getAttribute('data-nombre') : ''; $('#u-usuario').value = ''; $('#u-rol').value = 'recepcion';
     $('#u-clave').value = '';                                // v1.7: la contraseña la escribe el admin (el dado inventa una si quiere)
@@ -1792,20 +1792,23 @@
     abrirDialogo('#dlg-usuario');
     setTimeout(function () { (nuevo || soloNombre ? $('#u-nombre') : $('#u-clave')).focus(); }, 40);
   }
+  /** v1.13: «jaime valera» → «Jaime Valera» (igual que la nube); si ya trae mayúsculas, se deja como lo escribieron. */
+  function nombreBonito(t) {
+    return t === t.toLowerCase() ? t.replace(/(^|[\s'-])([a-záéíóúñü])/g, function (m, a, b) { return a + b.toUpperCase(); }) : t;
+  }
   function guardarUsuario() {
     var err = $('#u-error'), clave = $('#u-clave').value.trim();
     function mal(t, campo) { err.textContent = t; err.hidden = false; if (campo) { campo.focus(); } }
     var cuerpo, peticion;
     if (dlgUsuario.modo === 'nombre') {
-      var nom = Reglas.limpiar($('#u-nombre').value);
+      var nom = nombreBonito(Reglas.limpiar($('#u-nombre').value));
       if (!nom) { mal('Escribe el nombre.', $('#u-nombre')); return; }
       clave = '12345678';                                    // (no se manda: solo para pasar la revisión de abajo)
       cuerpo = { nombre: nom };
       peticion = function () { return pedir('PATCH', 'usuarios/' + dlgUsuario.id, cuerpo); };
     } else if (dlgUsuario.modo === 'nuevo') {
-      var nombre = Reglas.limpiar($('#u-nombre').value), usuario = $('#u-usuario').value.trim().toLowerCase();
-      if (!nombre) { mal('Escribe el nombre de la persona.', $('#u-nombre')); return; }
-      if (!/^[a-z0-9._-]{2,30}$/.test(usuario)) { mal('El usuario va sin espacios ni tildes: letras, números, punto o guion (2 a 30).', $('#u-usuario')); return; }
+      var nombre = nombreBonito(Reglas.limpiar($('#u-nombre').value)), usuario = nombre;   // v1.13: el usuario es el nombre y apellido
+      if (nombre.length < 3 || !/\s/.test(nombre)) { mal('Escribe el nombre y el apellido de la persona (por ejemplo, Jaime Valera).', $('#u-nombre')); return; }
       cuerpo = { nombre: nombre, usuario: usuario, rol: $('#u-rol').value, clave: clave };
       peticion = function () { return pedir('POST', 'usuarios', cuerpo); };
     } else {
@@ -1817,18 +1820,23 @@
     peticion().then(function (r) {
       pintarUsuarios(r.usuarios || []);
       cerrarDialogo('#dlg-usuario');
-      if (dlgUsuario.modo === 'nombre' && nube.usuario && dlgUsuario.id === nube.usuario.id) { nube.usuario.nombre = cuerpo.nombre; guardarNube(); pintarNube(); }
+      if (dlgUsuario.modo === 'nombre' && nube.usuario && dlgUsuario.id === nube.usuario.id) {
+        // v1.13: si se cambió a sí mismo, desde ahora entra con ese nombre (la nube devuelve cómo quedó)
+        var yoNuevo = (r.usuarios || []).filter(function (x) { return x.id === nube.usuario.id; })[0];
+        nube.usuario.nombre = yoNuevo ? yoNuevo.nombre : cuerpo.nombre; if (yoNuevo) { nube.usuario.usuario = yoNuevo.usuario; }
+        guardarNube(); pintarNube();
+      }
       if (dlgUsuario.modo === 'nuevo') {
-        resultado('ok', '¡Usuario creado!', cuerpo.nombre + ' entra con el usuario «' + cuerpo.usuario + '» y esta contraseña (entrégasela en persona):', clave);
+        resultado('ok', '¡Usuario creado!', 'Entra escribiendo «' + cuerpo.nombre + '» (no importan las mayúsculas ni las tildes) y esta contraseña. Entrégasela en persona:', clave);
       } else if (dlgUsuario.modo === 'nombre') {
-        resultado('ok', '¡Nombre guardado!', 'Así sale en el historial y en «Quién hizo qué»: ' + cuerpo.nombre + '.');
+        resultado('ok', '¡Nombre guardado!', 'Desde ahora entra escribiendo «' + cuerpo.nombre + '» (con la misma contraseña) y así sale en la hoja, el historial y «Quién hizo qué».');
       } else {
         resultado('ok', '¡Contraseña nueva puesta!', 'Su sesión se cerró en todos los equipos. Desde ahora entra con esta contraseña (entrégasela en persona):', clave);
       }
       cargarAdmin();
     }, function (e) {
       if (e.estado === 401) { errorNube(e); return; }
-      mal({ existe: 'Ese usuario ya existe: escoge otro.', usuario: 'El usuario va sin espacios ni tildes: letras, números, punto o guion.', nombre: 'Escribe el nombre de la persona.', corta: 'La contraseña temporal debe tener 8 o más.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo guardar. Inténtalo otra vez.');
+      mal({ existe: 'Ya hay alguien con ese nombre: agrégale el segundo apellido.', usuario: 'Escribe solo letras, espacios y números (nombre y apellido).', nombre: 'Escribe el nombre de la persona.', corta: 'La contraseña temporal debe tener 8 o más.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo guardar. Inténtalo otra vez.');
     }).then(function () { b.disabled = false; });
   }
   function cambiarUsuario(li, que) {

@@ -97,9 +97,22 @@ function iguales(a, b) {
 }
 /** Contraseña lista para comparar: tildes en una sola forma (NFC) y sin espacios en los extremos. */
 function limpiaClave(s) { s = String(s == null ? '' : s); try { s = s.normalize('NFC'); } catch (e) { /* tal cual */ } return s.trim(); }
-function limpiaUsuario(s) { return String(s == null ? '' : s).trim().toLowerCase(); }
+/* v1.13 (JX: «que los usuarios sean igual que los nombres: entrar con “Jampier Estrada”»): el usuario ES el nombre
+   y apellido. Para compararlo se guarda «aplanado»: sin tildes, en minúsculas y con un solo espacio
+   («Jampier Estrada» = «jampier estrada» = «JAMPIER  ESTRADA» = «jampíer estrada»). Los usuarios viejos sin espacios
+   («jx») siguen sirviendo tal cual. */
+function limpiaUsuario(s) {
+  s = String(s == null ? '' : s);
+  try { s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); } catch (e) { /* tal cual */ }
+  return s.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+/** El nombre como se ve: si lo escribieron todo en minúsculas, cada palabra empieza con mayúscula. */
+function nombreBonito(s) {
+  const t = limpiaTexto(s, 40);
+  return t === t.toLowerCase() ? t.replace(/(^|[\s'-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()) : t;
+}
 function limpiaTexto(s, max) { return String(s == null ? '' : s).replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max || 120); }
-const USUARIO_OK = /^[a-z0-9._-]{2,30}$/;
+const USUARIO_OK = /^[a-z0-9][a-z0-9 ._'-]{1,39}$/;   // v1.13: ya acepta espacios (nombre y apellido); hasta 40
 const ID_OK = /^[a-z0-9]{2,40}$/i;
 
 /* ---------- la base ---------- */
@@ -197,7 +210,7 @@ async function entrar(db, env, request) {
     if (iguales(clave, inicial)) {
       const sal = azar(16);
       await db.prepare('INSERT INTO usuarios (usuario, nombre, rol, sal, hash, activo, cambiar, creado) VALUES (?1, ?2, ?3, ?4, ?5, 1, 1, ?6)')
-        .bind(usuario, usuario.charAt(0).toUpperCase() + usuario.slice(1), 'admin', sal, await pbkdf2(clave, sal), ahora).run();
+        .bind(usuario, nombreBonito(c.usuario), 'admin', sal, await pbkdf2(clave, sal), ahora).run();
       u = await db.prepare('SELECT * FROM usuarios WHERE usuario = ?1').bind(usuario).first();
       await anotar(db, u, 'Creó la nube y quedó como administrador');
     }
@@ -341,9 +354,10 @@ async function verUsuarios(db) {
 
 async function crearUsuario(db, request, quien) {
   const c = await cuerpoDe(request);
-  const usuario = limpiaUsuario(c.usuario), nombre = limpiaTexto(c.nombre, 40), rol = ROLES.indexOf(c.rol) >= 0 ? c.rol : 'recepcion', clave = limpiaClave(c.clave);
-  if (!USUARIO_OK.test(usuario)) { return error('usuario', 400); }
+  // v1.13: un solo campo: el nombre y apellido es también el usuario para entrar
+  const nombre = nombreBonito(c.nombre), usuario = limpiaUsuario(c.usuario || c.nombre), rol = ROLES.indexOf(c.rol) >= 0 ? c.rol : 'recepcion', clave = limpiaClave(c.clave);
   if (!nombre) { return error('nombre', 400); }
+  if (!USUARIO_OK.test(usuario)) { return error('usuario', 400); }
   if (clave.length < 8) { return error('corta', 400); }
   const existe = await db.prepare('SELECT id FROM usuarios WHERE usuario = ?1').bind(usuario).first();
   if (existe) { return error('existe', 409); }
@@ -351,7 +365,7 @@ async function crearUsuario(db, request, quien) {
   // v1.7: cambiar = 0 → entra con la contraseña que le puso el admin, sin que se la pidan cambiar
   await db.prepare('INSERT INTO usuarios (usuario, nombre, rol, sal, hash, activo, cambiar, creado) VALUES (?1, ?2, ?3, ?4, ?5, 1, 0, ?6)')
     .bind(usuario, nombre, rol, sal, await pbkdf2(clave, sal), Date.now()).run();
-  await anotar(db, quien, 'Creó el usuario «' + usuario + '» (' + nombre + (rol === 'admin' ? ', administrador' : '') + ')');
+  await anotar(db, quien, 'Creó el usuario «' + nombre + '»' + (rol === 'admin' ? ' (administrador)' : ''));
   return verUsuarios(db);
 }
 
@@ -362,9 +376,16 @@ async function cambiarUsuario(db, request, quien, id) {
   if (!u) { return error('no-existe', 404); }
   const propio = u.id === quien.id, cambios = [], ops = [], hechos = [];
   if (c.nombre !== undefined) {
-    const n = limpiaTexto(c.nombre, 40);
+    // v1.13: cambiar el nombre cambia también con qué entra (el usuario es el nombre aplanado)
+    const n = nombreBonito(c.nombre), nu = limpiaUsuario(n);
     if (!n) { return error('nombre', 400); }
-    cambios.push(['nombre', n]); hechos.push('le cambió el nombre a «' + n + '»');
+    if (!USUARIO_OK.test(nu)) { return error('usuario', 400); }
+    if (nu !== u.usuario) {
+      const otro = await db.prepare('SELECT id FROM usuarios WHERE usuario = ?1 AND id <> ?2').bind(nu, id).first();
+      if (otro) { return error('existe', 409); }
+      cambios.push(['usuario', nu]);
+    }
+    cambios.push(['nombre', n]); hechos.push('le cambió el nombre a «' + n + '» (entra con ese nombre)');
   }
   if (c.rol !== undefined && c.rol !== u.rol) {
     if (ROLES.indexOf(c.rol) < 0) { return error('datos', 400); }
@@ -394,7 +415,7 @@ async function cambiarUsuario(db, request, quien, id) {
   const sets = cambios.map((x, i) => x[0] + ' = ?' + (i + 1)).join(', ');
   ops.unshift(db.prepare('UPDATE usuarios SET ' + sets + ' WHERE id = ?' + (cambios.length + 1)).bind(...cambios.map((x) => x[1]), id));
   await db.batch(ops);
-  await anotar(db, quien, 'Cambió el usuario «' + u.usuario + '»: ' + hechos.join(', '));
+  await anotar(db, quien, 'Cambió el usuario «' + u.nombre + '»: ' + hechos.join(', '));
   return verUsuarios(db);
 }
 

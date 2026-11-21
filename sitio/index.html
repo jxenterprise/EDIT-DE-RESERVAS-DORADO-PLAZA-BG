@@ -67,7 +67,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.12</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.13</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -114,11 +114,11 @@
       <form class="tarjeta entrar__caja" id="form-entrar" novalidate>
         <span class="entrar__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.2-7 9.5-4-1.3-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 16.2c.9-1.7 2.2-2.5 3.8-2.5s2.9.8 3.8 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
         <h2 class="entrar__titulo" id="entrar-titulo">Entrar</h2>
-        <p class="nota entrar__sub" id="entrar-sub">Solo para recepción: escribe tu usuario y tu contraseña.</p>
-        <p class="aviso-caja" id="entrar-primera" hidden>Primera vez: escribe el usuario que quieras para ti (por ejemplo, <strong>jx</strong>) y la <strong>clave inicial</strong> que pusiste en Cloudflare. Quedarás como <strong>administrador</strong> y luego pondrás tu propia contraseña.</p>
+        <p class="nota entrar__sub" id="entrar-sub">Solo para recepción: escribe tu nombre y apellido y tu contraseña.</p>
+        <p class="aviso-caja" id="entrar-primera" hidden>Primera vez: escribe tu <strong>nombre y apellido</strong> (por ejemplo, <strong>Jampier Estrada</strong>) y la <strong>clave inicial</strong> que pusiste en Cloudflare. Quedarás como <strong>administrador</strong> y luego pondrás tu propia contraseña.</p>
         <label class="campo" for="e-usuario">
-          <span class="campo__etiqueta">Usuario</span>
-          <input type="text" id="e-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="30" required>
+          <span class="campo__etiqueta">Nombre y apellido <small class="nota">(no importan las mayúsculas ni las tildes)</small></span>
+          <input type="text" id="e-usuario" autocomplete="username" autocapitalize="words" spellcheck="false" maxlength="40" placeholder="Ej.: Jaime Valera" required>
         </label>
         <div class="campo">
           <label class="campo__etiqueta" for="e-clave">Contraseña</label>
@@ -417,15 +417,16 @@
   <dialog class="dialogo" id="dlg-usuario" aria-labelledby="u-titulo">
     <form class="dialogo__caja" id="form-usuario" novalidate>
       <h2 class="dialogo__titulo" id="u-titulo" tabindex="-1">Nuevo usuario</h2>
-      <p class="nota dialogo__origen" id="u-ayuda">La persona entra con este usuario y la contraseña que escribas aquí. Entrégasela en persona.</p>
+      <p class="nota dialogo__origen" id="u-ayuda">La persona entra con su nombre y apellido y la contraseña que escribas aquí. Entrégasela en persona.</p>
       <div id="u-datos">
         <label class="campo" for="u-nombre">
-          <span class="campo__etiqueta">Nombre</span>
-          <input type="text" id="u-nombre" maxlength="40" autocomplete="off" placeholder="Ej.: Ana María">
+          <span class="campo__etiqueta">Nombre y apellido <small class="nota">(con esto entra y así sale en la hoja)</small></span>
+          <input type="text" id="u-nombre" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Ej.: Jaime Valera">
         </label>
-        <label class="campo" for="u-usuario">
-          <span class="campo__etiqueta">Usuario <small class="nota">(sin espacios: letras, números, punto o guion)</small></span>
-          <input type="text" id="u-usuario" maxlength="30" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Ej.: ana">
+        <!-- v1.13: el usuario ES el nombre y apellido (JX); este campo queda escondido solo por compatibilidad -->
+        <label class="campo" for="u-usuario" hidden>
+          <span class="campo__etiqueta">Usuario</span>
+          <input type="text" id="u-usuario" maxlength="40" autocomplete="off" tabindex="-1">
         </label>
         <label class="campo" for="u-rol">
           <span class="campo__etiqueta">Permisos</span>
