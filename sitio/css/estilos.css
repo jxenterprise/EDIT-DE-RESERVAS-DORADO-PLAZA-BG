@@ -552,6 +552,41 @@ html[data-tema="oscuro"] .aviso { background: rgba(245, 233, 210, .96); color: #
 .imprimir-falta { display: none; }                      /* v1.10: solo se ve al imprimir sin nombre (sección 18) */
 #fecha-opciones .boton { flex: 1 1 100%; }             /* v1.10: una fecha por renglón en «¿De qué fecha es la hoja?» */
 
+/* «✓ Datos guardados exitosamente» (v1.11, copiada del Manual de turnos v1.10): píldora arriba al centro,
+   ~2,6 s; el ✓ verde se dibuja; en pequeño qué se guardó y la nube: amarillo «Guardando…» → verde
+   «También en la nube» (o rojo «Sin señal»). No se puede tocar (pointer-events: none). */
+.guardado {
+  position: fixed; left: 50%; top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 65;
+  transform: translateX(-50%); pointer-events: none;
+  display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100vw - 24px);
+  padding: 7px 18px 7px 7px; border-radius: 999px;
+  background: var(--superficie); border: 1px solid var(--linea-2); box-shadow: var(--sombra);
+  color: var(--texto-fuerte); line-height: 1.25;
+  transition: opacity .25s, transform .25s;
+}
+.guardado[hidden] { display: none; }
+.guardado.guardado--fuera { opacity: 0; transform: translate(-50%, -8px); }
+.guardado__icono { flex: none; width: 30px; height: 30px; overflow: visible; }
+.guardado__fondo { fill: rgba(47, 158, 91, .14); fill: color-mix(in srgb, var(--s-verde) 14%, transparent); stroke: var(--s-verde); stroke-width: 1.6; }
+.guardado__ok {
+  fill: none; stroke: var(--s-verde); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 18; stroke-dashoffset: 0;
+}
+.guardado--nuevo { animation: guardado-entra .3s cubic-bezier(.2, .8, .3, 1) backwards; }
+.guardado--nuevo .guardado__ok { animation: guardado-trazo .4s .12s cubic-bezier(.65, 0, .45, 1) both; }
+@keyframes guardado-entra { from { opacity: 0; transform: translate(-50%, -8px) scale(.96); } to { opacity: 1; transform: translateX(-50%); } }
+@keyframes guardado-trazo { from { stroke-dashoffset: 18; } to { stroke-dashoffset: 0; } }
+.guardado__textos { display: flex; flex-direction: column; min-width: 0; }
+.guardado__titulo { font-size: 14px; font-weight: 650; }
+.guardado__detalle, .guardado__nube { font-size: 12.5px; font-weight: 500; color: var(--texto-suave); overflow-wrap: anywhere; }
+.guardado__detalle[hidden], .guardado__nube[hidden] { display: none; }
+.guardado__nube { display: inline-flex; align-items: center; gap: 5px; }
+.guardado__nube svg { width: 15px; height: 15px; flex: none; }
+.guardado__nube[data-estado="subiendo"] svg { color: var(--s-amarillo); animation: latido 1s ease-in-out infinite; }
+.guardado__nube[data-estado="ok"] svg { color: var(--s-verde); }
+.guardado__nube[data-estado="error"] svg { color: var(--s-rojo); }
+@media print { .guardado { display: none !important; } }
+
 /* ---------- 14c. Ventanitas de pregunta y de resultado (v1.5, pedido de JX) ----------
    Copiadas del Manual de turnos (v1.9 y v1.13): el mismo diálogo de la web (radio 20 px), más angosto
    y centrado; el ícono entra girando 360°, el círculo se dibuja y luego lo de adentro:
@@ -651,6 +686,10 @@ input[type="password"]:focus { border-color: var(--oro); box-shadow: 0 0 0 4px r
 .punto[data-color="verde"] { background: var(--s-verde); }
 .punto[data-color="amarillo"] { background: var(--s-amarillo); }
 .punto[data-color="rojo"] { background: var(--s-rojo); }
+/* v1.11 (como el Manual de turnos): mientras guarda o trae, el punto amarillo late; la nubecita va al lado */
+.punto[data-trabajando] { animation: latido 1s ease-in-out infinite; }
+@keyframes latido { 50% { opacity: .25; } }
+.cuenta-nube { flex: none; width: 17px; height: 17px; color: var(--bronce); }
 .cuenta-boton { max-width: 100%; }
 .cuenta-boton #cuenta-texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .estado-nube {
@@ -780,6 +819,7 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
   /* animation-delay 0 (v1.5): el ✓, la ✗, la basurita y la puerta de las ventanitas se ven ya dibujados al instante */
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; animation-delay: 0s !important; scroll-behavior: auto !important; }
   .guia-hoja svg { animation: none; }                    /* la flecha queda quieta (no parpadea) */
+  .punto[data-trabajando], .guardado__nube svg { animation: none !important; }   /* v1.11: el punto y la nubecita quedan quietos */
 }
 
 /* ---------- 18. IMPRESIÓN ----------

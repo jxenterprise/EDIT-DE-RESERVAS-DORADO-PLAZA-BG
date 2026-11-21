@@ -179,6 +179,7 @@
     if (actual) { actual.actualizado = ahora(); }
     guardarListados();
     if (actual) { nubeCambio(actual, que); }
+    if (que) { avisarGuardado(que, true); }                  // v1.11: «Datos guardados exitosamente» (+ nube)
   }
   /** Marca una línea como cambiada ahora (para que gane al mezclar con otro equipo). */
   function marcar(f) { if (f) { f.tf = ahora(); } return f; }
@@ -232,7 +233,7 @@
   /** Pantalla de carga al leer el Excel (v1.3, igual que al abrir): el % sube PAREJO de 0 a 100 en
    *  2,5 s (CARGA_TOTAL_MS) sin pausas, y va diciendo cada paso. Termina cuando llega a 100. */
   function etapas(t0) {
-    // v1.9 (JX): al leer el Excel la pantalla de carga se toma 12 s (CARGA_EXCEL_MS) y el logo da VUELTAS_EXCEL vueltas
+    // v1.9/v1.11 (JX): al leer el Excel la pantalla de carga se toma 10 s (CARGA_EXCEL_MS) y el logo da VUELTAS_EXCEL vueltas
     // completas (se completa y vuelve a empezar) mientras el % sube parejo hasta 100; la última vuelta termina en 100.
     var total = CARGA_EXCEL_MS * (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.45 : 1);
     var pasos = [[0.16, 'Revisando que sea el listado de la extranet…'], [0.34, 'Dejando solo reserva, habitaciones, agencia y titular…'],
@@ -343,6 +344,7 @@
     actual = nuevo;
     guardarListados();
     var t = Reglas.totales(nuevo.filas);
+    avisarGuardado('Listado del ' + fechaTexto(nuevo.fecha) + ': ' + plural(t.reservas, 'reserva', 'reservas'), true);   // v1.11
     nubeCambio(nuevo, 'Subió el Excel «' + nombre + '» (' + plural(t.reservas, 'reserva', 'reservas') + ', ' + plural(t.habitaciones, 'habitación', 'habitaciones') + ')' +
       (previo ? ' y reemplazó la descarga anterior del mismo día' : ''), previo ? previo.id : null);
     pintarTodo();
@@ -920,6 +922,7 @@
       listados = listados.filter(function (l) { return quitados.indexOf(l) < 0; });
       if (actual && quitados.indexOf(actual) >= 0) { actual = null; }
       guardarListados(); pintarTodo();
+      avisarGuardado(textoListo, nubeActiva() ? 'ya' : false);   // v1.11 (en la nube ya se borró)
       conDeshacer(textoListo, function () { devolverListados(quitados, actualAntes); });
     }, function () { resultado('error', 'No se pudo eliminar', 'Revisa la conexión e inténtalo otra vez.'); });
   }
@@ -991,16 +994,19 @@
     $('#btn-tema').addEventListener('click', function () {
       ajustes.tema = { auto: 'claro', claro: 'oscuro', oscuro: 'auto' }[ajustes.tema] || 'auto';
       guardar('ajustes', ajustes); aplicarTema();
+      avisarGuardado($('#btn-tema-texto').textContent, false);   // v1.11 (como en turnos: «Tema: automático»)
     });
     $('#aj-casilla').checked = ajustes.casilla === true;
     $('#aj-casilla').addEventListener('change', function () {
       ajustes.casilla = this.checked; guardar('ajustes', ajustes);
+      avisarGuardado('Casilla «Llegó» en la hoja: ' + (this.checked ? 'sí' : 'no'), false);
       if (actual) { pintarHoja(); }
       nubeAjustesHoja();
     });
     $('#aj-apretar').checked = ajustes.apretar !== false;
     $('#aj-apretar').addEventListener('change', function () {
       ajustes.apretar = this.checked; guardar('ajustes', ajustes);
+      avisarGuardado('Ahorrar papel: ' + (this.checked ? 'sí' : 'no'), false);
       if (actual) { pintarHoja(); }
       nubeAjustesHoja();
     });
@@ -1180,6 +1186,54 @@
   function eventosGuia() {
     $('#guia-hoja').addEventListener('click', function () { ocultarGuia(); irA('#hoja'); });
   }
+  /* ---------- «✓ Datos guardados exitosamente» (v1.11, como el Manual de turnos) ----------
+     avisarGuardado(detalle, nube): nube = true (se está subiendo: espera la confirmación), 'ya' (ya quedó en la
+     nube) o false (solo en el equipo). Si hay una ventanita abierta, espera a que se cierre. Varias seguidas = una. */
+  var GUARDADO_MS = 2600, GUARDADO_NUBE_MAX = 9000, GUARDADO_NUBE_VER = 1800;
+  var guardado = { pendiente: false, detalle: '', nube: false, tEspera: 0, tFuera: 0, tOculta: 0 };
+  function avisarGuardado(detalle, conNube) {
+    guardado.pendiente = true;
+    guardado.detalle = String(detalle || '').slice(0, 90);
+    guardado.nube = nubeActiva() ? conNube : false;
+    clearTimeout(guardado.tEspera);
+    guardado.tEspera = setTimeout(mostrarGuardado, 60);       // varios cambios en un mismo toque = una sola píldora
+  }
+  function mostrarGuardado() {
+    clearTimeout(guardado.tEspera);
+    if (!guardado.pendiente) { return; }
+    if (document.querySelector('dialog[open]')) { guardado.tEspera = setTimeout(mostrarGuardado, 300); return; }   // no taparse con una ventanita
+    guardado.pendiente = false;
+    var el = $('#guardado'), det = $('#guardado-detalle'), linea = $('#guardado-nube');
+    det.textContent = guardado.detalle; det.hidden = !guardado.detalle;
+    var estado = !guardado.nube ? '' : (guardado.nube === 'ya' || (nube.estado === 'al-dia' && !hayPendientes())) ? 'ok'
+      : (nube.estado === 'error' || nube.estado === 'sin-conexion') ? 'error' : 'subiendo';
+    pintarLineaNube(estado);
+    clearTimeout(guardado.tFuera); clearTimeout(guardado.tOculta);
+    el.classList.remove('guardado--nuevo', 'guardado--fuera'); void el.offsetWidth; el.classList.add('guardado--nuevo');
+    el.hidden = false;
+    guardado.tFuera = setTimeout(ocultarGuardado, estado === 'subiendo' ? GUARDADO_NUBE_MAX : GUARDADO_MS);
+  }
+  function pintarLineaNube(estado) {
+    var linea = $('#guardado-nube');
+    linea.hidden = !estado;
+    if (!estado) { return; }
+    linea.setAttribute('data-estado', estado);
+    $('#guardado-nube-texto').textContent = estado === 'ok' ? 'También en la nube' : estado === 'error'
+      ? (nube.estado === 'sin-conexion' ? 'Sin señal: se sube solo cuando vuelva' : 'No se pudo subir: se reintenta solo') : 'Guardando en la nube…';
+  }
+  /** Lo llama subirNube al terminar: la línea pasa de amarillo a verde (o rojo) y la píldora se va. */
+  function guardadoNube(estado) {
+    var el = $('#guardado'), linea = $('#guardado-nube');
+    if (el.hidden || linea.hidden || linea.getAttribute('data-estado') !== 'subiendo') { return; }
+    pintarLineaNube(estado);
+    clearTimeout(guardado.tFuera);
+    guardado.tFuera = setTimeout(ocultarGuardado, estado === 'ok' ? GUARDADO_NUBE_VER : 3200);
+  }
+  function ocultarGuardado() {
+    var el = $('#guardado');
+    el.classList.add('guardado--fuera');
+    guardado.tOculta = setTimeout(function () { el.hidden = true; el.classList.remove('guardado--fuera'); }, 260);
+  }
   /** Un listado cambió fuera de la pantalla actual (lo usa «Deshacer»): se guarda, se sube y se pinta si está en pantalla. */
   function cambioEn(lst, que) {
     lst.actualizado = ahora();
@@ -1246,7 +1300,7 @@
   /* [texto corto del botón, texto largo de «Mi cuenta», color del punto] */
   var TEXTO_NUBE = {
     'al-dia': ['Guardado', 'Todo está guardado en la nube.', 'verde'],
-    pendiente: ['Falta subir', 'Guardado en este equipo; se sube a la nube en unos segundos.', 'amarillo'],
+    pendiente: ['Guardando…', 'Guardado en este equipo; se sube a la nube en unos segundos.', 'amarillo'],
     subiendo: ['Guardando…', 'Guardando en la nube…', 'amarillo'],
     bajando: ['Trayendo…', 'Trayendo lo último de la nube…', 'amarillo'],
     'sin-conexion': ['Sin señal', 'Sin conexión: todo queda guardado en este equipo y se sube solo cuando vuelva la señal.', 'amarillo'],
@@ -1338,15 +1392,18 @@
     pedir('POST', 'entrar', { usuario: usuario, clave: clave, recordar: $('#e-recordar').checked }).then(function (j) {
       $('#e-clave').value = '';
       guardar('guia-hoja', false, true);                     // v1.5: en cada entrada la guía «tu hoja está aquí abajo» sale una vez
+      // v1.11 (JX: «entra a la página primero y después carga el modal, y no debería»): el ✓ de bienvenida sale EN EL MISMO
+      // instante en que se quita la puerta; lo de la nube se trae detrás (el historial aparece solo cuando llega).
+      // Si es la primera vez del admin (contraseña de la CLAVE_INICIAL), primero sale «Mi cuenta» y no la bienvenida.
+      var u0 = j.usuario || {};
+      if (!u0.cambiar) {
+        resultado('ok', '¡Bienvenido, ' + u0.nombre + '!', 'Acceso ' + (u0.rol === 'admin' ? 'de administrador ' : '') + 'conectado: lo que hagas se guarda en este equipo y en la nube de recepción.');
+      }
       ponerUsuario(j.usuario);
       return bajarNube(true).then(function () {
         // si el último listado de este equipo es de hoy, vuelve a la pantalla
         if (!actual && listados[0] && (diaDe(listados[0].creado) === hoyISO() || listados[0].fecha >= hoyISO())) { actual = listados[0]; guardarListados(); }
         pintarTodo();
-        // v1.5: ✓ verde al entrar (si tiene contraseña temporal, primero sale «Mi cuenta» para cambiarla y el ✓ sale después)
-        if (!nube.usuario.cambiar) {
-          resultado('ok', '¡Bienvenido, ' + nube.usuario.nombre + '!', 'Acceso ' + (esAdmin() ? 'de administrador ' : '') + 'conectado: lo que hagas se guarda en este equipo y en la nube de recepción.');
-        }
       });
     }, function (e) {
       var t = {
@@ -1512,6 +1569,7 @@
       nube.ultima = ahora(); guardar('nube-ultima', nube.ultima, true);
     }, errorNube).then(function () {
       nube.ocupada = false; pintarNube();
+      if (nube.estado === 'al-dia') { guardadoNube('ok'); } else if (nube.estado !== 'pendiente') { guardadoNube('error'); }
       if (nubeActiva() && hayPendientes()) { programarSubida(nube.estado === 'pendiente' ? 300 : NUBE_REINTENTO_MS); }
     });
   }
@@ -1614,7 +1672,10 @@
     if (!activa) { return; }
     var e = TEXTO_NUBE[nube.estado] || TEXTO_NUBE['al-dia'], u = nube.usuario;
     $('#cuenta-punto').setAttribute('data-color', e[2]);
-    $('#cuenta-texto').textContent = u.nombre + ' · ' + e[0];
+    // v1.11: amarillo que late mientras guarda / trae; verde «Guardado · 10:45 a. m.» cuando ya
+    var trabajando = nube.estado === 'subiendo' || nube.estado === 'bajando' || nube.estado === 'pendiente';
+    if (trabajando) { $('#cuenta-punto').setAttribute('data-trabajando', ''); } else { $('#cuenta-punto').removeAttribute('data-trabajando'); }
+    $('#cuenta-texto').textContent = u.nombre + ' · ' + e[0] + (nube.estado === 'al-dia' && nube.ultima ? ' · ' + horaDe(nube.ultima).replace(/\u00A0/g, ' ') : '');
     $('#btn-cuenta').setAttribute('aria-label', 'Mi cuenta: ' + u.nombre + '. ' + e[1]);
     $('#cuenta-estado-punto').setAttribute('data-color', e[2]);
     $('#cuenta-estado-texto').textContent = e[1] + (nube.ultima && nube.estado !== 'subiendo' && nube.estado !== 'bajando' ? ' Última vez: ' + cuando(nube.ultima) : '');
@@ -1847,7 +1908,7 @@
      igual que el Manual de turnos v1.15 → el % sube parejo de 0 a 100 en 2,5 s, sin pausas (empieza
      en el <script> de index.html), se alcanza a ver el 100 % y se va con la salida rápida. */
   var CARGA_TOTAL_MS = 2500, CARGA_MIN_MS = 300, CARGA_VER_100_MS = 150, tRampa = 0;
-  var CARGA_EXCEL_MS = 12000, VUELTAS_EXCEL = 4;             // v1.9: al leer el Excel, 12 s y 4 vueltas del logo (JX: «mejor 12 segundos»)
+  var CARGA_EXCEL_MS = 10000, VUELTAS_EXCEL = 4;             // v1.11: al leer el Excel, 10 s y 4 vueltas de 2,5 s (JX: «12 es mucho, mejor 10»)
   /** Al irse la pantalla de carga del Excel, el logo vuelve a una sola vuelta (la carga de la página no cambia). */
   function vueltasNormales() { setTimeout(function () { if (L.configurar && !L.estaVisible()) { L.configurar({ vueltas: 1 }); } }, 1600); }
   function rampaCarga(t0, hasta) {

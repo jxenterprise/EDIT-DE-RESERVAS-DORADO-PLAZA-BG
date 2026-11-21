@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.10** · 21 nov 2026, 10:21 a. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.11** · 21 nov 2026, 11:27 a. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -45,7 +45,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el listado de reservas del día, como siempre. El archivo se llama **«EXTRANET  DORADO PLAZA.xlsx»**.
 2. Abre el editador y toca **«Escoge el Excel de la extranet»**. En el computador también puedes arrastrar el archivo encima de la página.
-3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja: se toma **12 segundos** a propósito (desde v1.9). El logo se dibuja completo **4 veces** mientras el % sube parejo hasta 100, y después aparece la lista.
+3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja: se toma **10 segundos** a propósito (desde v1.11; antes 12). El logo se dibuja completo **4 veces** mientras el % sube parejo hasta 100, y después aparece la lista.
 4. Mira el **Resumen** (total de habitaciones y de reservas) y los **avisos**. Si todo está bien, dice «Todo en orden».
 5. Repasa **«Revisa la lista»**: así va a salir la hoja. Si algo está mal, toca la reserva y corrígela ([punto 3](#3-revisar-y-corregir-antes-de-imprimir)).
 6. Abajo está la **hoja** tal cual sale por la impresora. Usa la barra de abajo: **Imprimir**, **Descargar PDF**, **Compartir** o **Eliminar**.
@@ -129,22 +129,31 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 ## 7. Entrar con tu usuario y la nube (desde v1.3)
 
-**Entrar.** Al abrir el editador sale la pantalla **Entrar**: escribe **tu usuario** y **tu contraseña**. Sin entrar no se ve nada. Marca **«Recordar en este equipo»** solo en los computadores de recepción: así no te la pide durante 30 días. Si no la marcas, la sesión dura un turno (14 horas).
+**Entrar.** Al abrir el editador sale la pantalla **Entrar**: escribe **tu usuario** y **tu contraseña**. Sin entrar no se ve nada. Al entrar sale al instante la ventanita **«¡Bienvenido, …!»** (desde v1.11 ya no aparece primero la página y después la ventanita); el historial de la nube llega solo en un momento. Marca **«Recordar en este equipo»** solo en los computadores de recepción: así no te la pide durante 30 días. Si no la marcas, la sesión dura un turno (14 horas).
 
 **Tu contraseña te la da el administrador** (desde v1.7): entras con esa y listo. Recepción no la puede cambiar; si la olvidas, el administrador te pone una nueva. Solo el administrador, **la primera vez** que entra con la `CLAVE_INICIAL`, pone su propia contraseña.
 
-**El botón con tu nombre** (arriba, junto a «Tema») dice si todo está guardado:
+**El botón con tu nombre** (arriba, junto a «Tema», con una nubecita ☁) dice si todo está guardado. Mientras guarda, el punto **amarillo late**; cuando termina se pone **verde** y dice la hora: «Jx · Guardado · 10:45 a. m.» (desde v1.11, igual que en el Manual de turnos):
 
 | Punto | Dice | Qué significa |
 |---|---|---|
-| 🟢 | **Guardado** | Todo está en la nube. |
-| 🟡 | **Falta subir** · **Guardando…** · **Trayendo…** | Está trabajando: en unos segundos queda guardado. |
+| 🟢 | **Guardado · 10:45 a. m.** | Todo está en la nube (y a qué hora fue lo último). |
+| 🟡 (latiendo) | **Guardando…** · **Trayendo…** | Está trabajando: en unos segundos queda guardado. |
 | 🟡 | **Sin señal** | Se cayó el internet. **Sigue trabajando normal**: todo queda en el equipo y se sube solo cuando vuelva la señal. |
 | 🔴 | **No se pudo guardar** | Lo vuelve a intentar solo cada 30 segundos. |
+
+**«✓ Datos guardados exitosamente»** (desde v1.11, igual que en el Manual de turnos): cada vez que guardas algo (subir el Excel, corregir, agregar, quitar, eliminar, tema, casillas) sale arriba, al centro, una píldora pequeña con el ✓ verde, en pequeño **qué se guardó** y, con la nube, **«☁ Guardando en la nube…»** (amarillo) que cambia a **«☁ También en la nube»** (verde) cuando ya quedó, o **«☁ Sin señal: se sube solo cuando vuelva»** (rojo). Se va sola en unos 2 segundos y no se puede tocar (no estorba). Si hay una ventanita abierta, espera a que la cierres.
 
 Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** y **Salir de este equipo**. Al salir, en ese equipo no queda nada del historial (sigue en la nube).
 
 **Entre varios equipos.** Lo que sube o corrige un compañero te aparece solo (cada 45 segundos, o al volver a la pestaña). Si dos personas corrigen el mismo listado a la vez, se **juntan los dos cambios**: si fue la misma reserva, gana el último. Si un compañero sube un Excel más nuevo del mismo día, reemplaza al anterior en todos los equipos y conserva lo corregido a mano.
+
+### Preguntas frecuentes de la nube (respuestas a JX, 21 nov 2026)
+
+- **¿Quién ve «Administración»?** Solo los usuarios de tipo **Administrador**. A recepción no le aparece, y aunque intentara entrar por otro camino, la nube responde «no autorizado». **No hay límite de usuarios.** Siempre queda al menos un administrador activo (la web no deja quitártelo ni desactivarte a ti mismo).
+- **¿Dónde se guardan los datos?** En la base **D1** (`editador-reservas-db`) de la cuenta de Cloudflare de JX. Las contraseñas no se guardan tal cual: van cifradas con PBKDF2 (100.000 vueltas), así que nadie puede leerlas, solo cambiarlas. La sesión va en una cookie protegida que la página no puede leer y que solo viaja por HTTPS. 5 contraseñas malas = 15 minutos de espera. El Excel nunca se sube: solo el listado ya armado.
+- **¿Alguien puede entrar un día y no encontrar nada?** El historial es **de todo el equipo** (no de cada cuenta): todos ven los mismos listados con «subido por…». **Los usuarios no se borran nunca** (solo se desactivan). **Los listados y «Quién hizo qué» se borran solos a los 30 días** (por los nombres de los huéspedes, Ley 1581); se puede cambiar a 60 o 90 días si JX lo decide. Sin internet no se pierde nada: queda en el equipo y se sube al volver la señal. Al salir de la cuenta, ese equipo se limpia, pero todo sigue en la nube.
+- **¿Hay copia de seguridad?** Sí: Cloudflare guarda el historial de la base y en el plan gratis se puede **volver a cualquier momento de los últimos 7 días** (30 días en el plan de pago). Fuente: [Cloudflare D1 · Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/).
 
 **Solo el administrador** (sección **Administración**, abajo del historial):
 - **Usuarios de recepción:** **+ Nuevo usuario** (nombre, usuario y **la contraseña que tú escribes**; el dado inventa una si quieres; entrégasela en persona: con esa entra siempre), **Contraseña nueva** (si alguien la olvidó o quieres cambiársela), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
@@ -284,6 +293,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.11** | 21 nov 2026, 11:27 a. m. | Pantalla de carga del Excel de **10 s** (antes 12). **Bienvenida al instante** al entrar (antes salía primero la página). **Nube como en el Manual de turnos:** botón con ☁ y punto amarillo que late mientras guarda → verde «Guardado · hora»; píldora **«✓ Datos guardados exitosamente»** con qué se guardó y «☁ Guardando en la nube…» → «☁ También en la nube». |
 | **v1.10** | 21 nov 2026, 10:21 a. m. | **La hoja lleva la fecha de las reservas** (la del Excel, no la de hoy: «Reservas del: domingo 22/11/2026»); con varios días pregunta cuál. **«Impreso el …, h:mm … por …»** en la hoja, el PDF y lo que se comparte: hora exacta y nombre de quien la sacó (el usuario de la nube, o la ventanita obligatoria «¿Quién imprime?» que se recuerda en el equipo). Ctrl+P pasa por la ventanita; desde el menú del navegador sin nombre no sale la hoja. |
 | **v1.9** | 17 nov 2026, 7:05 p. m. | **Pantalla de carga del Excel de 12 s** (pedido de JX: «que se tome su tiempo»): el logo se completa y vuelve a empezar, 4 vueltas, mientras el % sube parejo hasta 100; después sale la lista. La carga al abrir la página sigue igual (2,5 s). En el aviso «Ojo», el nombre equivocado del archivo sale **en rojo con un ícono ⚠**. |
 | **v1.8** | 17 nov 2026, 6:45 p. m. | **Excel incorrecto**: si suben otro archivo, sale la ✗ roja «Excel incorrecto» pidiendo el verdadero listado de reservas de la extranet (**«EXTRANET  DORADO PLAZA.xlsx»**, nombre que ahora aparece en la zona de subir y en los errores). Si el archivo trae las columnas pero se llama distinto, se lee igual y sale el aviso amarillo «Ojo». **Basurita roja en cada reserva** (a la derecha de «Corregir»): doble pregunta para las de la extranet; quedan en «Quitadas de la hoja» y no salen en la hoja ni en el PDF. Crédito: **JX Enterprise**. |
@@ -296,7 +306,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.11, v1.12…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.12, v1.13…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
