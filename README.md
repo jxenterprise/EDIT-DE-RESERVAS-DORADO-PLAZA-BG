@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.11** · 21 nov 2026, 11:27 a. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.12** · 21 nov 2026, 5:56 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -142,7 +142,7 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 | 🟡 | **Sin señal** | Se cayó el internet. **Sigue trabajando normal**: todo queda en el equipo y se sube solo cuando vuelva la señal. |
 | 🔴 | **No se pudo guardar** | Lo vuelve a intentar solo cada 30 segundos. |
 
-**«✓ Datos guardados exitosamente»** (desde v1.11, igual que en el Manual de turnos): cada vez que guardas algo (subir el Excel, corregir, agregar, quitar, eliminar, tema, casillas) sale arriba, al centro, una píldora pequeña con el ✓ verde, en pequeño **qué se guardó** y, con la nube, **«☁ Guardando en la nube…»** (amarillo) que cambia a **«☁ También en la nube»** (verde) cuando ya quedó, o **«☁ Sin señal: se sube solo cuando vuelva»** (rojo). Se va sola en unos 2 segundos y no se puede tocar (no estorba). Si hay una ventanita abierta, espera a que la cierres.
+**«✓ Datos guardados exitosamente»** (desde v1.11, igual que en el Manual de turnos): cada vez que guardas algo (subir el Excel, corregir, agregar, quitar, eliminar, tema, casillas) sale **abajo, al centro, encima de la barra** (desde v1.12), una píldora pequeña con el ✓ verde, en pequeño **qué se guardó** y, con la nube, **«☁ Guardando en la nube…»** (amarillo) que cambia a **«☁ También en la nube»** (verde) cuando ya quedó, o **«☁ Sin señal: se sube solo cuando vuelva»** (rojo). Se va sola en unos 2 segundos y no se puede tocar (no estorba). Si hay una ventanita abierta, espera a que la cierres; si abajo está «Deshacer», un aviso o la guía «tu hoja está aquí abajo», se sube un poco para no taparlos.
 
 Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** y **Salir de este equipo**. Al salir, en ese equipo no queda nada del historial (sigue en la nube).
 
@@ -293,6 +293,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.12** | 21 nov 2026, 5:56 p. m. | La píldora **«✓ Datos guardados exitosamente»** pasa **abajo**, encima de la barra (como en el Manual de turnos), y se sube sola para no taparse con «Deshacer», los avisos ni la guía. |
 | **v1.11** | 21 nov 2026, 11:27 a. m. | Pantalla de carga del Excel de **10 s** (antes 12). **Bienvenida al instante** al entrar (antes salía primero la página). **Nube como en el Manual de turnos:** botón con ☁ y punto amarillo que late mientras guarda → verde «Guardado · hora»; píldora **«✓ Datos guardados exitosamente»** con qué se guardó y «☁ Guardando en la nube…» → «☁ También en la nube». |
 | **v1.10** | 21 nov 2026, 10:21 a. m. | **La hoja lleva la fecha de las reservas** (la del Excel, no la de hoy: «Reservas del: domingo 22/11/2026»); con varios días pregunta cuál. **«Impreso el …, h:mm … por …»** en la hoja, el PDF y lo que se comparte: hora exacta y nombre de quien la sacó (el usuario de la nube, o la ventanita obligatoria «¿Quién imprime?» que se recuerda en el equipo). Ctrl+P pasa por la ventanita; desde el menú del navegador sin nombre no sale la hoja. |
 | **v1.9** | 17 nov 2026, 7:05 p. m. | **Pantalla de carga del Excel de 12 s** (pedido de JX: «que se tome su tiempo»): el logo se completa y vuelve a empezar, 4 vueltas, mientras el % sube parejo hasta 100; después sale la lista. La carga al abrir la página sigue igual (2,5 s). En el aviso «Ojo», el nombre equivocado del archivo sale **en rojo con un ícono ⚠**. |
@@ -306,7 +307,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.12, v1.13…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.13, v1.14…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

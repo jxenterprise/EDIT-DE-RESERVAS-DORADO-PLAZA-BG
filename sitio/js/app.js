@@ -1141,6 +1141,7 @@
     contar();
     clearTimeout(tAviso); $('#aviso').hidden = true;
     caja.hidden = false; caja.classList.remove('aviso--fuera');
+    reacomodarGuardado();
     tDeshacerSeg = setInterval(contar, 250);
     tDeshacerFin = setTimeout(cerrarDeshacer, DESHACER_MS);
   }
@@ -1169,6 +1170,7 @@
     guardar('guia-hoja', true, true);
     $('#guia-texto').textContent = (nubeActiva() && nube.usuario ? nube.usuario.nombre + ', tu' : 'Tu') + ' hoja está aquí abajo';
     g.classList.remove('guia-hoja--fuera'); g.hidden = false;
+    reacomodarGuardado();                                  // v1.12: si la píldora «Datos guardados» ya está, se sube
     clearTimeout(tGuia); tGuia = setTimeout(ocultarGuia, GUIA_MS);
     if (window.IntersectionObserver) {
       vigiaGuia = new IntersectionObserver(function (e) { if (e[0] && e[0].isIntersecting) { ocultarGuia(); } }, { threshold: 0.12 });
@@ -1211,7 +1213,23 @@
     clearTimeout(guardado.tFuera); clearTimeout(guardado.tOculta);
     el.classList.remove('guardado--nuevo', 'guardado--fuera'); void el.offsetWidth; el.classList.add('guardado--nuevo');
     el.hidden = false;
+    acomodarGuardado();
     guardado.tFuera = setTimeout(ocultarGuardado, estado === 'subiendo' ? GUARDADO_NUBE_MAX : GUARDADO_MS);
+  }
+  /** v1.12 (JX: «abajo de todo y que no estorbe»): va abajo, encima de la barra; si a esa altura hay «Deshacer»,
+   *  un aviso o la guía «tu hoja está aquí abajo», se sube justo por encima de ellos para no taparlos. */
+  /** Si la píldora ya se ve y aparece otra cosa abajo (guía, «Deshacer», aviso), se vuelve a acomodar. */
+  function reacomodarGuardado() { if (!$('#guardado').hidden) { requestAnimationFrame(acomodarGuardado); } }
+  function acomodarGuardado() {
+    var el = $('#guardado'), arriba = Infinity;
+    el.style.bottom = '';
+    ['#deshacer', '#aviso', '#guia-hoja'].forEach(function (s) {
+      var o = $(s);
+      if (o && !o.hidden) { var r = o.getBoundingClientRect(); if (r.height) { arriba = Math.min(arriba, r.top); } }
+    });
+    if (arriba === Infinity) { return; }
+    var mio = el.getBoundingClientRect();
+    if (mio.bottom > arriba - 6) { el.style.bottom = (window.innerHeight - arriba + 8) + 'px'; }
   }
   function pintarLineaNube(estado) {
     var linea = $('#guardado-nube');
@@ -1232,7 +1250,7 @@
   function ocultarGuardado() {
     var el = $('#guardado');
     el.classList.add('guardado--fuera');
-    guardado.tOculta = setTimeout(function () { el.hidden = true; el.classList.remove('guardado--fuera'); }, 260);
+    guardado.tOculta = setTimeout(function () { el.hidden = true; el.classList.remove('guardado--fuera'); el.style.bottom = ''; }, 260);
   }
   /** Un listado cambió fuera de la pantalla actual (lo usa «Deshacer»): se guarda, se sube y se pinta si está en pantalla. */
   function cambioEn(lst, que) {
@@ -1250,6 +1268,7 @@
     el.classList.toggle('aviso--alerta', !!alerta);
     el.hidden = false;
     el.classList.remove('aviso--fuera');
+    reacomodarGuardado();                                  // v1.12: la píldora «Datos guardados» no se monta encima
     clearTimeout(tAviso);
     tAviso = setTimeout(function () {
       el.classList.add('aviso--fuera');
