@@ -118,7 +118,7 @@
    * 4) ESTADO
    * ================================================================ */
   var MAX_HISTORIAL = 30;                                  // sin nube; con la nube: lo de 30 días (máx. 90 listados)
-  function maxHistorial() { return nubeActiva() ? 90 : MAX_HISTORIAL; }
+  function maxHistorial() { return nubeActiva() ? (esAdmin() ? 200 : 90) : MAX_HISTORIAL; }   // v1.15: el admin ve los de todos
   // La casilla «Llegó» viene APAGADA: así la hoja sale igual a la que usa Recepción; se prende en «Más ajustes».
   // «apretar» viene PRENDIDO: con 19 a 22 reservas la letra se aprieta un poco y la hoja cabe en una sola página.
   var ajustes = Object.assign({ tema: 'auto', casilla: false, apretar: true }, esObjeto(leer('ajustes', {})) ? leer('ajustes', {}) : {});
@@ -148,6 +148,7 @@
       checkin: Array.isArray(x.checkin) ? x.checkin.filter(function (d) { return /^\d{4}-\d{2}-\d{2}$/.test(d); }) : [],
       filas: filas, seq: +x.seq || 0,
       autor: typeof x.autor === 'string' ? x.autor.slice(0, 40) : '',                        // quién subió el Excel (con la nube)
+      autorId: +x.autorId || 0,                                                               // v1.15: su número de usuario (dueño)
       borradas: Array.isArray(x.borradas) ? x.borradas.filter(function (b) { return typeof b === 'string'; }).slice(-300) : [],   // líneas borradas a mano
       tFecha: +x.tFecha || 0,
       novedades: n ? {
@@ -170,7 +171,9 @@
       listados.splice(viejo, 1);
       bien = guardar('listados', listados, true);
     }
-    if (!guardar('actual', actual ? actual.id : null, true)) { bien = false; }
+    // v1.15 (JX: «cada que entre va a estar ahí esa reserva… es molestoso»): el listado en pantalla se recuerda
+    // solo en ESTA pestaña (sessionStorage): al recargar sigue; al entrar o en una pestaña nueva, pantalla limpia.
+    sesionGuardar('actual', actual ? actual.id : null);
     guardadoFallo = !bien;
     if (!bien) { avisarNoGuarda(); }
   }
@@ -286,11 +289,6 @@
     });
   }
 
-  /** ¿Ese listado guardado es «el mismo día» que el Excel nuevo? (misma fecha de check-in; si no la traen, subido hoy) */
-  function esElMismo(x, checkin, hoy) {
-    if (x.checkin.length && checkin.length) { return x.checkin.some(function (d) { return checkin.indexOf(d) >= 0; }); }
-    return diaDe(x.creado) === hoy;
-  }
   function idListado() { return 'l' + ahora().toString(36) + Math.floor(Math.random() * 1296).toString(36); }
   /** La fecha que trae el Excel (un solo día de check-in); '' si trae varios; hoy si no trae (v1.10). */
   function fechaDelExcel(l) { return l.checkin.length === 1 ? l.checkin[0] : (l.checkin.length ? '' : hoyISO()); }
@@ -322,16 +320,18 @@
       setTimeout(function () { var b = caja.querySelector('button'); if (b) { b.focus(); } }, 40);
     });
   }
-  /** Crea el listado a partir del Excel ya leído. Si es una descarga más nueva del mismo día, compara y conserva lo hecho a mano. */
+  /** Crea el listado a partir del Excel ya leído.
+   *  v1.15 (JX: «siempre uno nuevo aparte»): cada Excel que se sube queda como un listado SEPARADO en el
+   *  historial, también si es del mismo día (antes se juntaba con el anterior y marcaba las novedades). */
   function cargarListado(armado, nombre) {
     var hoy = hoyISO(), momento = ahora();
-    var previo = listados.filter(function (x) { return esElMismo(x, armado.checkin, hoy); })[0] || null;
+    var previo = null;
     var nuevo = {
       // v1.10 (JX): la hoja lleva la fecha de las reservas (la del check-in del Excel), no la de hoy.
       // Sin columna de check-in → hoy. Varios días (casi nunca) → la primera y luego se pregunta (elegirFecha).
       id: idListado(), fecha: armado.checkin.length ? armado.checkin[0] : hoy, fechaManual: false, creado: momento, actualizado: momento, archivo: nombre,
       filasExcel: armado.filasExcel, sinCodigo: armado.sinCodigo, checkin: armado.checkin, filas: armado.filas, seq: 0, novedades: null,
-      autor: nube.usuario ? nube.usuario.nombre : '', borradas: [], tFecha: 0
+      autor: nube.usuario ? nube.usuario.nombre : '', autorId: nube.usuario ? nube.usuario.id : 0, borradas: [], tFecha: 0
     };
     if (previo) {
       nuevo.novedades = Reglas.fusionar(nuevo.filas, previo.filas, previo.creado);
@@ -855,7 +855,7 @@
       preguntar({
         titulo: '¿Eliminar este listado?',
         texto: 'El del ' + fechaTexto(actual.fecha) + ' que está en pantalla (' + plural(t.reservas, 'reserva', 'reservas') + ', ' + plural(t.habitaciones, 'habitación', 'habitaciones') +
-          '). Se quita también del historial' + (nubeActiva() ? ' de todos los equipos' : '') + '.',
+          '). Se quita también del historial' + (nubeActiva() ? ' y de la nube' : '') + '.',
         si: 'Sí, eliminar'
       }).then(function (si) {
         if (!si) { return; }
@@ -863,6 +863,16 @@
           if (!actual) { irA('#subir'); }
         });
       });
+    });
+    /* «Guardar y hacer otro» (v1.15, pedido de JX): el listado ya está guardado (en el equipo y en la nube); aquí
+       se sube lo que falte, se quita de la pantalla y queda todo listo para subir otro Excel. */
+    $('#btn-nuevo').addEventListener('click', function () {
+      if (!actual) { return; }
+      var lst = actual, t = Reglas.totales(lst.filas);
+      if (nubeActiva() && hayPendientes()) { subirNube(); }
+      actual = null; maqueta = null; guardarListados(); mostrarError(''); ocultarGuia(); pintarTodo(); irA('#subir');
+      resultado('ok', '¡Guardado en tu historial!', 'El listado del ' + fechaTexto(lst.fecha) + ' (' + plural(t.reservas, 'reserva', 'reservas') +
+        ') quedó en tu historial, abajo. Ya puedes subir otro Excel.');
     });
     $('#btn-compartir').addEventListener('click', function () {
       if (!actual || !maqueta) { return; }
@@ -891,24 +901,38 @@
   /* ================================================================
    * 9) HISTORIAL — los listados guardados en este equipo
    * ================================================================ */
+  var filtroHistorial = '';                                  // v1.15: el admin ve el de una persona («» = todos)
   function pintarHistorial() {
+    // v1.15 (JX): con la nube, cada recepcionista ve SOLO lo suyo (la nube solo le manda lo suyo); el admin ve todo y filtra por persona
+    var autores = [];
+    if (esAdmin()) { listados.forEach(function (x) { if (x.autor && autores.indexOf(x.autor) < 0) { autores.push(x.autor); } }); autores.sort(); }
+    if (filtroHistorial && autores.indexOf(filtroHistorial) < 0) { filtroHistorial = ''; }
+    $('#historial-filtro-caja').hidden = !esAdmin() || autores.length < 2;
+    $('#historial-filtro').innerHTML = '<option value="">Todos (' + listados.length + ')</option>' + autores.map(function (a) {
+      var n = listados.filter(function (x) { return x.autor === a; }).length;
+      return '<option value="' + esc(a) + '"' + (a === filtroHistorial ? ' selected' : '') + '>' + esc(a) + ' (' + n + ')</option>';
+    }).join('');
+    var ver = filtroHistorial ? listados.filter(function (x) { return x.autor === filtroHistorial; }) : listados;
     $('#historial-vacio').hidden = listados.length > 0;
     $('#historial-nota').hidden = !listados.length;
     $('#historial-nota-texto').textContent = almacenOk
       ? 'Se guardan hasta ' + MAX_HISTORIAL + ' listados, solo en este equipo. Si el equipo es compartido, bórralos cuando ya no los necesites.'
       : 'Este navegador no deja guardar (¿modo incógnito?): el historial dura solo mientras esta página esté abierta.';
     if (nubeActiva()) {
-      $('#historial-nota-texto').textContent = 'Historial de todos los equipos de recepción, guardado en la nube: cada listado se borra solo a los ' + nube.dias + ' días.' +
-        (esAdmin() ? '' : ' Solo el administrador puede borrar.');
+      $('#historial-nota-texto').textContent = esAdmin()
+        ? 'Eres administrador: ves los listados de todos (cada uno dice quién lo subió). Se borran solos a los ' + nube.dias + ' días.'
+        : 'Tu historial: solo los listados que subiste tú, guardados en la nube (los ves en cualquier equipo al entrar). Se borran solos a los ' + nube.dias + ' días; solo el administrador puede borrar.';
     }
     $('#btn-borrar-historial').hidden = nubeActiva() && !esAdmin();
     var puedeBorrar = !nubeActiva() || esAdmin();
-    $('#btn-eliminar').hidden = !puedeBorrar;                // «Eliminar» de la barra: mismas reglas que «Borrar» (v1.4)
-    $('#lista-historial').innerHTML = listados.map(function (x) {
+    $('#btn-eliminar').hidden = !puedeBorrar;
+    $('#acciones').classList.toggle('acciones--cinco', puedeBorrar);   // v1.15: con 5 botones, en celular los de texto van sin ícono                // «Eliminar» de la barra: mismas reglas que «Borrar» (v1.4)
+    var conAutor = !nubeActiva() || esAdmin();               // recepción: todo es suyo, no hace falta «por …»
+    $('#lista-historial').innerHTML = ver.map(function (x) {
       var t = Reglas.totales(x.filas), enPantalla = actual && actual.id === x.id;
       return '<li' + (enPantalla ? ' aria-current="true"' : '') + '><span class="historial__info">' +
         '<span class="historial__fecha">' + esc(fechaCorta(x.fecha)) + (enPantalla ? ' <span class="chip chip--cambio">En pantalla</span>' : '') + '</span>' +
-        '<span class="historial__meta">' + plural(t.habitaciones, 'habitación', 'habitaciones') + ' · ' + plural(t.reservas, 'reserva', 'reservas') + ' · subido ' + esc(cuando(x.creado)) + (x.autor ? ' por ' + esc(x.autor) : '') + '</span></span>' +
+        '<span class="historial__meta">' + plural(t.habitaciones, 'habitación', 'habitaciones') + ' · ' + plural(t.reservas, 'reserva', 'reservas') + ' · subido ' + esc(cuando(x.creado)) + (x.autor && conAutor ? ' por <strong>' + esc(x.autor) + '</strong>' : '') + '</span></span>' +
         '<span class="historial__botones">' +
         (enPantalla ? '' : '<button type="button" class="boton boton--secundario boton--chico" data-historial="abrir" data-id="' + esc(x.id) + '">Abrir</button>') +
         (puedeBorrar ? '<button type="button" class="enlace enlace--peligro" data-historial="borrar" data-id="' + esc(x.id) + '" aria-label="Borrar el listado del ' + esc(fechaCorta(x.fecha)) + '">Borrar</button>' : '') + '</span></li>';
@@ -955,16 +979,17 @@
       var t = Reglas.totales(x.filas);
       preguntar({
         titulo: '¿Eliminar este listado del historial?',
-        texto: 'El del ' + fechaCorta(x.fecha) + ' (' + plural(t.reservas, 'reserva', 'reservas') + ')' + (nubeActiva() ? '. Se borra para todos los equipos.' : '.'),
+        texto: 'El del ' + fechaCorta(x.fecha) + ' (' + plural(t.reservas, 'reserva', 'reservas') + (x.autor && esAdmin() ? ', de ' + x.autor : '') + ')' + (nubeActiva() ? '. Se borra también de la nube.' : '.'),
         si: 'Sí, eliminar'
       }).then(function (si) {
         if (si) { return borrarListados([id], false, 'Listado eliminado del historial.'); }
       });
     });
+    $('#historial-filtro').addEventListener('change', function () { filtroHistorial = this.value; pintarHistorial(); });
     $('#btn-borrar-historial').addEventListener('click', function () {
       preguntar({
         titulo: '¿Eliminar todo el historial?',
-        texto: (listados.length === 1 ? 'El listado guardado' : 'Los ' + listados.length + ' listados guardados') + (nubeActiva() ? ' en el historial de TODOS los equipos.' : ' en este equipo.'),
+        texto: (listados.length === 1 ? 'El listado guardado' : 'Los ' + listados.length + ' listados guardados') + (nubeActiva() ? ' de TODOS los usuarios (también los de tus compañeros), en la nube.' : ' en este equipo.'),
         si: 'Sí, eliminar todo'
       }).then(function (si) {
         if (si) { return borrarListados([], true, 'Historial eliminado.'); }
@@ -1338,6 +1363,8 @@
    *  tipo: sin-conexion · sin-nube (aquí no hay función: responde la página) · sin-configurar · sesion · el «error» que diga la nube. */
   function pedir(metodo, ruta, cuerpo) {
     var opciones = { method: metodo, credentials: 'same-origin', cache: 'no-store', headers: {} };
+    // v1.15: la sesión solo se alarga si la persona tocó algo hace poco (lo automático no la alarga)
+    if (ahora() - ultimaActividad() < 2 * 60000) { opciones.headers['X-Activo'] = '1'; }
     if (metodo !== 'GET') {
       opciones.headers['Content-Type'] = 'application/json';
       opciones.headers['X-Editador'] = '1';                // la nube rechaza cambios que no traigan esto (otra página no puede)
@@ -1370,12 +1397,27 @@
     return pedir('GET', 'yo').then(function (j) {
       if (j.error) { nube.modo = 'local'; pintarNube(); return; }   // «sin-configurar»: la base aún no está en Cloudflare
       nube.modo = 'nube'; nube.dias = +j.guardarDias || 30;
-      if (!j.usuario) { nube.usuario = null; guardarNube(); pedirEntrar(!!j.primera, ''); return; }
-      ponerUsuario(j.usuario);
-      return bajarNube(true);
+      if (!j.usuario) {
+        // v1.15: la sesión ya no está (30 min sin usar, o se salió en otra pestaña): el equipo queda limpio
+        if (!hayPendientes()) { olvidarEquipo(); } else { nube.usuario = null; guardarNube(); actual = null; guardarListados(); }
+        pedirEntrar(!!j.primera, ''); return;
+      }
+      // v1.15 (JX: «que se cierre automáticamente… para que otro compañero no esté en una cuenta que no es suya»)
+      return sesionSigue().then(function (sigue) {
+        if (!sigue.ok) { nube.modo = 'nube'; nube.usuario = usuarioSano(j.usuario); return cerrarSola(sigue.motivo, true); }
+        ponerUsuario(j.usuario);
+        return bajarNube(true);
+      });
     }, function (e) {
-      if (e.tipo === 'sin-conexion' && nube.usuario) {      // sin señal pero ya había entrado en este equipo: se sigue trabajando aquí
-        nube.modo = 'nube'; nube.estado = 'sin-conexion'; pintarNube(); return;
+      if (e.tipo === 'sin-conexion' && nube.usuario) {      // sin señal pero ya había entrado en ESTA pestaña: se sigue trabajando aquí
+        return sesionSigue().then(function (sigue) {
+          nube.modo = 'nube';
+          if (!sigue.ok) {                                   // pestaña nueva o 30 min sin usar: no se deja entrar sin la nube
+            guardar('nube-dueno', nube.usuario.id, true); nube.usuario = null; guardarNube(); actual = null; guardarListados();
+            pedirEntrar(false, 'Sin conexión: por seguridad la sesión se cerró. Entra otra vez cuando vuelva la señal.'); return;
+          }
+          nube.estado = 'sin-conexion'; pintarNube(); empezarVigilancia();
+        });
       }
       nube.modo = 'local'; pintarNube();                     // aquí no hay nube (o aún no está lista en Cloudflare): todo en el equipo, como antes
     });
@@ -1384,7 +1426,8 @@
   /* ---------- entrar y salir ---------- */
   function pedirEntrar(primera, mensaje) {
     document.documentElement.classList.add('pide-entrar');
-    ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar', '#dlg-pregunta'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
+    ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar', '#dlg-pregunta', '#dlg-sigues', '#dlg-nombre', '#dlg-fecha'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
+    ocultarGuia(); cerrarDeshacer();
     $('#entrar').hidden = false;
     $('#entrar-primera').hidden = !primera;
     $('#entrar-sub').textContent = primera ? 'Así se crea el acceso a la nube.' : 'Solo para recepción: tu nombre y tu contraseña.';
@@ -1395,8 +1438,13 @@
     if (!tactil) { setTimeout(function () { ($('#e-usuario').value ? $('#e-clave') : $('#e-usuario')).focus(); }, 60); }
   }
   function ponerUsuario(u) {
-    nube.usuario = usuarioSano(u); nube.modo = 'nube';
+    var nuevo = usuarioSano(u), dueno = +leer('nube-dueno', 0) || 0;
+    // v1.15: lo que quedó guardado en este equipo es de otra persona → se borra antes de entrar (cada uno ve lo suyo)
+    if (dueno && nuevo && dueno !== nuevo.id) { olvidarEquipo(); }
+    if (nuevo) { guardar('nube-dueno', nuevo.id, true); }
+    nube.usuario = nuevo; nube.modo = 'nube';
     guardarNube();
+    empezarVigilancia();
     document.documentElement.classList.remove('pide-entrar');
     $('#entrar').hidden = true;
     pintarNube();
@@ -1408,8 +1456,9 @@
     var err = $('#e-error');
     if (!usuario || !clave) { err.textContent = 'Escribe tu usuario y tu contraseña.'; err.hidden = false; return; }
     boton.disabled = true; boton.textContent = 'Entrando…'; err.hidden = true;
-    pedir('POST', 'entrar', { usuario: usuario, clave: clave, recordar: $('#e-recordar').checked }).then(function (j) {
+    pedir('POST', 'entrar', { usuario: usuario, clave: clave }).then(function (j) {
       $('#e-clave').value = '';
+      tActividad = 0; marcarActividad(true); latir(true);   // v1.15: empieza a contar los 30 min y esta pestaña queda «viva»
       guardar('guia-hoja', false, true);                     // v1.5: en cada entrada la guía «tu hoja está aquí abajo» sale una vez
       // v1.11 (JX: «entra a la página primero y después carga el modal, y no debería»): el ✓ de bienvenida sale EN EL MISMO
       // instante en que se quita la puerta; lo de la nube se trae detrás (el historial aparece solo cuando llega).
@@ -1419,11 +1468,9 @@
         resultado('ok', '¡Bienvenido, ' + u0.nombre + '!', 'Acceso ' + (u0.rol === 'admin' ? 'de administrador ' : '') + 'conectado: lo que hagas se guarda en este equipo y en la nube de recepción.');
       }
       ponerUsuario(j.usuario);
-      return bajarNube(true).then(function () {
-        // si el último listado de este equipo es de hoy, vuelve a la pantalla
-        if (!actual && listados[0] && (diaDe(listados[0].creado) === hoyISO() || listados[0].fecha >= hoyISO())) { actual = listados[0]; guardarListados(); }
-        pintarTodo();
-      });
+      // v1.15 (JX): al entrar, la pantalla siempre limpia para subir un Excel; lo anterior está en su historial
+      actual = null; guardarListados();
+      return bajarNube(true).then(function () { pintarTodo(); });
     }, function (e) {
       var t = {
         clave: 'Usuario o contraseña incorrectos. Las mayúsculas cuentan.',
@@ -1438,6 +1485,7 @@
   /** Borra de este equipo todo lo de la nube (al salir: el equipo puede ser compartido). */
   function olvidarEquipo() {
     listados = []; actual = null; guardarListados();
+    guardar('nube-dueno', 0, true);
     nube.usuario = null; nube.vers = {}; nube.pend = {}; nube.acciones = {}; nube.reemplaza = {}; nube.sueltas = []; nube.desde = 0;
     guardarNube();
   }
@@ -1450,7 +1498,7 @@
         tipo: pendientes ? 'eliminar' : 'salir',
         titulo: pendientes ? '¿Salir sin subir los cambios?' : '¿Salir de tu cuenta?',
         texto: pendientes ? 'Hay cambios que todavía no se han subido a la nube (¿sin señal?). Si sales ahora se pierden.'
-          : 'En este equipo se borra el historial (sigue guardado en la nube). Para volver, entras con tu usuario y tu contraseña.',
+          : 'En este equipo se borra el historial (sigue guardado en la nube). Para volver, entras con tu nombre y tu contraseña.',
         si: pendientes ? 'Salir igual' : 'Sí, salir'
       });
     }).then(function (si) {
@@ -1534,8 +1582,9 @@
   }
   function errorNube(e) {
     if (e && e.estado === 401) {                             // la sesión se venció (o el admin desactivó el usuario)
-      nube.usuario = null; guardarNube();
-      pedirEntrar(false, 'Tu sesión se venció: entra otra vez. Lo que hiciste quedó guardado en este equipo y se sube al entrar.');
+      if (nube.usuario) { guardar('nube-dueno', nube.usuario.id, true); }
+      nube.usuario = null; guardarNube(); actual = null; guardarListados(); pintarTodo();
+      pedirEntrar(false, 'Tu sesión se cerró: entra otra vez. Lo que hiciste quedó guardado y se sube al entrar.');
       return;
     }
     nube.estado = e && e.tipo === 'sin-conexion' ? 'sin-conexion' : 'error';
@@ -1560,6 +1609,10 @@
         if (rem) { if (ponerLocal(mezclar(x, rem))) { pintarListado(); } guardarListados(); }
         nube.vers[id] = e.datos.listado.v; guardarNube();
         return subirUno(id, (vuelta || 0) + 1);
+      }
+      if (e.estado === 403 && e.tipo === 'ajeno') {          // v1.15: no es suyo (no debería pasar): se quita de este equipo
+        if (quitarLocal(id)) { pintarTodo(); } else { pintarHistorial(); }
+        guardarNube(); guardarListados(); return;
       }
       if (e.estado === 410) {                                // lo borró el admin (o se venció a los 30 días)
         var eraActual = quitarLocal(id); guardarNube(); guardarListados();
@@ -1641,11 +1694,7 @@
     }
     listados.sort(function (a, b) { return b.creado - a.creado; });
     if (listados.length > maxHistorial()) { listados = listados.slice(0, maxHistorial()); }
-    if (actualAntes && !actual) {
-      // un compañero subió un Excel más nuevo del mismo día (el anterior quedó reemplazado): se pone el más nuevo de hoy
-      var hoy = listados.filter(function (x) { return diaDe(x.creado) === hoyISO() || x.fecha >= hoyISO(); })[0];
-      if (hoy) { actual = hoy; aviso('Un compañero subió un Excel más nuevo: ya está en pantalla.', 4200); }
-    }
+    if (actualAntes && !actual) { aviso('El administrador borró ese listado del historial.', 4200, true); }   // v1.15: cada Excel va aparte (ya no se reemplazan)
     if (!cambio) { return; }
     guardarListados();
     if (cambioActual || actualAntes !== (actual ? actual.id : null)) { pintarTodo(); } else { pintarHistorial(); }
@@ -1683,6 +1732,7 @@
     var bloqueo = activa && !esAdmin();
     $('#aj-casilla').disabled = bloqueo; $('#aj-apretar').disabled = bloqueo;
     $('#aj-nota-admin').hidden = !activa;
+    $('#e-seguridad').hidden = nube.modo !== 'nube';
     $('#aj-nota-admin').textContent = esAdmin() ? 'Eres administrador: lo que cambies en la casilla y en «Ahorrar papel» cambia para todos los equipos.'
       : 'La casilla y «Ahorrar papel» son iguales para todos: solo el administrador los cambia.';
     $('#pie-privacidad').textContent = nube.modo === 'nube'
@@ -1879,6 +1929,110 @@
     });
   }
 
+  /* ---------- v1.15: la sesión se cierra sola (los PC de recepción son compartidos) ----------
+     JX: «si entra otro compañero a ese computador va a estar en la cuenta de ese otro… que se cierre
+     automáticamente… media hora». Y la nube la vence sola a los 30 min sin usar (SESION_INACTIVA).
+     · 30 min sin tocar nada (INACTIVO_MS) → se cierra; 1 min antes sale «¿Sigues ahí?» con la cuenta atrás.
+       «Tocar» = clic, tecla, rueda, toque o escribir, en CUALQUIER pestaña de la página (se anota en
+       localStorage «actividad»). Traer lo de la nube cada 45 s NO cuenta.
+     · Al cerrar la pestaña (o el navegador) → la próxima vez que se abra la página, pide entrar.
+       Cómo se sabe: la pestaña deja su «latido» en sessionStorage (al recargar sigue ahí, en una pestaña
+       nueva no); y si hay OTRA pestaña de la página abierta, contesta un «ping» por localStorage. */
+  var INACTIVO_MS = 30 * 60000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000, RECARGA_MS = 20000;
+  var tActividad = 0, tLatido = 0, cerrandoSola = false, vigilando = 0;
+  function sesionLeer(k) { try { return window.sessionStorage.getItem(PREFIJO + k); } catch (e) { return null; } }
+  function sesionGuardar(k, v) {
+    try { if (v == null) { window.sessionStorage.removeItem(PREFIJO + k); } else { window.sessionStorage.setItem(PREFIJO + k, String(v)); } } catch (e) { /* sin sessionStorage */ }
+  }
+  function ultimaActividad() { return Math.max(+leer('actividad', 0) || 0, tActividad); }
+  function marcarActividad(forzar) {
+    var t = ahora();
+    if (!forzar && t - tActividad < 5000) { return; }        // a lo sumo cada 5 s
+    tActividad = t; guardar('actividad', t, true);
+  }
+  function latir(forzar) {
+    var t = ahora();
+    if (!forzar && t - tLatido < LATIDO_MS) { return; }
+    tLatido = t; sesionGuardar('latido', t); guardar('latido', t, true);
+  }
+  /** ¿Hay otra pestaña de la página abierta? (le pregunta por localStorage; contesta en menos de 0,7 s) */
+  function hayOtraPestana() {
+    return new Promise(function (ok) {
+      var marca = String(Math.random()).slice(2) + ahora(), listo = false;
+      function fin(si) { if (listo) { return; } listo = true; window.removeEventListener('storage', alGuardar); ok(si); }
+      function alGuardar(e) { if (e.key === PREFIJO + 'pong' && String(e.newValue || '').indexOf(marca) >= 0) { fin(true); } }
+      window.addEventListener('storage', alGuardar);
+      try { window.localStorage.setItem(PREFIJO + 'ping', marca); } catch (e) { fin(false); return; }
+      setTimeout(function () { fin(false); }, 700);
+    });
+  }
+  /** Al abrir la página con la sesión puesta: ¿sigue siendo la misma persona? → { ok, motivo } */
+  function sesionSigue() {
+    var actividad = +leer('actividad', 0) || 0;
+    if (actividad && ahora() - actividad >= INACTIVO_MS) { return Promise.resolve({ ok: false, motivo: 'inactivo' }); }
+    var mio = +sesionLeer('latido') || 0;
+    if (mio && ahora() - mio < RECARGA_MS) { return Promise.resolve({ ok: true }); }   // recargó esta misma pestaña
+    return hayOtraPestana().then(function (si) { return si ? { ok: true } : { ok: false, motivo: 'pestana' }; });
+  }
+  function empezarVigilancia() {
+    latir(true);
+    if (!ultimaActividad()) { marcarActividad(true); }
+    if (!vigilando) { vigilando = setInterval(vigilarSesion, 1000); }
+  }
+  function vigilarSesion() {
+    if (!nubeActiva() || cerrandoSola || document.documentElement.classList.contains('pide-entrar')) { return; }
+    latir(false);
+    var quieto = ahora() - ultimaActividad(), dlg = $('#dlg-sigues');
+    if (quieto >= INACTIVO_MS) { cerrarSola('inactivo', false); return; }
+    if (quieto >= INACTIVO_MS - AVISO_INACTIVO_MS) {
+      if (!dlg.open) { abrirAnimada(dlg); setTimeout(function () { $('#sig-si').focus(); }, 30); }
+      $('#sig-seg').textContent = String(Math.max(1, Math.ceil((INACTIVO_MS - quieto) / 1000)));
+    } else if (dlg.open) { cerrarDialogo('#dlg-sigues'); }   // tocó algo (aquí o en otra pestaña)
+  }
+  /** Cierra la sesión sin preguntar. motivo: 'inactivo' (30 min) · 'pestana' (se cerró la pestaña) · 'manual' («Salir ahora»).
+   *  alAbrir = true cuando se detecta al abrir la página (no hay nada en pantalla todavía). */
+  function cerrarSola(motivo, alAbrir) {
+    if (cerrandoSola) { return Promise.resolve(); }
+    cerrandoSola = true;
+    var nombre = nube.usuario ? nube.usuario.nombre : '', dueno = nube.usuario ? nube.usuario.id : 0;
+    if ($('#dlg-sigues').open) { cerrarDialogo('#dlg-sigues'); }
+    var subir = hayPendientes() ? subirNube().catch(nada) : Promise.resolve();
+    return subir.then(function () { return pedir('POST', 'salir', { motivo: motivo === 'manual' ? '' : motivo }).catch(nada); }).then(function () {
+      if (hayPendientes()) {                                  // sin señal: lo que no se subió queda guardado (escondido) para su dueño
+        guardar('nube-dueno', dueno, true); nube.usuario = null; guardarNube(); actual = null; guardarListados();
+      } else { olvidarEquipo(); }
+      sesionGuardar('latido', null);
+      cerrandoSola = false;
+      pintarTodo();
+      pedirEntrar(false, motivo === 'pestana' ? 'Por seguridad, la sesión se cierra al cerrar la pestaña: entra otra vez con tu nombre y tu contraseña.' : '');
+      if (motivo === 'inactivo') {
+        resultado('salir', 'Sesión cerrada', 'Pasaron 30 minutos sin usar la página' + (nombre ? ' (' + nombre + ')' : '') +
+          ': por seguridad se cerró sola. Para volver, entra con tu nombre y tu contraseña.' + (alAbrir ? '' : ' Todo lo que hiciste quedó guardado en tu historial.'));
+      } else if (motivo === 'manual') {
+        resultado('salir', 'Sesión cerrada', (nombre ? '¡Hasta pronto, ' + nombre + '! ' : '') + 'Todo quedó guardado en tu historial.');
+      }
+    });
+  }
+  function eventosSesion() {
+    ['pointerdown', 'keydown', 'wheel', 'touchstart', 'input'].forEach(function (ev) {
+      document.addEventListener(ev, function (e) {
+        if ($('#dlg-sigues').open && !(e.target && e.target.closest && e.target.closest('#dlg-sigues'))) { return; }   // con «¿Sigues ahí?» abierto solo cuentan sus botones
+        if (nubeActiva()) { marcarActividad(false); }
+      }, { capture: true, passive: true });
+    });
+    $('#sig-si').addEventListener('click', function () { marcarActividad(true); cerrarDialogo('#dlg-sigues'); pedir('GET', 'yo').catch(nada); });   // también la alarga en la nube
+    $('#sig-salir').addEventListener('click', function () { cerrarSola('manual', false); });
+    $('#dlg-sigues').addEventListener('cancel', function (e) { e.preventDefault(); $('#sig-si').click(); });   // Esc = sigo aquí
+    window.addEventListener('pagehide', function () { if (nubeActiva()) { latir(true); } });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { vigilarSesion(); } });
+    // otra pestaña nueva pregunta si hay alguna abierta: esta contesta
+    window.addEventListener('storage', function (e) {
+      if (e.key === PREFIJO + 'ping' && e.newValue && nubeActiva() && !cerrandoSola) {
+        try { window.localStorage.setItem(PREFIJO + 'pong', e.newValue + ':' + ahora()); } catch (x) { /* nada */ }
+      }
+    });
+  }
+
   function eventosNube() {
     $('#form-entrar').addEventListener('submit', function (e) { e.preventDefault(); entrar(); });
     /* el ojo: mostrar / ocultar la contraseña */
@@ -1951,13 +2105,15 @@
 
   function iniciar() {
     aplicarTema();
-    eventosSubir(); eventosEditar(); eventosSalida(); eventosHistorial(); eventosAjustes(); eventosNube(); eventosDeshacer(); eventosGuia(); eventosEditar2();
+    eventosSubir(); eventosEditar(); eventosSalida(); eventosHistorial(); eventosAjustes(); eventosNube(); eventosSesion(); eventosDeshacer(); eventosGuia(); eventosEditar2();
     /* v1.10: la hora de «Impreso el …» de la vista de la hoja se pone al día cada minuto (al imprimir se pone la exacta) */
     setInterval(function () { if (actual && maqueta && !imprimiendo && !document.hidden && Math.floor(ahora() / 60000) !== minutoHoja) { pintarHoja(); } }, 15000);
-    /* si el último listado es de hoy (o tiene fecha de hoy en adelante), vuelve a estar en pantalla */
-    var id = leer('actual', null), hoy = hoyISO();
+    /* v1.15: al RECARGAR la misma pestaña vuelve el listado que estaba en pantalla; en una pestaña nueva
+       (o al entrar) la pantalla sale limpia para subir otro Excel: lo de antes está en el historial */
+    var id = sesionLeer('actual');
     var ultimo = listados.filter(function (x) { return x.id === id; })[0];
-    if (ultimo && (diaDe(ultimo.creado) === hoy || ultimo.fecha >= hoy)) { actual = ultimo; }
+    if (ultimo) { actual = ultimo; }
+    try { window.localStorage.removeItem(PREFIJO + 'actual'); } catch (e) { /* lo de antes de v1.15 */ }
     /* la nube (si la hay) decide si se pide entrar antes de mostrar los datos */
     var listaNube = iniciarNube().catch(nada).then(function () { pintarTodo(); });
     /* la pantalla de carga se va cuando están listas las letras (también las de la hoja), la nube

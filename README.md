@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.14** · 21 nov 2026, 8:30 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.15** · 21 nov 2026, 9:16 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -17,7 +17,8 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 | Armar la hoja y sumar los totales | Hoja carta lista, con **total de habitaciones y de reservas** |
 
 - 🔒 **Solo entra recepción:** cada recepcionista entra con **su usuario y contraseña** (los crea el administrador).
-- ☁️ **El historial queda en la nube** y se ve en todos los equipos: si se borra la caché o cambias de computador, no se pierde nada. Se borra solo a los **30 días**.
+- ☁️ **El historial queda en la nube**: cada recepcionista ve **el suyo** en cualquier equipo al entrar (el administrador ve el de todos). Si se borra la caché o cambias de computador, no se pierde nada. Se borra solo a los **30 días**.
+- 🔒 **La sesión se cierra sola** al cerrar la pestaña o a los **30 minutos sin usar** la página (los PC de recepción son compartidos).
 - 📄 **El Excel no sale de tu equipo:** se lee ahí mismo. A la nube solo va el listado ya armado (reserva, habitaciones, agencia y titular).
 - 💻 Hecho primero para el **computador de recepción**; funciona también en el celular (Android e iPhone).
 
@@ -28,7 +29,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 1. [Uso diario en 6 pasos](#1-uso-diario-en-6-pasos)
 2. [Qué hace con el Excel](#2-qué-hace-con-el-excel)
 3. [Revisar y corregir antes de imprimir](#3-revisar-y-corregir-antes-de-imprimir)
-4. [Si bajas el Excel otra vez el mismo día (novedades)](#4-si-bajas-el-excel-otra-vez-el-mismo-día-novedades)
+4. [Cada Excel, un listado aparte · «Guardar y hacer otro»](#4-cada-excel-un-listado-aparte--guardar-y-hacer-otro)
 5. [Imprimir, PDF y compartir](#5-imprimir-pdf-y-compartir)
 6. [Historial, modo noche y ajustes](#6-historial-modo-noche-y-ajustes)
 7. [Entrar con tu usuario y la nube (desde v1.3)](#7-entrar-con-tu-usuario-y-la-nube-desde-v13)
@@ -89,15 +90,14 @@ Toca cualquier reserva de la lista para abrir **Corregir reserva**:
 
 Lo hecho a mano queda **marcado en la pantalla** («Corregida a mano», «Agregada a mano»), **nunca en la hoja**: la hoja sale limpia, igual a las demás.
 
-## 4. Si bajas el Excel otra vez el mismo día (novedades)
+## 4. Cada Excel, un listado aparte · «Guardar y hacer otro»
 
-Las reservas cambian durante el día. Si subes un Excel **más nuevo del mismo día**, el editador lo compara con el anterior:
+Desde **v1.15** (pedido de JX):
 
-- Marca en la lista las **Nuevas** (verde) y las que **Cambiaron** (amarillo, con lo que decía antes).
-- Te muestra las que **ya no están** en el Excel, con el botón **«Agregarla a mano»** por si igual la necesitas.
-- **Conserva lo que hiciste a mano**: correcciones, reservas agregadas y reservas quitadas.
-
-Un Excel de **otro día** crea un listado nuevo; el anterior queda en el historial.
+- **Cada Excel que subes queda como un listado aparte** en tu historial, aunque sea del mismo día o el mismo archivo otra vez. (Hasta v1.14 un Excel del mismo día reemplazaba al anterior y marcaba «Nueva / Cambió / Ya no está»; eso ya no se usa.)
+- **Al entrar, la pantalla sale limpia** para subir un Excel. Lo que hiciste antes está en tu **Historial** (abajo): tócalo en **Abrir** para volver a imprimirlo.
+- **«Guardar y hacer otro»** (botón de la barra de abajo, con el ícono de una hoja con «+»; en celular solo el ícono y en tablet «Hacer otro»): el listado en pantalla ya está guardado; el botón lo deja en tu historial, limpia la pantalla y te lleva a **Subir el Excel** para hacer otro. Sale el ✓ «¡Guardado en tu historial!».
+- **Recargar** la página (F5) deja el mismo listado en pantalla; una **pestaña nueva** o una **entrada nueva** sale limpia.
 
 ## 5. Imprimir, PDF y compartir
 
@@ -110,8 +110,8 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 ## 6. Historial, modo noche y ajustes
 
-- **Historial**: cada Excel que subes queda guardado con sus correcciones. **Con la nube** (desde v1.3) es el historial de **todos los equipos** de recepción y cada listado se borra solo a los 30 días; solo el administrador puede borrar a mano. Sin la nube queda solo en ese equipo (hasta 30 listados). Toca **Abrir** para volver a imprimir uno; ahí ves también **quién lo subió**.
-- Al volver a abrir el editador el mismo día, sigue en pantalla el listado de hoy.
+- **Historial**: cada Excel que subes queda guardado con sus correcciones. **Con la nube**, desde **v1.15 cada recepcionista ve solo SU historial** (lo que subió él, en cualquier equipo al entrar) y **el administrador ve el de todos**, con «subido … por **Nombre**» y el filtro **«Ver el historial de»** (Todos o una persona). Cada listado se borra solo a los 30 días; solo el administrador puede borrar a mano. Sin la nube queda solo en ese equipo (hasta 30 listados). Toca **Abrir** para volver a imprimir uno.
+- Al entrar o abrir una pestaña nueva, la pantalla sale limpia (v1.15); al recargar, sigue el listado que tenías.
 - **Tema**: automático (modo noche de 6 p. m. a 6 a. m.), claro o noche. Solo cambia la pantalla: la hoja siempre sale en blanco.
 - **Más ajustes** (se abre encima de la página y se cierra tocando fuera o con **Esc**):
   - **Casilla «Llegó» en la hoja** (apagada): agrega una columna con un cuadrito por reserva para chulear con lapicero.
@@ -129,7 +129,12 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 ## 7. Entrar con tu usuario y la nube (desde v1.3)
 
-**Entrar.** Al abrir el editador sale la pantalla **Entrar**: escribe **tu nombre y apellido** (por ejemplo «Jaime Valera»; desde v1.13 el usuario ES el nombre, y **no importan las mayúsculas, las tildes ni los espacios de más**: «jaime valera» o «JAIME VALERA» también sirven) y **tu contraseña** (esa sí, exacta). Sin entrar no se ve nada. Al entrar sale al instante la ventanita **«¡Bienvenido, …!»** (desde v1.11 ya no aparece primero la página y después la ventanita); el historial de la nube llega solo en un momento. Marca **«Recordar en este equipo»** solo en los computadores de recepción: así no te la pide durante 30 días. Si no la marcas, la sesión dura un turno (14 horas).
+**Entrar.** Al abrir el editador sale la pantalla **Entrar**: escribe **tu nombre y apellido** (por ejemplo «Jaime Valera»; desde v1.13 el usuario ES el nombre, y **no importan las mayúsculas, las tildes ni los espacios de más**: «jaime valera» o «JAIME VALERA» también sirven) y **tu contraseña** (esa sí, exacta). Sin entrar no se ve nada. Al entrar sale al instante la ventanita **«¡Bienvenido, …!»** (desde v1.11 ya no aparece primero la página y después la ventanita); el historial de la nube llega solo en un momento.
+
+**La sesión se cierra sola (v1.15, porque los PC de recepción son compartidos).** Ya no existe «Recordar en este equipo».
+- **Al cerrar la pestaña o el navegador**: la próxima persona que abra la página tiene que entrar con su nombre (sale «Por seguridad, la sesión se cierra al cerrar la pestaña…»). Recargar (F5) **no** la cierra, y si tienes otra pestaña de la página abierta, la nueva entra sola.
+- **A los 30 minutos sin tocar nada** (ni clic, ni tecla, ni el dedo): 1 minuto antes sale **«¿Sigues ahí?»** con la cuenta atrás → **«Sí, sigo aquí»** (o Esc) sigue 30 minutos más; **«Salir ahora»** cierra ya. Si nadie responde, se cierra sola y sale **«Sesión cerrada»**. Lo hecho queda guardado en tu historial.
+- La nube también la vence sola a los 30 minutos sin usar (y nunca dura más de 14 horas), así nadie puede reabrirla con la cookie.
 
 **Tu contraseña te la da el administrador** (desde v1.7): entras con esa y listo. Recepción no la puede cambiar; si la olvidas, el administrador te pone una nueva. Solo el administrador, **la primera vez** que entra con la `CLAVE_INICIAL`, pone su propia contraseña.
 
@@ -146,19 +151,19 @@ Un Excel de **otro día** crea un listado nuevo; el anterior queda en el histori
 
 Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** y **Salir de este equipo**. Al salir, en ese equipo no queda nada del historial (sigue en la nube).
 
-**Entre varios equipos.** Lo que sube o corrige un compañero te aparece solo (cada 45 segundos, o al volver a la pestaña). Si dos personas corrigen el mismo listado a la vez, se **juntan los dos cambios**: si fue la misma reserva, gana el último. Si un compañero sube un Excel más nuevo del mismo día, reemplaza al anterior en todos los equipos y conserva lo corregido a mano.
+**Entre varios equipos.** Si entras con tu usuario en el PC y en el celular, lo que haces en uno aparece solo en el otro (cada 45 segundos, o al volver a la pestaña). Si el administrador corrige un listado tuyo mientras tú también lo corriges, se **juntan los dos cambios**: si fue la misma reserva, gana el último.
 
 ### Preguntas frecuentes de la nube (respuestas a JX, 21 nov 2026)
 
 - **¿Quién ve «Administración»?** Solo los usuarios de tipo **Administrador**. A recepción no le aparece, y aunque intentara entrar por otro camino, la nube responde «no autorizado». **No hay límite de usuarios.** Siempre queda al menos un administrador activo (la web no deja quitártelo ni desactivarte a ti mismo).
 - **¿Dónde se guardan los datos?** En la base **D1** (`editador-reservas-db`) de la cuenta de Cloudflare de JX. Las contraseñas no se guardan tal cual: van cifradas con PBKDF2 (100.000 vueltas), así que nadie puede leerlas, solo cambiarlas. La sesión va en una cookie protegida que la página no puede leer y que solo viaja por HTTPS. 5 contraseñas malas = 15 minutos de espera. El Excel nunca se sube: solo el listado ya armado.
-- **¿Alguien puede entrar un día y no encontrar nada?** El historial es **de todo el equipo** (no de cada cuenta): todos ven los mismos listados con «subido por…». **Los usuarios no se borran nunca** (solo se desactivan). **Los listados y «Quién hizo qué» se borran solos a los 30 días** (por los nombres de los huéspedes, Ley 1581); se puede cambiar a 60 o 90 días si JX lo decide. Sin internet no se pierde nada: queda en el equipo y se sube al volver la señal. Al salir de la cuenta, ese equipo se limpia, pero todo sigue en la nube.
+- **¿Alguien puede entrar un día y no encontrar nada?** Desde v1.15 cada uno ve **su** historial (lo que subió él), en cualquier equipo; el administrador ve el de todos. **Los usuarios no se borran nunca** (solo se desactivan). **Los listados y «Quién hizo qué» se borran solos a los 30 días** (por los nombres de los huéspedes, Ley 1581); se puede cambiar a 60 o 90 días si JX lo decide. Sin internet no se pierde nada: queda en el equipo y se sube al volver la señal. Al salir de la cuenta, ese equipo se limpia, pero todo sigue en la nube.
 - **¿Hay copia de seguridad?** Sí: Cloudflare guarda el historial de la base y en el plan gratis se puede **volver a cualquier momento de los últimos 7 días** (30 días en el plan de pago). Fuente: [Cloudflare D1 · Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/).
 
 **Solo el administrador** (sección **Administración**, abajo del historial):
 - **Usuarios de recepción:** **+ Nuevo usuario** (**nombre y apellido** —con eso entra y así sale en la hoja; desde v1.13 ya no hay un «usuario» aparte; si lo escribes todo en minúsculas, la web le pone las mayúsculas— y **la contraseña que tú escribes**; el dado inventa una si quieres; entrégasela en persona: con esa entra siempre), **Contraseña nueva** (si alguien la olvidó o quieres cambiársela), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
 - **Quién hizo qué:** quién entró, quién subió cada Excel, quién corrigió, agregó o quitó cada reserva, quién imprimió o descargó el PDF, y a qué hora (últimos 30 días).
-- **Borrar** listados del historial y **Eliminar** el que está en pantalla (para todos los equipos).
+- **Ver el historial de todos** (filtro «Ver el historial de»), **Borrar** listados del historial y **Eliminar** el que está en pantalla.
 - **Ajustes de la hoja para todos:** casilla «Llegó» y «Ahorrar papel».
 
 > Si la página se abre con doble clic, en el computador de la casa o mientras Cloudflare no tiene la nube lista, funciona **sola en ese equipo**, como antes (sin pedir usuario).
@@ -293,6 +298,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.15** | 21 nov 2026, 9:16 p. m. | Pedido de JX: **cada recepcionista ve solo su historial** (el admin ve el de todos y filtra por persona) · **al entrar la pantalla sale limpia** y está el botón **«Guardar y hacer otro»** · **cada Excel queda como un listado aparte** · **la sesión se cierra sola** al cerrar la pestaña o a los **30 min sin usar** (con «¿Sigues ahí?» 1 min antes); ya no hay «Recordar en este equipo». Los listados viejos de la nube quedan con su dueño (por el nombre de quien los subió). |
 | **v1.14** | 21 nov 2026, 8:30 p. m. | **Pantalla «Entrar» más limpia:** el logo un poco más pequeño, campanita de recepción en vez del escudo, el ejemplo es «Jampier Estrada», sin el «(no importan las mayúsculas…)» (igual siguen sin importar) y «¿Olvidaste la contraseña?» dice «Pídeselo a Jampier». |
 | **v1.13** | 21 nov 2026, 6:17 p. m. | **El usuario es el nombre y apellido** (pedido de JX): se entra escribiendo «Jaime Valera» sin importar mayúsculas, tildes ni espacios de más. Al crear un usuario hay un solo campo (nombre y apellido); «Nombre» en Administración cambia también con qué entra. Los usuarios viejos (sin espacios) siguen entrando igual hasta que les pongas su nombre completo. |
 | **v1.12** | 21 nov 2026, 5:56 p. m. | La píldora **«✓ Datos guardados exitosamente»** pasa **abajo**, encima de la barra (como en el Manual de turnos), y se sube sola para no taparse con «Deshacer», los avisos ni la guía. |
@@ -309,7 +315,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.15, v1.16…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.16, v1.17…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

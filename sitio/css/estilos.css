@@ -445,6 +445,7 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 .historial__meta { font-size: 13.5px; color: var(--texto-suave); overflow-wrap: anywhere; }
 .historial__botones { display: flex; align-items: center; gap: 4px 14px; }
 .historial__nota { margin-top: 10px; }
+.historial__filtro { margin-bottom: 12px; max-width: 360px; }   /* v1.15: solo el admin */
 
 /* ---------- 12. Pie y crédito de JX Enterprise ---------- */
 .pie { max-width: 760px; margin: 36px auto 0; padding: 18px calc(16px + var(--der)) 10px calc(16px + var(--izq)); text-align: center; border-top: 1px solid var(--linea); }
@@ -489,6 +490,9 @@ html[data-tema="oscuro"] .footer-dev-txt {             /* pie oscuro → platead
 .boton--eliminar { color: var(--error); }
 .acciones .boton--eliminar { min-width: 50px; }
 .acciones__eliminar { display: none; }
+/* «Guardar y hacer otro» (v1.15): en celular solo el ícono; «Hacer otro» cuando cabe; completo en PC */
+.acciones__nuevo, .acciones__nuevo-largo { display: none; }
+.acciones #btn-nuevo { min-width: 50px; }
 
 /* ---------- 14. Diálogos y aviso flotante ---------- */
 .dialogo {
@@ -659,7 +663,7 @@ html.pide-entrar .encabezado__logo { width: clamp(170px, 50vw, 236px); }
 .entrar__titulo { margin: 10px 0 4px; font-size: 21px; text-align: center; }
 .entrar__sub { text-align: center; margin-bottom: 16px; }
 .entrar__mayus { margin: -6px 0 10px; color: var(--error); font-weight: 650; }
-.entrar__recordar { margin: 2px 0 14px; }
+.entrar__seguridad { margin: 2px 0 14px; }   /* v1.15: en lugar de «Recordar en este equipo» */
 .entrar__boton { width: 100%; }
 .entrar__ayuda { margin-top: 14px; font-size: 14px; }
 .entrar__ayuda > summary { cursor: pointer; font-weight: 700; color: var(--texto-fuerte); min-height: 40px; display: flex; align-items: center; }
@@ -750,6 +754,11 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 }
 @media (min-width: 560px) {
   .acciones__eliminar { display: inline; }     /* «Eliminar» con su palabra cuando cabe */
+  .acciones__nuevo { display: inline; }        /* «Hacer otro» (v1.15) */
+}
+@media (min-width: 1000px) {
+  .acciones__nuevo-largo { display: inline; }  /* «Guardar y hacer otro» completo en PC */
+  .acciones__nuevo-corto { display: none; }
 }
 @media (min-width: 520px) {
   .tarjeta { padding: 20px; }
@@ -761,7 +770,7 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
 @media (min-width: 760px) {
   .acciones {                                    /* en pantallas grandes: barra flotante centrada */
     left: 50%; right: auto; bottom: calc(14px + var(--abajo)); transform: translateX(-50%);
-    width: min(700px, calc(100vw - 32px)); padding: 10px;
+    width: min(800px, calc(100vw - 32px)); padding: 10px;   /* v1.15: 800 (5 botones) */
     border: 1px solid var(--linea); border-radius: 20px; box-shadow: var(--sombra);
   }
   html.hay-hoja .aviso { bottom: calc(var(--alto-acciones) + 30px + var(--abajo)); }
@@ -786,11 +795,20 @@ html[data-tema="oscuro"] .dpl--vidrio .dpl-vidrio {
   .acciones { gap: 6px; padding-left: calc(8px + var(--izq)); padding-right: calc(8px + var(--der)); }
   .acciones .boton { font-size: 13.5px; padding: 0 6px; gap: 5px; }
   .acciones .boton svg { width: 18px; height: 18px; }
-  .acciones .boton--eliminar { min-width: 44px; }
+  .acciones .boton--eliminar, .acciones #btn-nuevo { min-width: 44px; }
   .resumen__total strong { font-size: 34px; }
 }
-@media (max-width: 300px) {                     /* plegable de 280 px: con 4 botones, sin íconos en los de texto para que no se corten */
-  .acciones .boton:not(.boton--eliminar) svg { display: none; }
+@media (max-width: 559px) {                     /* v1.15: con 5 botones (admin) los de texto van sin ícono y «PDF» corto, para que no se corten */
+  .acciones--cinco .boton:not(.boton--eliminar):not(#btn-nuevo) svg { display: none; }
+  .acciones--cinco .acciones__largo { display: none; }
+}
+@media (max-width: 300px) {                     /* plegable de 280 px con 5 botones: un poco más apretados */
+  .acciones--cinco { gap: 4px; padding-left: calc(6px + var(--izq)); padding-right: calc(6px + var(--der)); }
+  .acciones--cinco .boton { font-size: 12.5px; padding: 0 4px; }
+  .acciones--cinco .boton--eliminar, .acciones--cinco #btn-nuevo { min-width: 38px; }
+}
+@media (max-width: 359px) {                     /* celulares de 320 px y plegable de 280 px: con 4 botones, sin íconos en los de texto para que no se corten (v1.15: antes 300) */
+  .acciones .boton:not(.boton--eliminar):not(#btn-nuevo) svg { display: none; }
 }
 
 /* Pantallas BAJITAS (celular acostado, iPhone SE): la barra de abajo se adelgaza

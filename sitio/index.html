@@ -67,7 +67,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.14</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.15</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -130,10 +130,7 @@
           </span>
         </div>
         <p class="nota entrar__mayus" id="e-mayus" hidden>Ojo: tienes las MAYÚSCULAS activadas.</p>
-        <label class="interruptor entrar__recordar">
-          <input type="checkbox" id="e-recordar">
-          <span>Recordar en este equipo <small>(30 días; no lo marques en un equipo que no sea de recepción)</small></span>
-        </label>
+        <p class="nota entrar__seguridad" id="e-seguridad">Por seguridad, la sesión se cierra sola al cerrar la pestaña o a los 30 minutos sin usar la página.</p>
         <p class="campo__error" id="e-error" role="alert" hidden></p>
         <button type="submit" class="boton boton--primario entrar__boton" id="e-entrar">Entrar</button>
         <details class="entrar__ayuda">
@@ -243,6 +240,11 @@
     <section class="seccion" id="historial" aria-labelledby="historial-titulo">
       <h2 class="seccion__titulo" id="historial-titulo">Historial</h2>
       <p class="nota" id="historial-vacio">Todavía no hay listados guardados. Cada Excel que subas queda aquí para volver a imprimirlo.</p>
+      <!-- v1.15: solo el administrador ve el historial de todos y puede filtrarlo por persona -->
+      <label class="campo historial__filtro" for="historial-filtro" id="historial-filtro-caja" hidden>
+        <span class="campo__etiqueta">Ver el historial de</span>
+        <span class="selector"><select id="historial-filtro"><option value="">Todos</option></select></span>
+      </label>
       <ul class="historial" id="lista-historial"></ul>
       <p class="nota historial__nota" id="historial-nota" hidden><span id="historial-nota-texto">Se guardan hasta 30 listados, solo en este equipo. Si el equipo es compartido, bórralos cuando ya no los necesites.</span>
         <button type="button" class="enlace enlace--peligro" id="btn-borrar-historial">Borrar todo el historial</button></p>
@@ -312,6 +314,11 @@
     <button type="button" class="boton boton--secundario" id="btn-compartir">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6.5" cy="12" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="6" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="18" r="2.4" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8.6 10.8l6.3-3.6M8.6 13.2l6.3 3.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
       Compartir
+    </button>
+    <!-- v1.15 (JX): guarda el listado en el historial y deja la pantalla limpia para subir otro Excel -->
+    <button type="button" class="boton boton--secundario" id="btn-nuevo" aria-label="Guardar en el historial y hacer otro">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3.5V8h4.5M12 11v6M9 14h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="acciones__nuevo"><span class="acciones__nuevo-largo">Guardar y h</span><span class="acciones__nuevo-corto">H</span>acer otro</span>
     </button>
     <button type="button" class="boton boton--secundario boton--eliminar" id="btn-eliminar" aria-label="Eliminar este listado">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 6.5h15M9.5 6.5V4.8c0-.7.6-1.3 1.3-1.3h2.4c.7 0 1.3.6 1.3 1.3v1.7M6.5 6.5l.8 12.2c.1.9.8 1.6 1.7 1.6h6c.9 0 1.6-.7 1.7-1.6l.8-12.2M10.2 10.5v6M13.8 10.5v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -489,6 +496,27 @@
          salir  → puerta dorada: «Sesión cerrada»
        Depende de: .resultado en estilos.css; resultado() en app.js
        =========================================================== -->
+  <!-- ===========================================================
+       VENTANITA «¿SIGUES AHÍ?» (v1.15, pedido de JX: «que se cierre sola… para que otro compañero no esté
+       en una cuenta que no es suya»). Sale 1 minuto antes de cerrar la sesión por 30 min sin usar.
+       Depende de: .resultado en estilos.css; vigilarSesion() / cerrarSola() en app.js
+       =========================================================== -->
+  <dialog class="dialogo resultado" id="dlg-sigues" data-tipo="salir" aria-labelledby="sig-titulo" aria-describedby="sig-texto">
+    <div class="dialogo__caja resultado__caja">
+      <svg class="resultado__icono" viewBox="0 0 52 52" aria-hidden="true">
+        <circle class="resultado__fondo" cx="26" cy="26" r="24"/>
+        <circle class="resultado__circulo" cx="26" cy="26" r="24" fill="none"/>
+        <path class="pregunta__puerta" d="M25 16.5h-7.5v19H25M28.5 20.5l5.5 5.5-5.5 5.5M34 26H22.5"/>
+      </svg>
+      <h2 class="dialogo__titulo resultado__titulo" id="sig-titulo">¿Sigues ahí?</h2>
+      <p class="dialogo__texto resultado__texto" id="sig-texto">Por seguridad, tu sesión se cierra sola en <strong id="sig-seg">60</strong> segundos si no tocas nada.</p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--primario" id="sig-si">Sí, sigo aquí</button>
+        <button type="button" class="boton boton--secundario" id="sig-salir">Salir ahora</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog class="dialogo resultado" id="dlg-resultado" data-tipo="ok" aria-labelledby="res-titulo" aria-describedby="res-texto">
     <div class="dialogo__caja resultado__caja">
       <svg class="resultado__icono" viewBox="0 0 52 52" aria-hidden="true">

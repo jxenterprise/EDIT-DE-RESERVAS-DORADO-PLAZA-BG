@@ -13,6 +13,11 @@
  *     crea, desactiva y cambia la contraseña de los usuarios.
  *   · Solo el admin: maneja usuarios, ve quién hizo qué (actividad), borra
  *     listados del historial y cambia los ajustes de la hoja para todos.
+ *   · v1.15 (JX, 21 nov 2026): cada recepcionista ve SOLO su historial (los listados que subió él);
+ *     el admin ve los de todos. Cada listado guarda su dueño (columna usuario_id).
+ *   · v1.15: la sesión se cierra sola a los 30 minutos sin usar (SESION_INACTIVA) y nunca dura más
+ *     de 14 h (SESION_MAX). Solo la alarga lo que manda la web con «X-Activo: 1» (la persona tocó
+ *     algo hace poco); lo automático (traer cada 45 s) no la alarga. Ya no hay «Recordar en este equipo».
  *   · El Excel NUNCA llega aquí: se lee en el equipo. Aquí solo llega el
  *     listado ya armado (reserva, habitaciones, agencia, titular, preregistro).
  *   · Lo guardado se BORRA SOLO a los 30 días (son nombres de huéspedes).
@@ -28,10 +33,10 @@
  *
  *  Rutas:
  *   GET    /api/yo                → { usuario | null, primera }   (sin sesión: 200, para no ensuciar la consola)
- *   POST   /api/entrar            { usuario, clave, recordar } → cookie de sesión
- *   POST   /api/salir
+ *   POST   /api/entrar            { usuario, clave } → cookie de sesión (sin Max-Age: muere al cerrar el navegador)
+ *   POST   /api/salir             { motivo?: 'inactivo' | 'pestana' }
  *   POST   /api/clave             { actual, nueva }       (la propia)
- *   GET    /api/listados?desde=t  → { ahora, listados: [{ id, datos, v, t, borrado }], ajustes }
+ *   GET    /api/listados?desde=t  → { ahora, listados: [{ id, datos, v, t, borrado }], ajustes }   (recepción: solo los suyos)
  *   PUT    /api/listados/:id      { datos, base, reemplaza?, actividad? } → { v, t } | { cambio: true, listado } (otro equipo lo cambió) | 410
  *   DELETE /api/listados/:id      (admin)   ·   DELETE /api/listados (admin: todos)
  *   POST   /api/actividad         { acciones: [texto] }   (imprimir, PDF, compartir…)
@@ -48,8 +53,8 @@
 
 const DIA = 86400000;
 const GUARDAR_DIAS = 30;                       // JX: «30 días» (listados y actividad se borran solos)
-const SESION_CORTA = 14 * 3600000;             // sin «Recordar»: un turno con holgura
-const SESION_LARGA = 30 * DIA;                 // con «Recordar en este equipo»
+const SESION_INACTIVA = 30 * 60000;            // v1.15 (JX): «que se cierre sola… media hora»: 30 min sin usar
+const SESION_MAX = 14 * 3600000;               // y nunca más de un turno con holgura, aunque se use
 const COOKIE = 'dp_sesion';
 const VUELTAS = 100000;                        // PBKDF2: Cloudflare no acepta más de 100.000
 const MAX_INTENTOS = 5, ESPERA_INTENTOS = 15 * 60000;
@@ -143,6 +148,13 @@ async function prepararTablas(db) {
     db.prepare('CREATE TABLE IF NOT EXISTS ajustes (clave TEXT PRIMARY KEY, valor TEXT NOT NULL, t INTEGER NOT NULL)'),
     db.prepare('CREATE TABLE IF NOT EXISTS intentos (clave TEXT PRIMARY KEY, n INTEGER NOT NULL, desde INTEGER NOT NULL)')
   ]);
+  // v1.15: dueño de cada listado (para que cada recepcionista vea solo lo suyo). Las bases de antes no tienen
+  // la columna: se agrega una vez y a los listados viejos se les pone el dueño por el nombre que guardaron («autor»).
+  try {
+    await db.prepare('ALTER TABLE listados ADD COLUMN usuario_id INTEGER').run();
+    await db.prepare("UPDATE listados SET usuario_id = (SELECT u.id FROM usuarios u WHERE u.nombre = json_extract(listados.datos, '$.autor') LIMIT 1) WHERE usuario_id IS NULL AND borrado = 0").run();
+  } catch (e) { /* ya la tenía */ }
+  await db.prepare('CREATE INDEX IF NOT EXISTS listados_u ON listados (usuario_id, t)').run();
   tablasListas = true;
 }
 /** Borra lo vencido: listados y actividad de más de 30 días, sesiones vencidas e intentos viejos. A lo sumo una vez por hora. */
@@ -177,9 +189,16 @@ function cookieSesion(token, maxAge) {
 async function quienEs(db, request) {
   const token = leerCookie(request);
   if (!token || token.length > 100) { return null; }
-  const u = await db.prepare('SELECT u.id, u.usuario, u.nombre, u.rol, u.cambiar, s.token FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token = ?1 AND s.expira > ?2 AND u.activo = 1')
-    .bind(await huella(token), Date.now()).first();
-  return u || null;
+  const ahora = Date.now();
+  const u = await db.prepare('SELECT u.id, u.usuario, u.nombre, u.rol, u.cambiar, s.token, s.creado AS s_creado, s.expira AS s_expira FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token = ?1 AND s.expira > ?2 AND u.activo = 1')
+    .bind(await huella(token), ahora).first();
+  if (!u) { return null; }
+  // v1.15: la persona está usando la página («X-Activo: 1») → otros 30 min (como mucho una escritura por minuto)
+  if (request.headers.get('X-Activo') === '1') {
+    const nueva = Math.min(ahora + SESION_INACTIVA, u.s_creado + SESION_MAX);
+    if (nueva - u.s_expira > 60000) { await db.prepare('UPDATE sesiones SET expira = ?1 WHERE token = ?2').bind(nueva, u.token).run(); }
+  }
+  return u;
 }
 const publico = (u) => ({ id: u.id, usuario: u.usuario, nombre: u.nombre, rol: u.rol, cambiar: !!u.cambiar });
 
@@ -233,17 +252,22 @@ async function entrar(db, env, request) {
     return error('clave', 401);
   }
   await db.prepare('DELETE FROM intentos WHERE clave = ?1').bind(usuario).run();
-  const token = azar(32), dura = c.recordar ? SESION_LARGA : SESION_CORTA;
-  await db.prepare('INSERT INTO sesiones (token, usuario_id, creado, expira) VALUES (?1, ?2, ?3, ?4)').bind(await huella(token), u.id, ahora, ahora + dura).run();
-  await anotar(db, u, 'Entró' + (c.recordar ? ' (recordar en este equipo)' : ''));
+  const token = azar(32);
+  await db.prepare('INSERT INTO sesiones (token, usuario_id, creado, expira) VALUES (?1, ?2, ?3, ?4)').bind(await huella(token), u.id, ahora, ahora + SESION_INACTIVA).run();
+  await anotar(db, u, 'Entró');
   await limpiarVencido(db, ahora, false);
-  return json({ usuario: publico(u) }, 200, { 'Set-Cookie': cookieSesion(token, c.recordar ? Math.floor(dura / 1000) : null) });
+  return json({ usuario: publico(u), inactivoMin: SESION_INACTIVA / 60000 }, 200, { 'Set-Cookie': cookieSesion(token, null) });
 }
 
 async function salir(db, request, quien) {
   const token = leerCookie(request);
+  let motivo = '';
+  try { motivo = (await cuerpoDe(request)).motivo || ''; } catch (e) { motivo = ''; }
   if (token) { await db.prepare('DELETE FROM sesiones WHERE token = ?1').bind(await huella(token)).run(); }
-  if (quien) { await anotar(db, quien, 'Salió'); }
+  if (quien) {
+    await anotar(db, quien, motivo === 'inactivo' ? 'Se le cerró la sesión sola (30 minutos sin usar)'
+      : motivo === 'pestana' ? 'Se le cerró la sesión sola (cerró la pestaña)' : 'Salió');
+  }
   return json({ ok: true }, 200, { 'Set-Cookie': cookieSesion('', 0) });
 }
 
@@ -272,13 +296,15 @@ async function ajustesGlobales(db) {
   try { return Object.assign(JSON.parse(r.valor), { t: r.t }); } catch (e) { return null; }
 }
 
-async function leerListados(db, url) {
+async function leerListados(db, url, quien) {
   const ahora = Date.now();
   await limpiarVencido(db, ahora, false);
   const desde = Math.max(0, +url.searchParams.get('desde') || 0);
+  // v1.15: recepción ve solo lo suyo; el admin, todo
+  const suyo = quien.rol === 'admin' ? '' : ' AND usuario_id = ' + (+quien.id || 0);
   const consulta = desde
-    ? db.prepare('SELECT id, datos, v, t, borrado FROM listados WHERE t > ?1 ORDER BY t').bind(desde)
-    : db.prepare('SELECT id, datos, v, t, borrado FROM listados WHERE borrado = 0 ORDER BY t');
+    ? db.prepare('SELECT id, datos, v, t, borrado FROM listados WHERE t > ?1' + suyo + ' ORDER BY t').bind(desde)
+    : db.prepare('SELECT id, datos, v, t, borrado FROM listados WHERE borrado = 0' + suyo + ' ORDER BY t');
   const { results } = await consulta.all();
   return json({
     ahora: ahora, guardarDias: GUARDAR_DIAS, ajustes: await ajustesGlobales(db),
@@ -297,8 +323,9 @@ async function guardarListado(db, request, quien, id) {
   const datos = JSON.stringify(c.datos);
   if (datos.length > MAX_LISTADO) { return error('muy-grande', 413); }
   const base = Math.max(0, Math.floor(+c.base || 0)), ahora = Date.now();
-  const fila = await db.prepare('SELECT v, borrado, creado FROM listados WHERE id = ?1').bind(id).first();
+  const fila = await db.prepare('SELECT v, borrado, creado, usuario_id FROM listados WHERE id = ?1').bind(id).first();
   if (fila && fila.borrado) { return error('borrado', 410); }
+  if (fila && quien.rol !== 'admin' && fila.usuario_id !== quien.id) { return error('ajeno', 403); }   // v1.15: solo el dueño (o el admin)
   if (!fila && base > 0) { return error('borrado', 410); }                       // ya se borró (o se venció a los 30 días)
   if (fila && fila.v !== base) {                                                  // otro equipo lo cambió: que lo mezcle y vuelva a mandar
     const actual = await db.prepare('SELECT id, datos, v, t FROM listados WHERE id = ?1').bind(id).first();
@@ -311,11 +338,18 @@ async function guardarListado(db, request, quien, id) {
   if (fila) {
     ops.push(db.prepare('UPDATE listados SET datos = ?1, fecha = ?2, v = ?3, t = ?4 WHERE id = ?5 AND v = ?6').bind(datos, fecha, v, ahora, id, base));
   } else {
-    ops.push(db.prepare('INSERT INTO listados (id, datos, fecha, v, t, creado, borrado) VALUES (?1, ?2, ?3, 1, ?4, ?4, 0)').bind(id, datos, fecha, ahora));
+    // v1.15: el dueño es quien lo sube. Si el admin devuelve («Deshacer») el listado de otro, se le devuelve a su dueño (autorId).
+    let dueno = quien.id;
+    if (quien.rol === 'admin' && Number.isInteger(c.datos.autorId) && c.datos.autorId > 0) {
+      const hay = await db.prepare('SELECT id FROM usuarios WHERE id = ?1').bind(c.datos.autorId).first();
+      if (hay) { dueno = hay.id; }
+    }
+    ops.push(db.prepare('INSERT INTO listados (id, datos, fecha, v, t, creado, borrado, usuario_id) VALUES (?1, ?2, ?3, 1, ?4, ?4, 0, ?5)').bind(id, datos, fecha, ahora, dueno));
   }
   // un Excel más nuevo del mismo día reemplaza al listado anterior (ya trae lo que se hizo a mano)
+  // (v1.15: la web ya no lo manda —cada Excel queda aparte—; si llega, solo sobre lo propio, o el admin)
   if (c.reemplaza && ID_OK.test(c.reemplaza) && c.reemplaza !== id) {
-    ops.push(db.prepare("UPDATE listados SET borrado = 1, datos = '{}', v = v + 1, t = ?1 WHERE id = ?2 AND borrado = 0").bind(ahora, c.reemplaza));
+    ops.push(db.prepare("UPDATE listados SET borrado = 1, datos = '{}', v = v + 1, t = ?1 WHERE id = ?2 AND borrado = 0" + (quien.rol === 'admin' ? '' : ' AND usuario_id = ' + (+quien.id || 0))).bind(ahora, c.reemplaza));
   }
   const res = await db.batch(ops);
   if (fila && res[0].meta && res[0].meta.changes === 0) {                       // otro equipo guardó en el mismo instante
@@ -450,7 +484,7 @@ export async function onRequest(context) {
     if (r0 === 'entrar' && metodo === 'POST') { return await entrar(db, env, request); }
     const quien = await quienEs(db, request);
     if (r0 === 'yo' && metodo === 'GET') {
-      if (quien) { return json({ usuario: publico(quien), guardarDias: GUARDAR_DIAS }); }
+      if (quien) { return json({ usuario: publico(quien), guardarDias: GUARDAR_DIAS, inactivoMin: SESION_INACTIVA / 60000 }); }
       const hay = await db.prepare('SELECT COUNT(*) AS n FROM usuarios').first();
       return json({ usuario: null, primera: !hay || !hay.n, guardarDias: GUARDAR_DIAS });
     }
@@ -461,7 +495,7 @@ export async function onRequest(context) {
 
     if (r0 === 'clave' && metodo === 'POST') { return await cambiarClave(db, request, quien); }
     if (r0 === 'listados') {
-      if (metodo === 'GET' && !r1) { return await leerListados(db, url); }
+      if (metodo === 'GET' && !r1) { return await leerListados(db, url, quien); }
       if (metodo === 'PUT' && r1) { return await guardarListado(db, request, quien, r1); }
       if (metodo === 'DELETE') { return admin ? await borrarListados(db, quien, r1) : soloAdmin(); }
     }
