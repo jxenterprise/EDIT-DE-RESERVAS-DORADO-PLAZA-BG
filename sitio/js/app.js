@@ -1762,8 +1762,8 @@
     pintarNube();
     $('#clave-obligada').hidden = !obligada;
     $('#cuenta-botones').hidden = !!obligada;
-    // v1.7: recepción no cambia su contraseña (se la pone el admin); solo el admin ve el formulario
-    var puedeCambiar = obligada || esAdmin();
+    // v1.7: recepción no cambia su contraseña (se la pone el admin); el admin y (v1.19) la líder ven el formulario
+    var puedeCambiar = obligada || veTodo();
     $('#form-clave').hidden = !puedeCambiar;
     $('#clave-nota-recepcion').hidden = puedeCambiar;
     $('#clave-titulo').textContent = obligada ? 'Pon tu contraseña' : 'Cambiar mi contraseña';

@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.18** · 21 nov 2026, 9:37 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.19** · 21 nov 2026, 9:55 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -165,10 +165,18 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 | Permiso | Qué puede hacer |
 |---|---|
 | **Recepción** | Sube el Excel, corrige, imprime, descarga y comparte. Ve **solo su historial**. |
-| **Líder de Recepción** | Lo mismo, y además ve **el historial de todos** (con filtro por persona), puede corregir cualquier listado y ve **«Quién hizo qué»**. **No** maneja usuarios, **no** borra y **no** cambia los ajustes de la hoja. |
+| **Líder de Recepción** | Lo mismo, y además ve **el historial de todos** (con filtro por persona), puede corregir cualquier listado, ve **«Quién hizo qué»** y (desde v1.19) **cambia su propia contraseña** en «Mi cuenta». **No** maneja usuarios, **no** borra y **no** cambia los ajustes de la hoja. |
 | **Administrador** | Todo lo anterior y lo de abajo. |
 
 **Los nombres van siempre con Mayúscula Inicial** (v1.18): aunque se escriba «jaime valera», «Jaime valera» o «JAIME VALERA», queda «Jaime Valera» (las tildes y la ñ se respetan; los usuarios que ya existían se arreglan solos).
+
+**¿Dónde quedan las contraseñas? (explicado para JX)**
+
+- **Cada contraseña vive en la base de datos D1** (`editador-reservas-db`, tabla `usuarios`), en la fila de esa persona. **No se guarda la contraseña**, sino su **huella**: la nube la mezcla 100.000 veces con una «sal» al azar (PBKDF2-SHA256) y guarda la sal y el resultado. Al entrar, hace lo mismo con lo que escribiste y compara. Por eso **nadie puede leerla** (ni el admin, ni Cloudflare, ni quien vea la base).
+- **Al cambiar una contraseña** (tú en «Mi cuenta», tú a otra persona con «Contraseña nueva», o la Líder la suya) se **reemplaza** la huella vieja por la nueva en esa misma fila: **la vieja desaparece** (no queda historial de contraseñas) y se cierran las sesiones de esa persona en los demás equipos.
+- **`CLAVE_INICIAL` NO es tu contraseña** y **nunca cambia sola**: es una «llave de arranque» guardada como secreto en Cloudflare. Solo sirve 1) la primera vez de todas (cuando no hay ningún usuario) para crear al administrador, y 2) para el **rescate**, cuando además existe `RESCATE_ADMIN`. Cambiar tu contraseña en la web no la toca. **No la borres**: si falta, la nube se apaga y la página trabaja sin usuarios.
+- **Quién cambia qué:** el administrador cambia la suya (Mi cuenta, pide la actual) y le pone una nueva a cualquiera (Contraseña nueva, sin pedir la vieja). La **Líder de Recepción** cambia la suya. **Recepción** no cambia la suya: se la pone el administrador.
+- Si el administrador olvida la suya: el rescate (ver «Activar la nube», abajo). Copias de la base: Cloudflare D1 Time Travel (7 días en el plan gratis).
 
 **Solo el administrador** (sección **Administración**, abajo del historial):
 - **Usuarios de recepción:** **+ Nuevo usuario** (**nombre y apellido** —con eso entra y así sale en la hoja; desde v1.13 ya no hay un «usuario» aparte; si lo escribes todo en minúsculas, la web le pone las mayúsculas— y **la contraseña que tú escribes**; el dado inventa una si quieres; entrégasela en persona: con esa entra siempre), **Contraseña nueva** (si alguien la olvidó o quieres cambiársela), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
@@ -309,6 +317,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.19** | 21 nov 2026, 9:55 p. m. | La **Líder de Recepción cambia su propia contraseña** (Mi cuenta). Las sesiones viejas de «Recordar en este equipo» quedan con las reglas nuevas (30 min sin usar, 14 h como máximo). En «Mi cuenta» de recepción: «Tu contraseña te la da Jampier». Explicación de dónde quedan las contraseñas y qué es `CLAVE_INICIAL`. Revisión completa antes de publicar: HTML válido, ES5, accesibilidad AA, 25 + 22 pruebas. |
 | **v1.18** | 21 nov 2026, 9:37 p. m. | **Nombres siempre con Mayúscula Inicial** («Jaime valera» → «Jaime Valera»; también los que ya existían) y **permiso nuevo «Líder de Recepción»**: ve el historial de todos y «Quién hizo qué», sin manejar usuarios ni borrar. En Administración, el botón **«Permisos»** reemplaza a «Hacer / Quitar administrador». |
 | **v1.17** | 21 nov 2026, 9:32 p. m. | **Todos entran con su nombre y apellido, también los usuarios creados antes de v1.13** (pedido de JX: no podía entrar ni él ni «Jaime Valera»). Los usuarios viejos tenían un «usuario» aparte del nombre (por ejemplo `jx` con el nombre «Jampier Estrada»); la nube ahora los iguala sola al nombre y además deja entrar escribiendo el nombre. El **rescate del admin** sirve escribiendo el nombre o el usuario en `RESCATE_ADMIN`. |
 | **v1.16** | 21 nov 2026, 9:23 p. m. | **Pantalla «Entrar» con menos texto** (pedido de JX): se quitó la nota «Por seguridad, la sesión se cierra sola…» y el párrafo de privacidad de la tarjeta (queda el del pie de la página). Cuando la sesión se cierra por cerrar la pestaña ya no sale ningún mensaje: solo pide entrar. |
@@ -329,7 +338,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.19, v1.20…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.20, v1.21…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

@@ -216,6 +216,12 @@ async function quienEs(db, request) {
   const u = await db.prepare('SELECT u.id, u.usuario, u.nombre, u.rol, u.cambiar, s.token, s.creado AS s_creado, s.expira AS s_expira FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token = ?1 AND s.expira > ?2 AND u.activo = 1')
     .bind(await huella(token), ahora).first();
   if (!u) { return null; }
+  // v1.19: ninguna sesión pasa de 14 h, y las viejas de «Recordar en este equipo» (hasta 30 días) quedan en 30 min
+  if (ahora > u.s_creado + SESION_MAX) { await db.prepare('DELETE FROM sesiones WHERE token = ?1').bind(u.token).run(); return null; }
+  if (u.s_expira > ahora + SESION_INACTIVA + 60000) {
+    u.s_expira = Math.min(ahora + SESION_INACTIVA, u.s_creado + SESION_MAX);
+    await db.prepare('UPDATE sesiones SET expira = ?1 WHERE token = ?2').bind(u.s_expira, u.token).run();
+  }
   // v1.15: la persona está usando la página («X-Activo: 1») → otros 30 min (como mucho una escritura por minuto)
   if (request.headers.get('X-Activo') === '1') {
     const nueva = Math.min(ahora + SESION_INACTIVA, u.s_creado + SESION_MAX);
@@ -314,7 +320,8 @@ async function cambiarClave(db, request, quien) {
   const fila = await db.prepare('SELECT * FROM usuarios WHERE id = ?1').bind(quien.id).first();
   // v1.7 (JX: «yo agrego los usuarios y la contraseña… yo mismo se las doy»): recepción NO cambia su contraseña;
   // solo el admin (y quien tiene el cambio obligado: el primer admin con CLAVE_INICIAL o el rescate)
-  if (fila && fila.rol !== 'admin' && !fila.cambiar) { return error('solo-admin', 403); }
+  // v1.19 (JX: «que la líder pueda cambiarla… solo ella y yo»): también la Líder de Recepción cambia la suya
+  if (fila && fila.rol === 'recepcion' && !fila.cambiar) { return error('solo-admin', 403); }
   if (!fila || !iguales(await pbkdf2(actual, fila.sal), fila.hash)) { await new Promise((ok) => setTimeout(ok, 600)); return error('clave', 403); }
   if (nueva.length < 8) { return error('corta', 400); }
   if (nueva === actual) { return error('igual', 400); }
