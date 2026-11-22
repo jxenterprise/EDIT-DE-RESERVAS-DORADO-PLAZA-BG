@@ -155,6 +155,19 @@ async function prepararTablas(db) {
     await db.prepare("UPDATE listados SET usuario_id = (SELECT u.id FROM usuarios u WHERE u.nombre = json_extract(listados.datos, '$.autor') LIMIT 1) WHERE usuario_id IS NULL AND borrado = 0").run();
   } catch (e) { /* ya la tenía */ }
   await db.prepare('CREATE INDEX IF NOT EXISTS listados_u ON listados (usuario_id, t)').run();
+  // v1.17: los usuarios creados antes de v1.13 tienen un «usuario» distinto del nombre (p. ej. «jx» / «Jampier Estrada»):
+  // se igualan al nombre para que todos entren escribiendo su nombre y apellido. Si dos se llaman igual, se dejan.
+  const { results } = await db.prepare('SELECT id, usuario, nombre FROM usuarios').all();
+  const ocupados = {};
+  (results || []).forEach((x) => { ocupados[x.usuario] = x.id; });
+  for (const x of results || []) {
+    const plano = limpiaUsuario(x.nombre);
+    if (plano === x.usuario || !USUARIO_OK.test(plano) || ocupados[plano]) { continue; }
+    const iguales2 = (results || []).filter((y) => limpiaUsuario(y.nombre) === plano).length;
+    if (iguales2 !== 1) { continue; }
+    await db.prepare('UPDATE usuarios SET usuario = ?1 WHERE id = ?2').bind(plano, x.id).run();
+    delete ocupados[x.usuario]; ocupados[plano] = x.id;
+  }
   tablasListas = true;
 }
 /** Borra lo vencido: listados y actividad de más de 30 días, sesiones vencidas e intentos viejos. A lo sumo una vez por hora. */
@@ -234,10 +247,18 @@ async function entrar(db, env, request) {
       await anotar(db, u, 'Creó la nube y quedó como administrador');
     }
   } else {
-    const fila = await db.prepare('SELECT * FROM usuarios WHERE usuario = ?1').bind(usuario).first();
+    let fila = await db.prepare('SELECT * FROM usuarios WHERE usuario = ?1').bind(usuario).first();
+    if (!fila) {
+      // v1.17: también se entra con el NOMBRE («Jampier Estrada») aunque el usuario guardado sea el viejo (p. ej. «jx»):
+      // antes de v1.13, cambiar el nombre no cambiaba el usuario y JX quedó sin saber con qué entrar.
+      const { results } = await db.prepare('SELECT * FROM usuarios').all();
+      const porNombre = (results || []).filter((x) => limpiaUsuario(x.nombre) === usuario);
+      if (porNombre.length === 1) { fila = porNombre[0]; }
+    }
     if (fila && fila.activo && iguales(await pbkdf2(clave, fila.sal), fila.hash)) { u = fila; }
-    // rescate (admin que olvidó su contraseña): RESCATE_ADMIN = su usuario + CLAVE_INICIAL
-    if (!u && fila && fila.rol === 'admin' && limpiaUsuario(env.RESCATE_ADMIN) === usuario && iguales(clave, inicial)) {
+    // rescate (admin que olvidó su contraseña): RESCATE_ADMIN = su usuario o su nombre + la CLAVE_INICIAL como contraseña
+    const rescate = limpiaUsuario(env.RESCATE_ADMIN);
+    if (!u && fila && fila.rol === 'admin' && rescate && (rescate === usuario || rescate === fila.usuario || rescate === limpiaUsuario(fila.nombre)) && iguales(clave, inicial)) {
       const sal = azar(16);
       await db.prepare('UPDATE usuarios SET sal = ?1, hash = ?2, activo = 1, cambiar = 1 WHERE id = ?3').bind(sal, await pbkdf2(clave, sal), fila.id).run();
       u = Object.assign({}, fila, { activo: 1, cambiar: 1 });
@@ -252,6 +273,12 @@ async function entrar(db, env, request) {
     return error('clave', 401);
   }
   await db.prepare('DELETE FROM intentos WHERE clave = ?1').bind(usuario).run();
+  // v1.17: si su usuario guardado es el viejo, desde ya queda igual a su nombre (así siempre entra con el nombre)
+  const plano = limpiaUsuario(u.nombre);
+  if (plano !== u.usuario && USUARIO_OK.test(plano)) {
+    const otro = await db.prepare('SELECT id FROM usuarios WHERE usuario = ?1 AND id <> ?2').bind(plano, u.id).first();
+    if (!otro) { await db.prepare('UPDATE usuarios SET usuario = ?1 WHERE id = ?2').bind(plano, u.id).run(); u = Object.assign({}, u, { usuario: plano }); }
+  }
   const token = azar(32);
   await db.prepare('INSERT INTO sesiones (token, usuario_id, creado, expira) VALUES (?1, ?2, ?3, ?4)').bind(await huella(token), u.id, ahora, ahora + SESION_INACTIVA).run();
   await anotar(db, u, 'Entró');

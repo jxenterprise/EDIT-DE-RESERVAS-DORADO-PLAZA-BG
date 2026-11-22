@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.16** · 21 nov 2026, 9:23 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.17** · 21 nov 2026, 9:32 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -276,7 +276,7 @@ Lo mismo que se hizo en el Manual de turnos, con otros nombres. Mientras no est�
 
 Para revisar si quedó bien, abre `https://editador-reservas-doradoplaza-bg.pages.dev/api/yo`: con todo listo responde `{"usuario":null,…}`. Si falta algo, responde `{"error":"sin-configurar","falta":[…]}` y dice en `falta` si es `DB`, `CLAVE_INICIAL` o `CLAVE_INICIAL_CORTA`.
 
-**Si el administrador olvida su contraseña:** si hay otro administrador, él le pone una **Contraseña nueva**. Si no, en Cloudflare: **Variables y secretos** → **«+ Agregar»** → Tipo **Texto** → Nombre `RESCATE_ADMIN` → Valor: tu usuario (por ejemplo `jx`) → **Guardar** → **Reintentar implementación**. Entra con tu usuario y la `CLAVE_INICIAL`, pon tu contraseña nueva y **borra `RESCATE_ADMIN`** (y vuelve a **Reintentar implementación**). Los datos no se pierden.
+**Si el administrador olvida su contraseña:** si hay otro administrador, él le pone una **Contraseña nueva**. Si no, en Cloudflare: **Variables y secretos** → **«+ Agregar»** → Tipo **Texto** → Nombre `RESCATE_ADMIN` → Valor: tu nombre y apellido (por ejemplo «Jampier Estrada»; desde v1.17 también sirve el usuario viejo) → **Guardar** → **Reintentar implementación**. Entra escribiendo tu nombre y apellido y, como contraseña, el valor de `CLAVE_INICIAL`, pon tu contraseña nueva y **borra `RESCATE_ADMIN`** (y vuelve a **Reintentar implementación**). Los datos no se pierden.
 
 **Qué no hacer:** no borres ni le cambies el nombre a la base `editador-reservas-db`, a la vinculación `DB` ni al secreto `CLAVE_INICIAL` (ahí viven los datos y el acceso). No mandes contraseñas por chat ni en capturas. No escribas en el editador documentos de huéspedes, tarjetas ni cifras de caja.
 
@@ -298,6 +298,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.17** | 21 nov 2026, 9:32 p. m. | **Todos entran con su nombre y apellido, también los usuarios creados antes de v1.13** (pedido de JX: no podía entrar ni él ni «Jaime Valera»). Los usuarios viejos tenían un «usuario» aparte del nombre (por ejemplo `jx` con el nombre «Jampier Estrada»); la nube ahora los iguala sola al nombre y además deja entrar escribiendo el nombre. El **rescate del admin** sirve escribiendo el nombre o el usuario en `RESCATE_ADMIN`. |
 | **v1.16** | 21 nov 2026, 9:23 p. m. | **Pantalla «Entrar» con menos texto** (pedido de JX): se quitó la nota «Por seguridad, la sesión se cierra sola…» y el párrafo de privacidad de la tarjeta (queda el del pie de la página). Cuando la sesión se cierra por cerrar la pestaña ya no sale ningún mensaje: solo pide entrar. |
 | **v1.15** | 21 nov 2026, 9:16 p. m. | Pedido de JX: **cada recepcionista ve solo su historial** (el admin ve el de todos y filtra por persona) · **al entrar la pantalla sale limpia** y está el botón **«Guardar y hacer otro»** · **cada Excel queda como un listado aparte** · **la sesión se cierra sola** al cerrar la pestaña o a los **30 min sin usar** (con «¿Sigues ahí?» 1 min antes); ya no hay «Recordar en este equipo». Los listados viejos de la nube quedan con su dueño (por el nombre de quien los subió). |
 | **v1.14** | 21 nov 2026, 8:30 p. m. | **Pantalla «Entrar» más limpia:** el logo un poco más pequeño, campanita de recepción en vez del escudo, el ejemplo es «Jampier Estrada», sin el «(no importan las mayúsculas…)» (igual siguen sin importar) y «¿Olvidaste la contraseña?» dice «Pídeselo a Jampier». |
@@ -316,7 +317,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.17, v1.18…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.18, v1.19…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
