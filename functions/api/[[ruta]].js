@@ -18,6 +18,9 @@
  *   · v1.15: la sesión se cierra sola a los 30 minutos sin usar (SESION_INACTIVA) y nunca dura más
  *     de 14 h (SESION_MAX). Solo la alarga lo que manda la web con «X-Activo: 1» (la persona tocó
  *     algo hace poco); lo automático (traer cada 45 s) no la alarga. Ya no hay «Recordar en este equipo».
+ *   · v1.18 (JX): rol «lider» (Líder de Recepción): ve el historial de todos y «Quién hizo qué» y puede
+ *     corregir cualquier listado, pero NO maneja usuarios, NO borra y NO cambia los ajustes de la hoja.
+ *     Los nombres van siempre con Mayúscula Inicial («Jaime Valera»).
  *   · El Excel NUNCA llega aquí: se lee en el equipo. Aquí solo llega el
  *     listado ya armado (reserva, habitaciones, agencia, titular, preregistro).
  *   · Lo guardado se BORRA SOLO a los 30 días (son nombres de huéspedes).
@@ -59,7 +62,8 @@ const COOKIE = 'dp_sesion';
 const VUELTAS = 100000;                        // PBKDF2: Cloudflare no acepta más de 100.000
 const MAX_INTENTOS = 5, ESPERA_INTENTOS = 15 * 60000;
 const MAX_CUERPO = 2000000, MAX_LISTADO = 1500000;
-const ROLES = ['admin', 'recepcion'];
+const ROLES = ['admin', 'lider', 'recepcion'];   // v1.18: «lider» = Líder de Recepción
+const veTodo = (q) => q.rol === 'admin' || q.rol === 'lider';
 
 /* ---------- respuestas ---------- */
 function json(datos, estado, extra) {
@@ -113,8 +117,9 @@ function limpiaUsuario(s) {
 }
 /** El nombre como se ve: si lo escribieron todo en minúsculas, cada palabra empieza con mayúscula. */
 function nombreBonito(s) {
-  const t = limpiaTexto(s, 40);
-  return t === t.toLowerCase() ? t.replace(/(^|[\s'-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase()) : t;
+  // v1.18 (JX: «cada nombre la primera letra en mayúscula»): SIEMPRE Mayúscula Inicial y el resto en minúscula
+  // («jaime valera», «Jaime valera» o «JAIME VALERA» → «Jaime Valera»); tildes y ñ se respetan
+  return limpiaTexto(s, 40).toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (m, a, b) => a + b.toUpperCase());
 }
 function limpiaTexto(s, max) { return String(s == null ? '' : s).replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max || 120); }
 const USUARIO_OK = /^[a-z0-9][a-z0-9 ._'-]{1,39}$/;   // v1.13: ya acepta espacios (nombre y apellido); hasta 40
@@ -158,6 +163,11 @@ async function prepararTablas(db) {
   // v1.17: los usuarios creados antes de v1.13 tienen un «usuario» distinto del nombre (p. ej. «jx» / «Jampier Estrada»):
   // se igualan al nombre para que todos entren escribiendo su nombre y apellido. Si dos se llaman igual, se dejan.
   const { results } = await db.prepare('SELECT id, usuario, nombre FROM usuarios').all();
+  // v1.18: los nombres ya guardados también quedan con Mayúscula Inicial
+  for (const x of results || []) {
+    const bonito = nombreBonito(x.nombre);
+    if (bonito && bonito !== x.nombre) { await db.prepare('UPDATE usuarios SET nombre = ?1 WHERE id = ?2').bind(bonito, x.id).run(); x.nombre = bonito; }
+  }
   const ocupados = {};
   (results || []).forEach((x) => { ocupados[x.usuario] = x.id; });
   for (const x of results || []) {
@@ -328,7 +338,7 @@ async function leerListados(db, url, quien) {
   await limpiarVencido(db, ahora, false);
   const desde = Math.max(0, +url.searchParams.get('desde') || 0);
   // v1.15: recepción ve solo lo suyo; el admin, todo
-  const suyo = quien.rol === 'admin' ? '' : ' AND usuario_id = ' + (+quien.id || 0);
+  const suyo = veTodo(quien) ? '' : ' AND usuario_id = ' + (+quien.id || 0);   // v1.18: la líder también ve todo
   const consulta = desde
     ? db.prepare('SELECT id, datos, v, t, borrado FROM listados WHERE t > ?1' + suyo + ' ORDER BY t').bind(desde)
     : db.prepare('SELECT id, datos, v, t, borrado FROM listados WHERE borrado = 0' + suyo + ' ORDER BY t');
@@ -352,7 +362,7 @@ async function guardarListado(db, request, quien, id) {
   const base = Math.max(0, Math.floor(+c.base || 0)), ahora = Date.now();
   const fila = await db.prepare('SELECT v, borrado, creado, usuario_id FROM listados WHERE id = ?1').bind(id).first();
   if (fila && fila.borrado) { return error('borrado', 410); }
-  if (fila && quien.rol !== 'admin' && fila.usuario_id !== quien.id) { return error('ajeno', 403); }   // v1.15: solo el dueño (o el admin)
+  if (fila && !veTodo(quien) && fila.usuario_id !== quien.id) { return error('ajeno', 403); }   // v1.15: solo el dueño (o el admin / la líder, v1.18)
   if (!fila && base > 0) { return error('borrado', 410); }                       // ya se borró (o se venció a los 30 días)
   if (fila && fila.v !== base) {                                                  // otro equipo lo cambió: que lo mezcle y vuelva a mandar
     const actual = await db.prepare('SELECT id, datos, v, t FROM listados WHERE id = ?1').bind(id).first();
@@ -426,7 +436,7 @@ async function crearUsuario(db, request, quien) {
   // v1.7: cambiar = 0 → entra con la contraseña que le puso el admin, sin que se la pidan cambiar
   await db.prepare('INSERT INTO usuarios (usuario, nombre, rol, sal, hash, activo, cambiar, creado) VALUES (?1, ?2, ?3, ?4, ?5, 1, 0, ?6)')
     .bind(usuario, nombre, rol, sal, await pbkdf2(clave, sal), Date.now()).run();
-  await anotar(db, quien, 'Creó el usuario «' + nombre + '»' + (rol === 'admin' ? ' (administrador)' : ''));
+  await anotar(db, quien, 'Creó el usuario «' + nombre + '»' + (rol === 'admin' ? ' (administrador)' : rol === 'lider' ? ' (Líder de Recepción)' : ''));
   return verUsuarios(db);
 }
 
@@ -451,7 +461,7 @@ async function cambiarUsuario(db, request, quien, id) {
   if (c.rol !== undefined && c.rol !== u.rol) {
     if (ROLES.indexOf(c.rol) < 0) { return error('datos', 400); }
     if (propio) { return error('propio', 400); }
-    cambios.push(['rol', c.rol]); hechos.push(c.rol === 'admin' ? 'lo hizo administrador' : 'le quitó el administrador');
+    cambios.push(['rol', c.rol]); hechos.push(c.rol === 'admin' ? 'lo hizo administrador' : c.rol === 'lider' ? 'lo hizo Líder de Recepción' : 'lo dejó como recepción');
   }
   if (c.activo !== undefined && !!c.activo !== !!u.activo) {
     if (propio) { return error('propio', 400); }
@@ -528,7 +538,7 @@ export async function onRequest(context) {
     }
     if (r0 === 'actividad') {
       if (metodo === 'POST') { const c = await cuerpoDe(request); await anotar(db, quien, c.acciones); return json({ ok: true }); }
-      if (metodo === 'GET') { return admin ? await verActividad(db) : soloAdmin(); }
+      if (metodo === 'GET') { return veTodo(quien) ? await verActividad(db) : soloAdmin(); }   // v1.18: también la líder
     }
     if (r0 === 'usuarios') {
       if (!admin) { return soloAdmin(); }

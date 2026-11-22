@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.17** · 21 nov 2026, 9:32 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.18** · 21 nov 2026, 9:37 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -160,9 +160,20 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 - **¿Alguien puede entrar un día y no encontrar nada?** Desde v1.15 cada uno ve **su** historial (lo que subió él), en cualquier equipo; el administrador ve el de todos. **Los usuarios no se borran nunca** (solo se desactivan). **Los listados y «Quién hizo qué» se borran solos a los 30 días** (por los nombres de los huéspedes, Ley 1581); se puede cambiar a 60 o 90 días si JX lo decide. Sin internet no se pierde nada: queda en el equipo y se sube al volver la señal. Al salir de la cuenta, ese equipo se limpia, pero todo sigue en la nube.
 - **¿Hay copia de seguridad?** Sí: Cloudflare guarda el historial de la base y en el plan gratis se puede **volver a cualquier momento de los últimos 7 días** (30 días en el plan de pago). Fuente: [Cloudflare D1 · Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/).
 
+**Tres tipos de permisos (v1.18)** — se escogen al crear el usuario o con el botón **«Permisos»** de cada uno:
+
+| Permiso | Qué puede hacer |
+|---|---|
+| **Recepción** | Sube el Excel, corrige, imprime, descarga y comparte. Ve **solo su historial**. |
+| **Líder de Recepción** | Lo mismo, y además ve **el historial de todos** (con filtro por persona), puede corregir cualquier listado y ve **«Quién hizo qué»**. **No** maneja usuarios, **no** borra y **no** cambia los ajustes de la hoja. |
+| **Administrador** | Todo lo anterior y lo de abajo. |
+
+**Los nombres van siempre con Mayúscula Inicial** (v1.18): aunque se escriba «jaime valera», «Jaime valera» o «JAIME VALERA», queda «Jaime Valera» (las tildes y la ñ se respetan; los usuarios que ya existían se arreglan solos).
+
 **Solo el administrador** (sección **Administración**, abajo del historial):
 - **Usuarios de recepción:** **+ Nuevo usuario** (**nombre y apellido** —con eso entra y así sale en la hoja; desde v1.13 ya no hay un «usuario» aparte; si lo escribes todo en minúsculas, la web le pone las mayúsculas— y **la contraseña que tú escribes**; el dado inventa una si quieres; entrégasela en persona: con esa entra siempre), **Contraseña nueva** (si alguien la olvidó o quieres cambiársela), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
 - **Quién hizo qué:** quién entró, quién subió cada Excel, quién corrigió, agregó o quitó cada reserva, quién imprimió o descargó el PDF, y a qué hora (últimos 30 días).
+- **Permisos** de cada usuario (Recepción / Líder de Recepción / Administrador). Siempre queda al menos un administrador activo.
 - **Ver el historial de todos** (filtro «Ver el historial de»), **Borrar** listados del historial y **Eliminar** el que está en pantalla.
 - **Ajustes de la hoja para todos:** casilla «Llegó» y «Ahorrar papel».
 
@@ -298,6 +309,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.18** | 21 nov 2026, 9:37 p. m. | **Nombres siempre con Mayúscula Inicial** («Jaime valera» → «Jaime Valera»; también los que ya existían) y **permiso nuevo «Líder de Recepción»**: ve el historial de todos y «Quién hizo qué», sin manejar usuarios ni borrar. En Administración, el botón **«Permisos»** reemplaza a «Hacer / Quitar administrador». |
 | **v1.17** | 21 nov 2026, 9:32 p. m. | **Todos entran con su nombre y apellido, también los usuarios creados antes de v1.13** (pedido de JX: no podía entrar ni él ni «Jaime Valera»). Los usuarios viejos tenían un «usuario» aparte del nombre (por ejemplo `jx` con el nombre «Jampier Estrada»); la nube ahora los iguala sola al nombre y además deja entrar escribiendo el nombre. El **rescate del admin** sirve escribiendo el nombre o el usuario en `RESCATE_ADMIN`. |
 | **v1.16** | 21 nov 2026, 9:23 p. m. | **Pantalla «Entrar» con menos texto** (pedido de JX): se quitó la nota «Por seguridad, la sesión se cierra sola…» y el párrafo de privacidad de la tarjeta (queda el del pie de la página). Cuando la sesión se cierra por cerrar la pestaña ya no sale ningún mensaje: solo pide entrar. |
 | **v1.15** | 21 nov 2026, 9:16 p. m. | Pedido de JX: **cada recepcionista ve solo su historial** (el admin ve el de todos y filtra por persona) · **al entrar la pantalla sale limpia** y está el botón **«Guardar y hacer otro»** · **cada Excel queda como un listado aparte** · **la sesión se cierra sola** al cerrar la pestaña o a los **30 min sin usar** (con «¿Sigues ahí?» 1 min antes); ya no hay «Recordar en este equipo». Los listados viejos de la nube quedan con su dueño (por el nombre de quien los subió). |
@@ -317,7 +329,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.18, v1.19…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.19, v1.20…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

@@ -118,7 +118,7 @@
    * 4) ESTADO
    * ================================================================ */
   var MAX_HISTORIAL = 30;                                  // sin nube; con la nube: lo de 30 días (máx. 90 listados)
-  function maxHistorial() { return nubeActiva() ? (esAdmin() ? 200 : 90) : MAX_HISTORIAL; }   // v1.15: el admin ve los de todos
+  function maxHistorial() { return nubeActiva() ? (veTodo() ? 200 : 90) : MAX_HISTORIAL; }   // v1.15: el admin (y la líder, v1.18) ven los de todos
   // La casilla «Llegó» viene APAGADA: así la hoja sale igual a la que usa Recepción; se prende en «Más ajustes».
   // «apretar» viene PRENDIDO: con 19 a 22 reservas la letra se aprieta un poco y la hoja cabe en una sola página.
   var ajustes = Object.assign({ tema: 'auto', casilla: false, apretar: true }, esObjeto(leer('ajustes', {})) ? leer('ajustes', {}) : {});
@@ -400,7 +400,7 @@
     if (manual.agr) { partes.push(plural(manual.agr, 'agregada', 'agregadas')); }
     if (manual.quit) { partes.push(plural(manual.quit, 'quitada', 'quitadas')); }
     $('#resumen-origen').innerHTML = 'Excel: <strong>' + esc(actual.archivo) + '</strong> · ' + plural(actual.filasExcel, 'fila de habitación', 'filas de habitación') +
-      ' · subido ' + esc(cuando(actual.creado)) + (actual.autor ? ' por <strong>' + esc(actual.autor) + '</strong>' : '') + (partes.length ? '<br>Cambios a mano: ' + partes.join(' · ') + '.' : '');
+      ' · subido ' + esc(cuando(actual.creado)) + (actual.autor ? ' por <strong>' + esc(nombreBonito(actual.autor)) + '</strong>' : '') + (partes.length ? '<br>Cambios a mano: ' + partes.join(' · ') + '.' : '');
     $('#fecha-hoja').value = actual.fecha;
     $('#btn-fecha-hoy').disabled = actual.fecha === hoyISO();
     var fx = fechaDelExcel(actual);
@@ -905,34 +905,35 @@
   function pintarHistorial() {
     // v1.15 (JX): con la nube, cada recepcionista ve SOLO lo suyo (la nube solo le manda lo suyo); el admin ve todo y filtra por persona
     var autores = [];
-    if (esAdmin()) { listados.forEach(function (x) { if (x.autor && autores.indexOf(x.autor) < 0) { autores.push(x.autor); } }); autores.sort(); }
+    var autorDe = function (x) { return x.autor ? nombreBonito(x.autor) : ''; };   // v1.18: «Jaime valera» y «Jaime Valera» son la misma persona
+    if (veTodo()) { listados.forEach(function (x) { var a = autorDe(x); if (a && autores.indexOf(a) < 0) { autores.push(a); } }); autores.sort(); }
     if (filtroHistorial && autores.indexOf(filtroHistorial) < 0) { filtroHistorial = ''; }
-    $('#historial-filtro-caja').hidden = !esAdmin() || autores.length < 2;
+    $('#historial-filtro-caja').hidden = !veTodo() || autores.length < 2;
     $('#historial-filtro').innerHTML = '<option value="">Todos (' + listados.length + ')</option>' + autores.map(function (a) {
-      var n = listados.filter(function (x) { return x.autor === a; }).length;
+      var n = listados.filter(function (x) { return autorDe(x) === a; }).length;
       return '<option value="' + esc(a) + '"' + (a === filtroHistorial ? ' selected' : '') + '>' + esc(a) + ' (' + n + ')</option>';
     }).join('');
-    var ver = filtroHistorial ? listados.filter(function (x) { return x.autor === filtroHistorial; }) : listados;
+    var ver = filtroHistorial ? listados.filter(function (x) { return autorDe(x) === filtroHistorial; }) : listados;
     $('#historial-vacio').hidden = listados.length > 0;
     $('#historial-nota').hidden = !listados.length;
     $('#historial-nota-texto').textContent = almacenOk
       ? 'Se guardan hasta ' + MAX_HISTORIAL + ' listados, solo en este equipo. Si el equipo es compartido, bórralos cuando ya no los necesites.'
       : 'Este navegador no deja guardar (¿modo incógnito?): el historial dura solo mientras esta página esté abierta.';
     if (nubeActiva()) {
-      $('#historial-nota-texto').textContent = esAdmin()
-        ? 'Eres administrador: ves los listados de todos (cada uno dice quién lo subió). Se borran solos a los ' + nube.dias + ' días.'
+      $('#historial-nota-texto').textContent = veTodo()
+        ? 'Ves los listados de todos (cada uno dice quién lo subió). Se borran solos a los ' + nube.dias + ' días.' + (esAdmin() ? '' : ' Solo el administrador puede borrar.')
         : 'Tu historial: solo los listados que subiste tú, guardados en la nube (los ves en cualquier equipo al entrar). Se borran solos a los ' + nube.dias + ' días; solo el administrador puede borrar.';
     }
     $('#btn-borrar-historial').hidden = nubeActiva() && !esAdmin();
     var puedeBorrar = !nubeActiva() || esAdmin();
     $('#btn-eliminar').hidden = !puedeBorrar;
     $('#acciones').classList.toggle('acciones--cinco', puedeBorrar);   // v1.15: con 5 botones, en celular los de texto van sin ícono                // «Eliminar» de la barra: mismas reglas que «Borrar» (v1.4)
-    var conAutor = !nubeActiva() || esAdmin();               // recepción: todo es suyo, no hace falta «por …»
+    var conAutor = !nubeActiva() || veTodo();                // recepción: todo es suyo, no hace falta «por …»
     $('#lista-historial').innerHTML = ver.map(function (x) {
       var t = Reglas.totales(x.filas), enPantalla = actual && actual.id === x.id;
       return '<li' + (enPantalla ? ' aria-current="true"' : '') + '><span class="historial__info">' +
         '<span class="historial__fecha">' + esc(fechaCorta(x.fecha)) + (enPantalla ? ' <span class="chip chip--cambio">En pantalla</span>' : '') + '</span>' +
-        '<span class="historial__meta">' + plural(t.habitaciones, 'habitación', 'habitaciones') + ' · ' + plural(t.reservas, 'reserva', 'reservas') + ' · subido ' + esc(cuando(x.creado)) + (x.autor && conAutor ? ' por <strong>' + esc(x.autor) + '</strong>' : '') + '</span></span>' +
+        '<span class="historial__meta">' + plural(t.habitaciones, 'habitación', 'habitaciones') + ' · ' + plural(t.reservas, 'reserva', 'reservas') + ' · subido ' + esc(cuando(x.creado)) + (x.autor && conAutor ? ' por <strong>' + esc(autorDe(x)) + '</strong>' : '') + '</span></span>' +
         '<span class="historial__botones">' +
         (enPantalla ? '' : '<button type="button" class="boton boton--secundario boton--chico" data-historial="abrir" data-id="' + esc(x.id) + '">Abrir</button>') +
         (puedeBorrar ? '<button type="button" class="enlace enlace--peligro" data-historial="borrar" data-id="' + esc(x.id) + '" aria-label="Borrar el listado del ' + esc(fechaCorta(x.fecha)) + '">Borrar</button>' : '') + '</span></li>';
@@ -1328,7 +1329,7 @@
   function objeto(x) { return esObjeto(x) ? x : {}; }
   function usuarioSano(u) {
     return esObjeto(u) && typeof u.usuario === 'string' && typeof u.nombre === 'string'
-      ? { id: +u.id || 0, usuario: u.usuario, nombre: u.nombre.slice(0, 40), rol: u.rol === 'admin' ? 'admin' : 'recepcion', cambiar: !!u.cambiar } : null;
+      ? { id: +u.id || 0, usuario: u.usuario, nombre: u.nombre.slice(0, 40), rol: u.rol === 'admin' || u.rol === 'lider' ? u.rol : 'recepcion', cambiar: !!u.cambiar } : null;
   }
   var nube = {
     modo: 'local',                                          // 'local' (aquí no hay nube) · 'nube'
@@ -1352,6 +1353,10 @@
   };
   function nubeActiva() { return nube.modo === 'nube' && !!nube.usuario; }
   function esAdmin() { return nubeActiva() && nube.usuario.rol === 'admin'; }
+  /* v1.18: Líder de Recepción (Yakeline): ve el historial de todos y «Quién hizo qué», sin manejar usuarios ni borrar */
+  function esLider() { return nubeActiva() && nube.usuario.rol === 'lider'; }
+  function veTodo() { return esAdmin() || esLider(); }
+  var NOMBRE_ROL = { admin: 'Administrador', lider: 'Líder de Recepción', recepcion: 'Recepción' };
   function hayPendientes() { return Object.keys(nube.pend).length > 0 || nube.sueltas.length > 0; }
   function guardarNube() {
     guardar('nube-usuario', nube.usuario, true); guardar('nube-vers', nube.vers, true); guardar('nube-pend', nube.pend, true);
@@ -1449,7 +1454,7 @@
     $('#entrar').hidden = true;
     pintarNube();
     if (nube.usuario.cambiar) { setTimeout(function () { abrirCuenta(true); }, 50); }
-    if (esAdmin()) { cargarAdmin(); }
+    if (veTodo()) { cargarAdmin(); }
   }
   function entrar() {
     var usuario = $('#e-usuario').value.replace(/\s+/g, ' ').trim(), clave = $('#e-clave').value, boton = $('#e-entrar');   // v1.13: la nube lo compara sin mayúsculas ni tildes
@@ -1465,7 +1470,7 @@
       // Si es la primera vez del admin (contraseña de la CLAVE_INICIAL), primero sale «Mi cuenta» y no la bienvenida.
       var u0 = j.usuario || {};
       if (!u0.cambiar) {
-        resultado('ok', '¡Bienvenido, ' + u0.nombre + '!', 'Acceso ' + (u0.rol === 'admin' ? 'de administrador ' : '') + 'conectado: lo que hagas se guarda en este equipo y en la nube de recepción.');
+        resultado('ok', '¡Bienvenido, ' + u0.nombre + '!', 'Acceso ' + (u0.rol === 'admin' ? 'de administrador ' : u0.rol === 'lider' ? 'de Líder de Recepción ' : '') + 'conectado: lo que hagas se guarda en este equipo y en la nube de recepción.');
       }
       ponerUsuario(j.usuario);
       // v1.15 (JX): al entrar, la pantalla siempre limpia para subir un Excel; lo anterior está en su historial
@@ -1728,7 +1733,9 @@
   function pintarNube() {
     var activa = nubeActiva(), entrando = document.documentElement.classList.contains('pide-entrar');
     $('#btn-cuenta').hidden = !activa;
-    $('#admin').hidden = !esAdmin() || entrando;
+    $('#admin').hidden = !veTodo() || entrando;
+    $('#admin-usuarios').hidden = !esAdmin();               // v1.18: la líder ve «Quién hizo qué», no los usuarios
+    $('#admin-titulo').textContent = esLider() ? 'Quién hizo qué' : 'Administración';
     var bloqueo = activa && !esAdmin();
     $('#aj-casilla').disabled = bloqueo; $('#aj-apretar').disabled = bloqueo;
     $('#aj-nota-admin').hidden = !activa;
@@ -1747,8 +1754,8 @@
     $('#btn-cuenta').setAttribute('aria-label', 'Mi cuenta: ' + u.nombre + '. ' + e[1]);
     $('#cuenta-estado-punto').setAttribute('data-color', e[2]);
     $('#cuenta-estado-texto').textContent = e[1] + (nube.ultima && nube.estado !== 'subiendo' && nube.estado !== 'bajando' ? ' Última vez: ' + cuando(nube.ultima) : '');
-    $('#cuenta-quien').innerHTML = 'Entraste como <strong>' + esc(u.nombre) + '</strong> · ' + (u.rol === 'admin' ? 'Administrador' : 'Recepción') + '.';
-    $('#btn-ir-admin').hidden = !esAdmin();
+    $('#cuenta-quien').innerHTML = 'Entraste como <strong>' + esc(u.nombre) + '</strong> · ' + (NOMBRE_ROL[u.rol] || 'Recepción') + '.';
+    $('#btn-ir-admin').hidden = !veTodo();
   }
   function abrirCuenta(obligada) {
     if (!nubeActiva()) { return; }
@@ -1784,9 +1791,9 @@
 
   /* ---------- administración (solo el admin) ---------- */
   function cargarAdmin() {
-    if (!esAdmin()) { return Promise.resolve(); }
+    if (!veTodo()) { return Promise.resolve(); }
     return Promise.all([
-      pedir('GET', 'usuarios').then(function (r) { pintarUsuarios(r.usuarios || []); }),
+      esAdmin() ? pedir('GET', 'usuarios').then(function (r) { pintarUsuarios(r.usuarios || []); }) : Promise.resolve(),
       pedir('GET', 'actividad').then(function (r) { nube.admin.actividad = r.actividad || []; nube.admin.verHasta = 60; pintarActividad(); })
     ]).catch(function (e) { if (e.estado === 401) { errorNube(e); } });
   }
@@ -1795,12 +1802,13 @@
     $('#lista-usuarios').innerHTML = lista.map(function (u) {
       var propio = u.id === yo, chips = [];
       if (u.rol === 'admin') { chips.push('<span class="chip chip--cambio">Administrador</span>'); }
+      if (u.rol === 'lider') { chips.push('<span class="chip chip--nueva">Líder de Recepción</span>'); }
       if (!u.activo) { chips.push('<span class="chip chip--revisar">Desactivado</span>'); }
       if (u.activo && u.cambiar) { chips.push('<span class="chip chip--mano">Falta que ponga su contraseña</span>'); }
       if (propio) { chips.push('<span class="chip">Tú</span>'); }
       var botones = '<button type="button" class="enlace" data-u="nombre">Nombre</button>' + (propio ? '<button type="button" class="enlace" data-u="mia">Cambiar mi contraseña</button>'
         : '<button type="button" class="enlace" data-u="clave">Contraseña nueva</button>' +
-          '<button type="button" class="enlace" data-u="rol">' + (u.rol === 'admin' ? 'Quitar administrador' : 'Hacer administrador') + '</button>' +
+          '<button type="button" class="enlace" data-u="rol">Permisos</button>' +   // v1.18: Recepción / Líder / Administrador
           '<button type="button" class="enlace' + (u.activo ? ' enlace--peligro' : '') + '" data-u="activo">' + (u.activo ? 'Desactivar' : 'Activar') + '</button>');
       return '<li data-activo="' + (u.activo ? 'si' : 'no') + '" data-id="' + esc(u.id) + '" data-nombre="' + esc(u.nombre) + '" data-usuario="' + esc(u.usuario) + '" data-rol="' + esc(u.rol) + '" data-act="' + (u.activo ? '1' : '0') + '">' +
         '<span class="usuarios__info"><span class="usuarios__nombre">' + esc(u.nombre) + ' ' + chips.join('') + '</span>' +
@@ -1826,30 +1834,37 @@
   }
   function abrirUsuario(modo, li) {
     dlgUsuario = { modo: modo, id: li ? +li.getAttribute('data-id') : 0 };
-    var nuevo = modo === 'nuevo', soloNombre = modo === 'nombre';
-    $('#u-titulo').textContent = nuevo ? 'Nuevo usuario' : soloNombre ? 'Nombre de ' + li.getAttribute('data-nombre') : 'Contraseña nueva para ' + li.getAttribute('data-nombre');
+    var nuevo = modo === 'nuevo', soloNombre = modo === 'nombre', soloRol = modo === 'rol';
+    $('#u-titulo').textContent = nuevo ? 'Nuevo usuario' : soloNombre ? 'Nombre de ' + li.getAttribute('data-nombre') : soloRol ? 'Permisos de ' + li.getAttribute('data-nombre') : 'Contraseña nueva para ' + li.getAttribute('data-nombre');
     $('#u-ayuda').textContent = nuevo ? 'La persona entra con su nombre y apellido y la contraseña que escribas aquí. Entrégasela en persona.'
-      : soloNombre ? 'Con este nombre entra (sin importar mayúsculas ni tildes) y así sale en la hoja, en el historial y en «Quién hizo qué». La contraseña no cambia.'
+      : soloNombre ? 'Con este nombre entra y así sale en la hoja, en el historial y en «Quién hizo qué». La contraseña no cambia.'
+      : soloRol ? 'Escoge qué puede hacer. Su nombre y su contraseña no cambian.'
         : 'Se cierra su sesión en todos los equipos y desde ahora entra con la contraseña que escribas aquí. Entrégasela en persona.';
-    $('#u-datos').hidden = !(nuevo || soloNombre);
+    $('#u-datos').hidden = !(nuevo || soloNombre || soloRol);
+    $('#u-nombre').closest('.campo').hidden = soloRol;
     $('#u-rol').closest('.campo').hidden = soloNombre;   // v1.13: el campo «Usuario» ya no se muestra (es el nombre)
-    $('#u-clave').closest('.campo').hidden = soloNombre;
-    $('#u-nombre').value = soloNombre ? li.getAttribute('data-nombre') : ''; $('#u-usuario').value = ''; $('#u-rol').value = 'recepcion';
+    $('#u-clave').closest('.campo').hidden = soloNombre || soloRol;
+    $('#u-nombre').value = soloNombre ? li.getAttribute('data-nombre') : ''; $('#u-usuario').value = ''; $('#u-rol').value = soloRol ? li.getAttribute('data-rol') : 'recepcion';
     $('#u-clave').value = '';                                // v1.7: la contraseña la escribe el admin (el dado inventa una si quiere)
-    $('#u-guardar').textContent = nuevo ? 'Crear usuario' : soloNombre ? 'Guardar nombre' : 'Poner contraseña';
+    $('#u-guardar').textContent = nuevo ? 'Crear usuario' : soloNombre ? 'Guardar nombre' : soloRol ? 'Guardar permisos' : 'Poner contraseña';
     $('#u-error').hidden = true;
     abrirDialogo('#dlg-usuario');
-    setTimeout(function () { (nuevo || soloNombre ? $('#u-nombre') : $('#u-clave')).focus(); }, 40);
+    setTimeout(function () { (nuevo || soloNombre ? $('#u-nombre') : soloRol ? $('#u-rol') : $('#u-clave')).focus(); }, 40);
   }
-  /** v1.13: «jaime valera» → «Jaime Valera» (igual que la nube); si ya trae mayúsculas, se deja como lo escribieron. */
+  /** v1.18 (JX: «cada nombre la primera letra es mayúscula»): SIEMPRE Mayúscula Inicial, igual que la nube:
+   *  «jaime valera», «Jaime valera» o «JAIME VALERA» → «Jaime Valera» (tildes y ñ se respetan). */
   function nombreBonito(t) {
-    return t === t.toLowerCase() ? t.replace(/(^|[\s'-])([a-záéíóúñü])/g, function (m, a, b) { return a + b.toUpperCase(); }) : t;
+    return String(t || '').toLowerCase().replace(/(^|[\s'-])([a-záéíóúñüàèìòùäëïöç])/g, function (m, a, b) { return a + b.toUpperCase(); });
   }
   function guardarUsuario() {
     var err = $('#u-error'), clave = $('#u-clave').value.trim();
     function mal(t, campo) { err.textContent = t; err.hidden = false; if (campo) { campo.focus(); } }
     var cuerpo, peticion;
-    if (dlgUsuario.modo === 'nombre') {
+    if (dlgUsuario.modo === 'rol') {
+      clave = '12345678';                                    // (no se manda: solo para pasar la revisión de abajo)
+      cuerpo = { rol: $('#u-rol').value };
+      peticion = function () { return pedir('PATCH', 'usuarios/' + dlgUsuario.id, cuerpo); };
+    } else if (dlgUsuario.modo === 'nombre') {
       var nom = nombreBonito(Reglas.limpiar($('#u-nombre').value));
       if (!nom) { mal('Escribe el nombre.', $('#u-nombre')); return; }
       clave = '12345678';                                    // (no se manda: solo para pasar la revisión de abajo)
@@ -1875,7 +1890,11 @@
         nube.usuario.nombre = yoNuevo ? yoNuevo.nombre : cuerpo.nombre; if (yoNuevo) { nube.usuario.usuario = yoNuevo.usuario; }
         guardarNube(); pintarNube();
       }
-      if (dlgUsuario.modo === 'nuevo') {
+      if (dlgUsuario.modo === 'rol') {
+        resultado('ok', '¡Permisos guardados!', ({ admin: 'Ahora es Administrador: puede todo (usuarios, borrar y ajustes de la hoja).',
+          lider: 'Ahora es Líder de Recepción: ve el historial de todos y «Quién hizo qué». No maneja usuarios ni borra.',
+          recepcion: 'Ahora es Recepción: sube, corrige e imprime, y ve solo su historial.' })[cuerpo.rol]);
+      } else if (dlgUsuario.modo === 'nuevo') {
         resultado('ok', '¡Usuario creado!', 'Entra escribiendo «' + cuerpo.nombre + '» y esta contraseña. Entrégasela en persona:', clave);
       } else if (dlgUsuario.modo === 'nombre') {
         resultado('ok', '¡Nombre guardado!', 'Desde ahora entra escribiendo «' + cuerpo.nombre + '» (con la misma contraseña) y así sale en la hoja, el historial y «Quién hizo qué».');
@@ -1885,7 +1904,7 @@
       cargarAdmin();
     }, function (e) {
       if (e.estado === 401) { errorNube(e); return; }
-      mal({ existe: 'Ya hay alguien con ese nombre: agrégale el segundo apellido.', usuario: 'Escribe solo letras, espacios y números (nombre y apellido).', nombre: 'Escribe el nombre de la persona.', corta: 'La contraseña temporal debe tener 8 o más.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo guardar. Inténtalo otra vez.');
+      mal({ 'ultimo-admin': 'Debe quedar al menos un administrador activo.', propio: 'No puedes cambiarte tus propios permisos.', existe: 'Ya hay alguien con ese nombre: agrégale el segundo apellido.', usuario: 'Escribe solo letras, espacios y números (nombre y apellido).', nombre: 'Escribe el nombre de la persona.', corta: 'La contraseña temporal debe tener 8 o más.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo guardar. Inténtalo otra vez.');
     }).then(function () { b.disabled = false; });
   }
   function cambiarUsuario(li, que) {
@@ -2069,7 +2088,7 @@
       var b = e.target.closest('[data-u]');
       if (!b) { return; }
       var li = b.closest('li'), que = b.getAttribute('data-u');
-      if (que === 'mia') { abrirCuenta(false); } else if (que === 'clave' || que === 'nombre') { abrirUsuario(que, li); } else { cambiarUsuario(li, que); }
+      if (que === 'mia') { abrirCuenta(false); } else if (que === 'clave' || que === 'nombre' || que === 'rol') { abrirUsuario(que, li); } else { cambiarUsuario(li, que); }
     });
     $('#form-usuario').addEventListener('submit', function (e) { e.preventDefault(); guardarUsuario(); });
     $('#u-cancelar').addEventListener('click', function () { cerrarDialogo('#dlg-usuario'); });
