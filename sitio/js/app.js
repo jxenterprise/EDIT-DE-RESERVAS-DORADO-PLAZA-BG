@@ -1431,7 +1431,7 @@
   /* ---------- entrar y salir ---------- */
   function pedirEntrar(primera, mensaje) {
     document.documentElement.classList.add('pide-entrar');
-    ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar', '#dlg-pregunta', '#dlg-sigues', '#dlg-nombre', '#dlg-fecha'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
+    ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar', '#dlg-pregunta', '#dlg-sigues', '#dlg-nombre', '#dlg-fecha', '#dlg-ver'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
     ocultarGuia(); cerrarDeshacer();
     $('#entrar').hidden = false;
     $('#entrar-primera').hidden = !primera;
@@ -1807,7 +1807,8 @@
       if (u.activo && u.cambiar) { chips.push('<span class="chip chip--mano">Falta que ponga su contraseña</span>'); }
       if (propio) { chips.push('<span class="chip">Tú</span>'); }
       var botones = '<button type="button" class="enlace" data-u="nombre">Nombre</button>' + (propio ? '<button type="button" class="enlace" data-u="mia">Cambiar mi contraseña</button>'
-        : '<button type="button" class="enlace" data-u="clave">Contraseña nueva</button>' +
+        : '<button type="button" class="enlace" data-u="ver">Ver contraseña</button>' +   // v1.20
+          '<button type="button" class="enlace" data-u="clave">Contraseña nueva</button>' +
           '<button type="button" class="enlace" data-u="rol">Permisos</button>' +   // v1.18: Recepción / Líder / Administrador
           '<button type="button" class="enlace' + (u.activo ? ' enlace--peligro' : '') + '" data-u="activo">' + (u.activo ? 'Desactivar' : 'Activar') + '</button>');
       return '<li data-activo="' + (u.activo ? 'si' : 'no') + '" data-id="' + esc(u.id) + '" data-nombre="' + esc(u.nombre) + '" data-usuario="' + esc(u.usuario) + '" data-rol="' + esc(u.rol) + '" data-act="' + (u.activo ? '1' : '0') + '">' +
@@ -1824,6 +1825,33 @@
         '<span class="actividad__que"><strong>' + esc(x.nombre || x.usuario || '—') + '</strong>' + esc(accion.charAt(0).toLowerCase() + accion.slice(1)) + '</span></li>';
     }).join('') : '<li><span class="actividad__que nota">Todavía no hay actividad.</span></li>';
     $('#btn-mas-actividad').hidden = n >= a.length;
+  }
+  /* v1.20 «Ver contraseña» (JX: «Ver contraseña actual de cada usuario, por si algún día se me olvida»): la nube guarda una
+     copia CIFRADA de cada contraseña que se pone desde v1.20 y solo se la muestra al admin si escribe SU contraseña. */
+  var dlgVer = { id: 0, nombre: '' };
+  function abrirVer(li) {
+    dlgVer = { id: +li.getAttribute('data-id'), nombre: li.getAttribute('data-nombre') };
+    $('#ver-titulo').textContent = 'Contraseña de ' + dlgVer.nombre;
+    $('#v-clave').value = ''; $('#v-clave').type = 'password'; $('#v-error').hidden = true;
+    abrirDialogo('#dlg-ver');
+    setTimeout(function () { $('#v-clave').focus(); }, 40);
+  }
+  function verContrasena() {
+    var clave = $('#v-clave').value, err = $('#v-error'), b = $('#v-si');
+    if (!clave) { err.textContent = 'Escribe tu contraseña.'; err.hidden = false; $('#v-clave').focus(); return; }
+    b.disabled = true;
+    pedir('POST', 'usuarios/' + dlgVer.id + '/ver', { clave: clave }).then(function (r) {
+      cerrarDialogo('#dlg-ver'); $('#v-clave').value = '';
+      if (r.sinCopia) {
+        resultado('error', 'No se puede ver', 'Esa contraseña se puso antes de la v1.20 y no quedó copia. Ponle una «Contraseña nueva» y desde ahí sí la podrás ver.');
+      } else {
+        resultado('ok', 'Contraseña de ' + (r.nombre || dlgVer.nombre), 'Es esta:', r.clave);   // con la clave, la ventanita no se cierra sola
+      }
+    }, function (e) {
+      if (e.estado === 401) { cerrarDialogo('#dlg-ver'); errorNube(e); return; }
+      err.textContent = { clave: 'Tu contraseña no es correcta.', espera: 'Demasiados intentos: espera ' + ((e.datos && e.datos.minutos) || 15) + ' minutos.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo. Inténtalo otra vez.';
+      err.hidden = false; $('#v-clave').focus();
+    }).then(function () { b.disabled = false; });
   }
   var dlgUsuario = { modo: 'nuevo', id: 0 };
   function claveAlAzar() {
@@ -2088,11 +2116,14 @@
       var b = e.target.closest('[data-u]');
       if (!b) { return; }
       var li = b.closest('li'), que = b.getAttribute('data-u');
+      if (que === 'ver') { abrirVer(li); return; }   // v1.20
       if (que === 'mia') { abrirCuenta(false); } else if (que === 'clave' || que === 'nombre' || que === 'rol') { abrirUsuario(que, li); } else { cambiarUsuario(li, que); }
     });
     $('#form-usuario').addEventListener('submit', function (e) { e.preventDefault(); guardarUsuario(); });
     $('#u-cancelar').addEventListener('click', function () { cerrarDialogo('#dlg-usuario'); });
     $('#u-azar').addEventListener('click', function () { $('#u-clave').value = claveAlAzar(); });
+    $('#form-ver').addEventListener('submit', function (e) { e.preventDefault(); verContrasena(); });   // v1.20
+    $('#v-no').addEventListener('click', function () { $('#v-clave').value = ''; cerrarDialogo('#dlg-ver'); });
     /* traer lo de los demás equipos: cada 45 s, al volver a la pestaña y al volver la señal */
     setInterval(function () { if (nubeActiva() && !document.hidden) { bajarNube(false); } }, NUBE_TRAER_MS);
     document.addEventListener('visibilitychange', function () { if (!document.hidden && nubeActiva()) { bajarNube(false); } });

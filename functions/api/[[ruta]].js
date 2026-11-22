@@ -21,6 +21,10 @@
  *   · v1.18 (JX): rol «lider» (Líder de Recepción): ve el historial de todos y «Quién hizo qué» y puede
  *     corregir cualquier listado, pero NO maneja usuarios, NO borra y NO cambia los ajustes de la hoja.
  *     Los nombres van siempre con Mayúscula Inicial («Jaime Valera»).
+ *   · v1.20 (JX): CLAVE_INICIAL solo hace falta la primera vez (base sin usuarios) y para el rescate: si ya hay
+ *     usuarios y falta, la nube sigue funcionando. «Ver contraseña»: cada contraseña que se pone guarda además
+ *     una copia CIFRADA (AES-GCM, columna usuarios.copia; la llave se crea sola en la tabla ajustes) que solo el
+ *     admin puede abrir, escribiendo antes SU propia contraseña (POST /api/usuarios/:id/ver).
  *   · El Excel NUNCA llega aquí: se lee en el equipo. Aquí solo llega el
  *     listado ya armado (reserva, habitaciones, agencia, titular, preregistro).
  *   · Lo guardado se BORRA SOLO a los 30 días (son nombres de huéspedes).
@@ -134,11 +138,32 @@ function baseDe(env) {
   return parecidas.length === 1 ? env[parecidas[0]] : null;
 }
 function faltaEn(env) {
-  const falta = [];
-  if (!baseDe(env)) { falta.push('DB'); }
-  if (!env.CLAVE_INICIAL) { falta.push('CLAVE_INICIAL'); }
-  else if (limpiaClave(env.CLAVE_INICIAL).length < 8) { falta.push('CLAVE_INICIAL_CORTA'); }
-  return falta;
+  // v1.20: lo único obligatorio es la base. CLAVE_INICIAL solo hace falta si la base aún no tiene usuarios (ver onRequest).
+  return baseDe(env) ? [] : ['DB'];
+}
+function inicialDe(env) { const c = limpiaClave(env.CLAVE_INICIAL); return c.length >= 8 ? c : ''; }
+
+/* ---------- v1.20: copia cifrada de las contraseñas («Ver contraseña», solo el admin) ---------- */
+let llaveCache = null;
+async function llaveCopias(db) {
+  if (llaveCache) { return llaveCache; }
+  let r = await db.prepare("SELECT valor FROM ajustes WHERE clave = 'llave-copias'").first();
+  if (!r) {
+    await db.prepare("INSERT INTO ajustes (clave, valor, t) VALUES ('llave-copias', ?1, ?2) ON CONFLICT(clave) DO NOTHING").bind(azar(32), Date.now()).run();
+    r = await db.prepare("SELECT valor FROM ajustes WHERE clave = 'llave-copias'").first();
+  }
+  llaveCache = await crypto.subtle.importKey('raw', desdeB64(r.valor), 'AES-GCM', false, ['encrypt', 'decrypt']);
+  return llaveCache;
+}
+async function cifrar(db, texto) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const c = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, await llaveCopias(db), cod.encode(texto));
+  return b64(iv) + '.' + b64(c);
+}
+async function descifrar(db, s) {
+  const p = String(s || '').split('.');
+  const t = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: desdeB64(p[0]) }, await llaveCopias(db), desdeB64(p[1]));
+  return new TextDecoder().decode(t);
 }
 let tablasListas = false;
 async function prepararTablas(db) {
@@ -160,6 +185,7 @@ async function prepararTablas(db) {
     await db.prepare("UPDATE listados SET usuario_id = (SELECT u.id FROM usuarios u WHERE u.nombre = json_extract(listados.datos, '$.autor') LIMIT 1) WHERE usuario_id IS NULL AND borrado = 0").run();
   } catch (e) { /* ya la tenía */ }
   await db.prepare('CREATE INDEX IF NOT EXISTS listados_u ON listados (usuario_id, t)').run();
+  try { await db.prepare('ALTER TABLE usuarios ADD COLUMN copia TEXT').run(); } catch (e) { /* v1.20: ya la tenía */ }
   // v1.17: los usuarios creados antes de v1.13 tienen un «usuario» distinto del nombre (p. ej. «jx» / «Jampier Estrada»):
   // se igualan al nombre para que todos entren escribiendo su nombre y apellido. Si dos se llaman igual, se dejan.
   const { results } = await db.prepare('SELECT id, usuario, nombre FROM usuarios').all();
@@ -250,7 +276,7 @@ async function entrar(db, env, request) {
   if (intento && intento.n >= MAX_INTENTOS && ahora - intento.desde < ESPERA_INTENTOS) {
     return error('espera', 429, { minutos: Math.ceil((ESPERA_INTENTOS - (ahora - intento.desde)) / 60000) });
   }
-  const inicial = limpiaClave(env.CLAVE_INICIAL);
+  const inicial = inicialDe(env);
   const hay = await db.prepare('SELECT COUNT(*) AS n FROM usuarios').first();
   let u = null;
   if (!hay || !hay.n) {
@@ -274,9 +300,9 @@ async function entrar(db, env, request) {
     if (fila && fila.activo && iguales(await pbkdf2(clave, fila.sal), fila.hash)) { u = fila; }
     // rescate (admin que olvidó su contraseña): RESCATE_ADMIN = su usuario o su nombre + la CLAVE_INICIAL como contraseña
     const rescate = limpiaUsuario(env.RESCATE_ADMIN);
-    if (!u && fila && fila.rol === 'admin' && rescate && (rescate === usuario || rescate === fila.usuario || rescate === limpiaUsuario(fila.nombre)) && iguales(clave, inicial)) {
+    if (!u && inicial && fila && fila.rol === 'admin' && rescate && (rescate === usuario || rescate === fila.usuario || rescate === limpiaUsuario(fila.nombre)) && iguales(clave, inicial)) {
       const sal = azar(16);
-      await db.prepare('UPDATE usuarios SET sal = ?1, hash = ?2, activo = 1, cambiar = 1 WHERE id = ?3').bind(sal, await pbkdf2(clave, sal), fila.id).run();
+      await db.prepare('UPDATE usuarios SET sal = ?1, hash = ?2, activo = 1, cambiar = 1, copia = NULL WHERE id = ?3').bind(sal, await pbkdf2(clave, sal), fila.id).run();
       u = Object.assign({}, fila, { activo: 1, cambiar: 1 });
       await anotar(db, u, 'Entró con el rescate de administrador');
     }
@@ -327,7 +353,7 @@ async function cambiarClave(db, request, quien) {
   if (nueva === actual) { return error('igual', 400); }
   const sal = azar(16);
   await db.batch([
-    db.prepare('UPDATE usuarios SET sal = ?1, hash = ?2, cambiar = 0 WHERE id = ?3').bind(sal, await pbkdf2(nueva, sal), quien.id),
+    db.prepare('UPDATE usuarios SET sal = ?1, hash = ?2, cambiar = 0, copia = ?4 WHERE id = ?3').bind(sal, await pbkdf2(nueva, sal), quien.id, await cifrar(db, nueva)),
     db.prepare('DELETE FROM sesiones WHERE usuario_id = ?1 AND token <> ?2').bind(quien.id, quien.token)   // cierra sus otros equipos
   ]);
   await anotar(db, quien, 'Cambió su contraseña');
@@ -426,8 +452,8 @@ async function verActividad(db) {
 }
 
 async function verUsuarios(db) {
-  const { results } = await db.prepare('SELECT id, usuario, nombre, rol, activo, cambiar, creado FROM usuarios ORDER BY activo DESC, rol, nombre').all();
-  return json({ usuarios: (results || []).map((u) => ({ id: u.id, usuario: u.usuario, nombre: u.nombre, rol: u.rol, activo: !!u.activo, cambiar: !!u.cambiar, creado: u.creado })) });
+  const { results } = await db.prepare('SELECT id, usuario, nombre, rol, activo, cambiar, creado, copia IS NOT NULL AS hay_copia FROM usuarios ORDER BY activo DESC, rol, nombre').all();
+  return json({ usuarios: (results || []).map((u) => ({ id: u.id, usuario: u.usuario, nombre: u.nombre, rol: u.rol, activo: !!u.activo, cambiar: !!u.cambiar, creado: u.creado, copia: !!u.hay_copia })) });
 }
 
 async function crearUsuario(db, request, quien) {
@@ -441,8 +467,8 @@ async function crearUsuario(db, request, quien) {
   if (existe) { return error('existe', 409); }
   const sal = azar(16);
   // v1.7: cambiar = 0 → entra con la contraseña que le puso el admin, sin que se la pidan cambiar
-  await db.prepare('INSERT INTO usuarios (usuario, nombre, rol, sal, hash, activo, cambiar, creado) VALUES (?1, ?2, ?3, ?4, ?5, 1, 0, ?6)')
-    .bind(usuario, nombre, rol, sal, await pbkdf2(clave, sal), Date.now()).run();
+  await db.prepare('INSERT INTO usuarios (usuario, nombre, rol, sal, hash, activo, cambiar, creado, copia) VALUES (?1, ?2, ?3, ?4, ?5, 1, 0, ?6, ?7)')
+    .bind(usuario, nombre, rol, sal, await pbkdf2(clave, sal), Date.now(), await cifrar(db, clave)).run();
   await anotar(db, quien, 'Creó el usuario «' + nombre + '»' + (rol === 'admin' ? ' (administrador)' : rol === 'lider' ? ' (Líder de Recepción)' : ''));
   return verUsuarios(db);
 }
@@ -479,7 +505,7 @@ async function cambiarUsuario(db, request, quien, id) {
     const clave = limpiaClave(c.clave);
     if (clave.length < 8) { return error('corta', 400); }
     const sal = azar(16);
-    cambios.push(['sal', sal], ['hash', await pbkdf2(clave, sal)], ['cambiar', 0]);   // v1.7: la que pone el admin es la definitiva
+    cambios.push(['sal', sal], ['hash', await pbkdf2(clave, sal)], ['cambiar', 0], ['copia', await cifrar(db, clave)]);   // v1.7: la que pone el admin es la definitiva (v1.20: + copia cifrada)
     hechos.push('le puso una contraseña nueva');
     if (!propio) { ops.push(db.prepare('DELETE FROM sesiones WHERE usuario_id = ?1').bind(id)); }
   }
@@ -497,6 +523,33 @@ async function cambiarUsuario(db, request, quien, id) {
   return verUsuarios(db);
 }
 
+/** v1.20: «Ver contraseña» (solo el admin). Primero confirma la contraseña del admin (5 intentos malos → 15 min). */
+async function verClave(db, request, quien, id) {
+  id = Math.floor(+id || 0);
+  const c = await cuerpoDe(request), ahora = Date.now(), clave = 'ver:' + quien.id;
+  const intento = await db.prepare('SELECT n, desde FROM intentos WHERE clave = ?1').bind(clave).first();
+  if (intento && intento.n >= MAX_INTENTOS && ahora - intento.desde < ESPERA_INTENTOS) {
+    return error('espera', 429, { minutos: Math.ceil((ESPERA_INTENTOS - (ahora - intento.desde)) / 60000) });
+  }
+  const yo = await db.prepare('SELECT sal, hash FROM usuarios WHERE id = ?1').bind(quien.id).first();
+  if (!yo || !iguales(await pbkdf2(limpiaClave(c.clave), yo.sal), yo.hash)) {
+    const nuevo = !intento || ahora - intento.desde >= ESPERA_INTENTOS;
+    await db.prepare('INSERT INTO intentos (clave, n, desde) VALUES (?1, 1, ?2) ON CONFLICT(clave) DO UPDATE SET n = ' + (nuevo ? '1' : 'n + 1') + ', desde = ' + (nuevo ? '?2' : 'desde'))
+      .bind(clave, ahora).run();
+    await new Promise((ok) => setTimeout(ok, 600));
+    return error('clave', 403);
+  }
+  await db.prepare('DELETE FROM intentos WHERE clave = ?1').bind(clave).run();
+  if (id === quien.id) { return error('propio', 400); }
+  const u = await db.prepare('SELECT nombre, copia FROM usuarios WHERE id = ?1').bind(id).first();
+  if (!u) { return error('no-existe', 404); }
+  let texto = null;
+  if (u.copia) { try { texto = await descifrar(db, u.copia); } catch (e) { texto = null; } }
+  if (texto === null) { return json({ sinCopia: true, nombre: u.nombre }); }
+  await anotar(db, quien, 'Vio la contraseña de «' + u.nombre + '»');
+  return json({ clave: texto, nombre: u.nombre });
+}
+
 async function guardarAjustes(db, request, quien) {
   const c = await cuerpoDe(request);
   const valor = { casilla: c.casilla === true, apretar: c.apretar !== false }, ahora = Date.now();
@@ -512,7 +565,7 @@ async function guardarAjustes(db, request, quien) {
 export async function onRequest(context) {
   const { request, env, params } = context;
   const ruta = (Array.isArray(params.ruta) ? params.ruta : [params.ruta || '']).filter(Boolean);
-  const [r0, r1] = ruta, metodo = request.method, url = new URL(request.url);
+  const [r0, r1, r2] = ruta, metodo = request.method, url = new URL(request.url);
   try {
     const falta = faltaEn(env);
     if (falta.length) {
@@ -524,6 +577,11 @@ export async function onRequest(context) {
     if (metodo !== 'GET' && request.headers.get('X-Editador') !== '1') { return error('origen', 403); }
     const db = baseDe(env);
     await prepararTablas(db);
+    // v1.20: sin CLAVE_INICIAL (o con menos de 8) solo se detiene si la base todavía no tiene usuarios (hace falta para crear al primero)
+    if (!inicialDe(env)) {
+      const hay = await db.prepare('SELECT COUNT(*) AS n FROM usuarios').first();
+      if (!hay || !hay.n) { return error('sin-configurar', r0 === 'yo' && metodo === 'GET' ? 200 : 503, { falta: [env.CLAVE_INICIAL ? 'CLAVE_INICIAL_CORTA' : 'CLAVE_INICIAL'] }); }
+    }
 
     if (r0 === 'entrar' && metodo === 'POST') { return await entrar(db, env, request); }
     const quien = await quienEs(db, request);
@@ -551,6 +609,7 @@ export async function onRequest(context) {
       if (!admin) { return soloAdmin(); }
       if (metodo === 'GET' && !r1) { return await verUsuarios(db); }
       if (metodo === 'POST' && !r1) { return await crearUsuario(db, request, quien); }
+      if (metodo === 'POST' && r1 && r2 === 'ver') { return await verClave(db, request, quien, r1); }   // v1.20
       if (metodo === 'PATCH' && r1) { return await cambiarUsuario(db, request, quien, r1); }
     }
     if (r0 === 'ajustes' && metodo === 'PUT') { return admin ? await guardarAjustes(db, request, quien) : soloAdmin(); }

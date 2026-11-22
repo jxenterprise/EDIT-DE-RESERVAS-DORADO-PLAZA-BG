@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.19** · 21 nov 2026, 9:55 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.20** · 21 nov 2026, 10:17 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -174,7 +174,8 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 
 - **Cada contraseña vive en la base de datos D1** (`editador-reservas-db`, tabla `usuarios`), en la fila de esa persona. **No se guarda la contraseña**, sino su **huella**: la nube la mezcla 100.000 veces con una «sal» al azar (PBKDF2-SHA256) y guarda la sal y el resultado. Al entrar, hace lo mismo con lo que escribiste y compara. Por eso **nadie puede leerla** (ni el admin, ni Cloudflare, ni quien vea la base).
 - **Al cambiar una contraseña** (tú en «Mi cuenta», tú a otra persona con «Contraseña nueva», o la Líder la suya) se **reemplaza** la huella vieja por la nueva en esa misma fila: **la vieja desaparece** (no queda historial de contraseñas) y se cierran las sesiones de esa persona en los demás equipos.
-- **`CLAVE_INICIAL` NO es tu contraseña** y **nunca cambia sola**: es una «llave de arranque» guardada como secreto en Cloudflare. Solo sirve 1) la primera vez de todas (cuando no hay ningún usuario) para crear al administrador, y 2) para el **rescate**, cuando además existe `RESCATE_ADMIN`. Cambiar tu contraseña en la web no la toca. **No la borres**: si falta, la nube se apaga y la página trabaja sin usuarios.
+- **`CLAVE_INICIAL` NO es tu contraseña** y **nunca cambia sola**: es una «llave de arranque» guardada como secreto en Cloudflare (el nombre debe ser EXACTO: `CLAVE_INICIAL`). Solo sirve 1) la primera vez de todas (cuando no hay ningún usuario) para crear al administrador, y 2) para el **rescate**, cuando además existe `RESCATE_ADMIN`. Cambiar tu contraseña en la web no la toca, y cambiar su valor en Cloudflare no toca ninguna contraseña. **Desde v1.20, si ya hay usuarios y falta, la nube sigue funcionando** (solo no habría rescate); igual conviene dejarla puesta.
+- **«Ver contraseña» (v1.20, solo el administrador):** en Administración, cada compañero tiene **«Ver contraseña»**. Te pide **tu** contraseña (5 intentos malos = 15 minutos de espera) y muestra la de esa persona en una ventanita que no se cierra sola. Funciona porque, desde v1.20, cada contraseña que se pone (usuario nuevo, «Contraseña nueva» o la que cambia la Líder) guarda además una **copia cifrada** (AES-GCM; la llave se creó sola dentro de la base). Las que se pusieron **antes** de v1.20 no tienen copia: sale «No se puede ver» → ponle una «Contraseña nueva» y desde ahí sí. Queda anotado en «Quién hizo qué» («vio la contraseña de…»). Tu propia contraseña no sale ahí: se cambia en «Mi cuenta» y, si la olvidas, el rescate.
 - **Quién cambia qué:** el administrador cambia la suya (Mi cuenta, pide la actual) y le pone una nueva a cualquiera (Contraseña nueva, sin pedir la vieja). La **Líder de Recepción** cambia la suya. **Recepción** no cambia la suya: se la pone el administrador.
 - Si el administrador olvida la suya: el rescate (ver «Activar la nube», abajo). Copias de la base: Cloudflare D1 Time Travel (7 días en el plan gratis).
 
@@ -317,6 +318,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.20** | 21 nov 2026, 10:17 p. m. | **«Ver contraseña»** de cada compañero (solo el administrador, pidiendo su propia contraseña; copia cifrada de las contraseñas que se pongan desde ahora). **`CLAVE_INICIAL` ya no es obligatoria** cuando hay usuarios: si falta o se borra por error, la nube sigue funcionando (con la base vacía sí se necesita, para que nadie más se adueñe de la nube). |
 | **v1.19** | 21 nov 2026, 9:55 p. m. | La **Líder de Recepción cambia su propia contraseña** (Mi cuenta). Las sesiones viejas de «Recordar en este equipo» quedan con las reglas nuevas (30 min sin usar, 14 h como máximo). En «Mi cuenta» de recepción: «Tu contraseña te la da Jampier». Explicación de dónde quedan las contraseñas y qué es `CLAVE_INICIAL`. Revisión completa antes de publicar: HTML válido, ES5, accesibilidad AA, 25 + 22 pruebas. |
 | **v1.18** | 21 nov 2026, 9:37 p. m. | **Nombres siempre con Mayúscula Inicial** («Jaime valera» → «Jaime Valera»; también los que ya existían) y **permiso nuevo «Líder de Recepción»**: ve el historial de todos y «Quién hizo qué», sin manejar usuarios ni borrar. En Administración, el botón **«Permisos»** reemplaza a «Hacer / Quitar administrador». |
 | **v1.17** | 21 nov 2026, 9:32 p. m. | **Todos entran con su nombre y apellido, también los usuarios creados antes de v1.13** (pedido de JX: no podía entrar ni él ni «Jaime Valera»). Los usuarios viejos tenían un «usuario» aparte del nombre (por ejemplo `jx` con el nombre «Jampier Estrada»); la nube ahora los iguala sola al nombre y además deja entrar escribiendo el nombre. El **rescate del admin** sirve escribiendo el nombre o el usuario en `RESCATE_ADMIN`. |
@@ -338,7 +340,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.20, v1.21…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.21, v1.22…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
