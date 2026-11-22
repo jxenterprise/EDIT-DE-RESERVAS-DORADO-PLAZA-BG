@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.15** · 21 nov 2026, 9:16 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.16** · 21 nov 2026, 9:23 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -132,7 +132,7 @@ Desde **v1.15** (pedido de JX):
 **Entrar.** Al abrir el editador sale la pantalla **Entrar**: escribe **tu nombre y apellido** (por ejemplo «Jaime Valera»; desde v1.13 el usuario ES el nombre, y **no importan las mayúsculas, las tildes ni los espacios de más**: «jaime valera» o «JAIME VALERA» también sirven) y **tu contraseña** (esa sí, exacta). Sin entrar no se ve nada. Al entrar sale al instante la ventanita **«¡Bienvenido, …!»** (desde v1.11 ya no aparece primero la página y después la ventanita); el historial de la nube llega solo en un momento.
 
 **La sesión se cierra sola (v1.15, porque los PC de recepción son compartidos).** Ya no existe «Recordar en este equipo».
-- **Al cerrar la pestaña o el navegador**: la próxima persona que abra la página tiene que entrar con su nombre (sale «Por seguridad, la sesión se cierra al cerrar la pestaña…»). Recargar (F5) **no** la cierra, y si tienes otra pestaña de la página abierta, la nueva entra sola.
+- **Al cerrar la pestaña o el navegador**: la próxima persona que abra la página tiene que entrar con su nombre (desde v1.16 sin ningún mensaje: solo pide entrar). Recargar (F5) **no** la cierra, y si tienes otra pestaña de la página abierta, la nueva entra sola.
 - **A los 30 minutos sin tocar nada** (ni clic, ni tecla, ni el dedo): 1 minuto antes sale **«¿Sigues ahí?»** con la cuenta atrás → **«Sí, sigo aquí»** (o Esc) sigue 30 minutos más; **«Salir ahora»** cierra ya. Si nadie responde, se cierra sola y sale **«Sesión cerrada»**. Lo hecho queda guardado en tu historial.
 - La nube también la vence sola a los 30 minutos sin usar (y nunca dura más de 14 horas), así nadie puede reabrirla con la cookie.
 
@@ -298,6 +298,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.16** | 21 nov 2026, 9:23 p. m. | **Pantalla «Entrar» con menos texto** (pedido de JX): se quitó la nota «Por seguridad, la sesión se cierra sola…» y el párrafo de privacidad de la tarjeta (queda el del pie de la página). Cuando la sesión se cierra por cerrar la pestaña ya no sale ningún mensaje: solo pide entrar. |
 | **v1.15** | 21 nov 2026, 9:16 p. m. | Pedido de JX: **cada recepcionista ve solo su historial** (el admin ve el de todos y filtra por persona) · **al entrar la pantalla sale limpia** y está el botón **«Guardar y hacer otro»** · **cada Excel queda como un listado aparte** · **la sesión se cierra sola** al cerrar la pestaña o a los **30 min sin usar** (con «¿Sigues ahí?» 1 min antes); ya no hay «Recordar en este equipo». Los listados viejos de la nube quedan con su dueño (por el nombre de quien los subió). |
 | **v1.14** | 21 nov 2026, 8:30 p. m. | **Pantalla «Entrar» más limpia:** el logo un poco más pequeño, campanita de recepción en vez del escudo, el ejemplo es «Jampier Estrada», sin el «(no importan las mayúsculas…)» (igual siguen sin importar) y «¿Olvidaste la contraseña?» dice «Pídeselo a Jampier». |
 | **v1.13** | 21 nov 2026, 6:17 p. m. | **El usuario es el nombre y apellido** (pedido de JX): se entra escribiendo «Jaime Valera» sin importar mayúsculas, tildes ni espacios de más. Al crear un usuario hay un solo campo (nombre y apellido); «Nombre» en Administración cambia también con qué entra. Los usuarios viejos (sin espacios) siguen entrando igual hasta que les pongas su nombre completo. |
@@ -315,7 +316,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.16, v1.17…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.17, v1.18…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

@@ -663,12 +663,10 @@ html.pide-entrar .encabezado__logo { width: clamp(170px, 50vw, 236px); }
 .entrar__titulo { margin: 10px 0 4px; font-size: 21px; text-align: center; }
 .entrar__sub { text-align: center; margin-bottom: 16px; }
 .entrar__mayus { margin: -6px 0 10px; color: var(--error); font-weight: 650; }
-.entrar__seguridad { margin: 2px 0 14px; }   /* v1.15: en lugar de «Recordar en este equipo» */
-.entrar__boton { width: 100%; }
+.entrar__boton { width: 100%; margin-top: 6px; }   /* v1.16: sin textos entre la contraseña y el botón */
 .entrar__ayuda { margin-top: 14px; font-size: 14px; }
 .entrar__ayuda > summary { cursor: pointer; font-weight: 700; color: var(--texto-fuerte); min-height: 40px; display: flex; align-items: center; }
 .entrar__ayuda p { margin-top: 4px; }
-.entrar__privacidad { margin-top: 12px; font-size: 13px; text-align: center; text-wrap: balance; }
 .aviso-caja {
   margin: 0 0 14px; padding: 11px 14px; font-size: 14px; border-radius: 12px;
   background: var(--oro-palido); border: 1px solid var(--linea-2); border-left: 4px solid var(--oro);

@@ -1732,7 +1732,6 @@
     var bloqueo = activa && !esAdmin();
     $('#aj-casilla').disabled = bloqueo; $('#aj-apretar').disabled = bloqueo;
     $('#aj-nota-admin').hidden = !activa;
-    $('#e-seguridad').hidden = nube.modo !== 'nube';
     $('#aj-nota-admin').textContent = esAdmin() ? 'Eres administrador: lo que cambies en la casilla y en «Ahorrar papel» cambia para todos los equipos.'
       : 'La casilla y «Ahorrar papel» son iguales para todos: solo el administrador los cambia.';
     $('#pie-privacidad').textContent = nube.modo === 'nube'
@@ -2004,7 +2003,7 @@
       sesionGuardar('latido', null);
       cerrandoSola = false;
       pintarTodo();
-      pedirEntrar(false, motivo === 'pestana' ? 'Por seguridad, la sesión se cierra al cerrar la pestaña: entra otra vez con tu nombre y tu contraseña.' : '');
+      pedirEntrar(false, '');                                // v1.16 (JX): sin explicar por qué (menos texto en la puerta)
       if (motivo === 'inactivo') {
         resultado('salir', 'Sesión cerrada', 'Pasaron 30 minutos sin usar la página' + (nombre ? ' (' + nombre + ')' : '') +
           ': por seguridad se cerró sola. Para volver, entra con tu nombre y tu contraseña.' + (alAbrir ? '' : ' Todo lo que hiciste quedó guardado en tu historial.'));
