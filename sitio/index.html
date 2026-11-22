@@ -67,7 +67,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.20</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.21</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -231,9 +231,10 @@
 
     <!-- ===========================================================
          SECCIÓN: HISTORIAL
-         Qué es: los listados de los últimos días, guardados SOLO en este
-         equipo, para volver a imprimirlos sin subir el Excel otra vez.
-         Depende de: #lista-historial; «Historial» en app.js
+         Qué es: los listados guardados (en el equipo y, con la nube, en la nube), para volver a
+         imprimirlos sin subir el Excel otra vez. v1.21 (JX): POR DÍA → un bloque por día
+         («Historial del sábado 21/11/2026»): el más reciente abierto, los demás cerrados.
+         Depende de: #lista-historial; «Historial» en app.js; .dias / .dia en estilos.css
          =========================================================== -->
     <section class="seccion" id="historial" aria-labelledby="historial-titulo">
       <h2 class="seccion__titulo" id="historial-titulo">Historial</h2>
@@ -243,37 +244,11 @@
         <span class="campo__etiqueta">Ver el historial de</span>
         <span class="selector"><select id="historial-filtro"><option value="">Todos</option></select></span>
       </label>
-      <ul class="historial" id="lista-historial"></ul>
+      <div class="dias" id="lista-historial"></div>
       <p class="nota historial__nota" id="historial-nota" hidden><span id="historial-nota-texto">Se guardan hasta 30 listados, solo en este equipo. Si el equipo es compartido, bórralos cuando ya no los necesites.</span>
         <button type="button" class="enlace enlace--peligro" id="btn-borrar-historial">Borrar todo el historial</button></p>
     </section>
 
-    <!-- ===========================================================
-         SECCIÓN: ADMINISTRACIÓN (v1.3, solo el admin y solo con la nube)
-         Qué es: los usuarios de recepción (crear, contraseña nueva, activar,
-         desactivar, hacer admin) y quién hizo qué (actividad de 30 días).
-         Depende de: «Admin» en app.js; /api/usuarios y /api/actividad
-         =========================================================== -->
-    <section class="seccion" id="admin" aria-labelledby="admin-titulo" hidden>
-      <h2 class="seccion__titulo" id="admin-titulo">Administración</h2>
-      <div class="tarjeta admin__bloque" id="admin-usuarios">
-        <div class="admin__cabeza">
-          <h3 class="subtitulo">Usuarios de recepción</h3>
-          <button type="button" class="boton boton--secundario boton--chico" id="btn-nuevo-usuario">+ Nuevo usuario</button>
-        </div>
-        <p class="nota">Cada recepcionista entra con su usuario. Si alguien se va, desactívalo: no podrá entrar y lo demás sigue igual.</p>
-        <ul class="usuarios" id="lista-usuarios"></ul>
-      </div>
-      <div class="tarjeta admin__bloque">
-        <div class="admin__cabeza">
-          <h3 class="subtitulo">Quién hizo qué</h3>
-          <button type="button" class="boton boton--secundario boton--chico" id="btn-actualizar-actividad">Actualizar</button>
-        </div>
-        <p class="nota" id="actividad-nota">Entradas, Excel subidos, correcciones, impresiones y PDF de los últimos 30 días.</p>
-        <ol class="actividad" id="lista-actividad"></ol>
-        <button type="button" class="enlace" id="btn-mas-actividad" hidden>Ver más</button>
-      </div>
-    </section>
   </main>
 
   <!-- ===========================================================
@@ -378,7 +353,8 @@
   <!-- ===========================================================
        DIÁLOGO: MI CUENTA Y LA NUBE (v1.3)
        Qué es: quién entró, si todo está guardado en la nube, «Guardar ahora»,
-       cambiar la contraseña propia (SOLO el admin, v1.7: a recepción se la pone el admin) y salir.
+       cambiar la contraseña propia (el admin y la Líder; a recepción se la pone el admin) y salir.
+       v1.21: el admin tiene aquí el enlace «Ir a Administración» (la página aparte /admin).
        La primera vez del admin (entró con la CLAVE_INICIAL) se abre sola y le pide poner la suya.
        Depende de: «Nube y cuenta» en app.js
        =========================================================== -->
@@ -412,51 +388,10 @@
       </form>
       <p class="nota cuenta__nota-clave" id="clave-nota-recepcion" hidden>Tu contraseña te la da Jampier. Si la olvidas, pídele una nueva.</p>
       <div class="dialogo__extra">
-        <button type="button" class="enlace" id="btn-ir-admin" hidden>Usuarios y actividad</button>
+        <a class="enlace" id="btn-ir-admin" href="admin/" hidden>Ir a Administración</a>
         <button type="button" class="enlace enlace--peligro" id="btn-salir">Salir de este equipo</button>
       </div>
     </div>
-  </dialog>
-
-  <!-- DIÁLOGO: USUARIO NUEVO O CONTRASEÑA NUEVA (solo el admin, v1.3) -->
-  <dialog class="dialogo" id="dlg-usuario" aria-labelledby="u-titulo">
-    <form class="dialogo__caja" id="form-usuario" novalidate>
-      <h2 class="dialogo__titulo" id="u-titulo" tabindex="-1">Nuevo usuario</h2>
-      <p class="nota dialogo__origen" id="u-ayuda">La persona entra con su nombre y apellido y la contraseña que escribas aquí. Entrégasela en persona.</p>
-      <div id="u-datos">
-        <label class="campo" for="u-nombre">
-          <span class="campo__etiqueta">Nombre y apellido <small class="nota">(con esto entra y así sale en la hoja)</small></span>
-          <input type="text" id="u-nombre" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Ej.: Jampier Estrada">
-        </label>
-        <!-- v1.13: el usuario ES el nombre y apellido (JX); este campo queda escondido solo por compatibilidad -->
-        <label class="campo" for="u-usuario" hidden>
-          <span class="campo__etiqueta">Usuario</span>
-          <input type="text" id="u-usuario" maxlength="40" autocomplete="off" tabindex="-1">
-        </label>
-        <label class="campo" for="u-rol">
-          <span class="campo__etiqueta">Permisos</span>
-          <span class="selector"><select id="u-rol">
-            <option value="recepcion">Recepción (sube, corrige, imprime; ve solo lo suyo)</option>
-            <option value="lider">Líder de Recepción (además ve lo de todos y «Quién hizo qué»)</option>
-            <option value="admin">Administrador (todo: usuarios, borrar y ajustes)</option>
-          </select></span>
-        </label>
-      </div>
-      <div class="campo">
-        <label class="campo__etiqueta" for="u-clave">Contraseña <small class="nota">(8 o más letras o números; la escribes tú)</small></label>
-        <span class="campo-clave">
-          <input type="text" id="u-clave" maxlength="100" autocomplete="off" spellcheck="false" placeholder="Escribe la contraseña">
-          <button type="button" class="campo-clave__ojo campo-clave__azar" id="u-azar" aria-label="Inventar una contraseña al azar">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11M4 17h11M15 4l3 3-3 3M15 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </span>
-      </div>
-      <p class="campo__error" id="u-error" role="alert" hidden></p>
-      <div class="dialogo__botones">
-        <button type="submit" class="boton boton--primario" id="u-guardar">Crear usuario</button>
-        <button type="button" class="boton boton--secundario" id="u-cancelar">Cancelar</button>
-      </div>
-    </form>
   </dialog>
 
   <!-- ===========================================================
@@ -554,47 +489,12 @@
     </form>
   </dialog>
 
-  <!-- VENTANITA «VER CONTRASEÑA» (v1.20, solo el admin): primero pide SU propia contraseña; luego la muestra
-       la ventanita de resultado (que no se cierra sola). Depende de: abrirVer() / verContrasena() en app.js -->
-  <dialog class="dialogo" id="dlg-ver" aria-labelledby="ver-titulo" aria-describedby="ver-ayuda">
-    <form class="dialogo__caja" id="form-ver" novalidate>
-      <h2 class="dialogo__titulo" id="ver-titulo">Ver contraseña</h2>
-      <p class="nota dialogo__origen" id="ver-ayuda">Escribe tu contraseña para verla.</p>
-      <div class="campo">
-        <label class="campo__etiqueta" for="v-clave">Tu contraseña</label>
-        <span class="campo-clave">
-          <input type="password" id="v-clave" autocomplete="current-password" maxlength="100">
-          <button type="button" class="campo-clave__ojo" data-ojo="v-clave" aria-label="Mostrar la contraseña" aria-pressed="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-          </button>
-        </span>
-      </div>
-      <p class="campo__error" id="v-error" role="alert" hidden></p>
-      <div class="dialogo__botones">
-        <button type="submit" class="boton boton--primario" id="v-si">Ver</button>
-        <button type="button" class="boton boton--secundario" id="v-no">Cancelar</button>
-      </div>
-    </form>
-  </dialog>
-
   <!-- VENTANITA «¿DE QUÉ FECHA ES LA HOJA?» (v1.10): solo si el Excel trae reservas de VARIOS días (casi nunca). -->
   <dialog class="dialogo" id="dlg-fecha" aria-labelledby="fecha-preg-titulo" aria-describedby="fecha-preg-texto">
     <div class="dialogo__caja">
       <h2 class="dialogo__titulo" id="fecha-preg-titulo">¿De qué fecha es la hoja?</h2>
       <p class="dialogo__texto" id="fecha-preg-texto">Este Excel trae reservas de varios días. Escoge la fecha que sale en la hoja:</p>
       <div class="dialogo__botones" id="fecha-opciones"></div>
-    </div>
-  </dialog>
-
-  <!-- DIÁLOGO: CONFIRMAR (reemplaza al confirm() del navegador) — para lo que NO borra nada
-       (hacer administrador, activar un usuario). Lo que borra usa la ventanita de pregunta (arriba). -->
-  <dialog class="dialogo" id="dlg-confirmar" aria-labelledby="conf-texto">
-    <div class="dialogo__caja">
-      <p class="dialogo__texto" id="conf-texto"></p>
-      <div class="dialogo__botones">
-        <button type="button" class="boton boton--primario" id="conf-si">Sí</button>
-        <button type="button" class="boton boton--secundario" id="conf-no">Cancelar</button>
-      </div>
     </div>
   </dialog>
 

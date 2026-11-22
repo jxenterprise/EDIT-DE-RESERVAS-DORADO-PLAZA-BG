@@ -18,8 +18,9 @@
  *   · v1.15: la sesión se cierra sola a los 30 minutos sin usar (SESION_INACTIVA) y nunca dura más
  *     de 14 h (SESION_MAX). Solo la alarga lo que manda la web con «X-Activo: 1» (la persona tocó
  *     algo hace poco); lo automático (traer cada 45 s) no la alarga. Ya no hay «Recordar en este equipo».
- *   · v1.18 (JX): rol «lider» (Líder de Recepción): ve el historial de todos y «Quién hizo qué» y puede
- *     corregir cualquier listado, pero NO maneja usuarios, NO borra y NO cambia los ajustes de la hoja.
+ *   · v1.18 (JX): rol «lider» (Líder de Recepción): ve el historial de todos y puede corregir cualquier
+ *     listado, pero NO maneja usuarios, NO borra y NO cambia los ajustes de la hoja. (v1.21: «Quién hizo qué»
+ *     vuelve a ser SOLO del admin: JX movió la Administración a la página aparte /admin, «solo el mío».)
  *     Los nombres van siempre con Mayúscula Inicial («Jaime Valera»).
  *   · v1.20 (JX): CLAVE_INICIAL solo hace falta la primera vez (base sin usuarios) y para el rescate: si ya hay
  *     usuarios y falta, la nube sigue funcionando. «Ver contraseña»: cada contraseña que se pone guarda además
@@ -47,7 +48,8 @@
  *   PUT    /api/listados/:id      { datos, base, reemplaza?, actividad? } → { v, t } | { cambio: true, listado } (otro equipo lo cambió) | 410
  *   DELETE /api/listados/:id      (admin)   ·   DELETE /api/listados (admin: todos)
  *   POST   /api/actividad         { acciones: [texto] }   (imprimir, PDF, compartir…)
- *   GET    /api/actividad         (admin)
+ *   GET    /api/actividad         (admin)  ·  v1.21: GET /api/actividad/dias → { dias: [{ dia, n }] } (admin)
+ *                                           ·  GET /api/actividad/dia/AAAA-MM-DD → { dia, actividad, limite } (admin)
  *   GET    /api/usuarios          (admin)  ·  POST /api/usuarios (admin)  ·  PATCH /api/usuarios/:id (admin)
  *   PUT    /api/ajustes           { casilla, apretar }    (admin)
  *
@@ -442,13 +444,29 @@ async function borrarListados(db, quien, id) {
     return json({ ok: true });
   }
   const r = await db.prepare("UPDATE listados SET borrado = 1, datos = '{}', v = v + 1, t = ?1 WHERE borrado = 0").bind(ahora).run();
-  await anotar(db, quien, 'Borró todo el historial (' + ((r.meta && r.meta.changes) || 0) + ' listados)');
+  const n = (r.meta && r.meta.changes) || 0;
+  await anotar(db, quien, 'Borró todo el historial (' + n + (n === 1 ? ' listado' : ' listados') + ')');   // v1.21: «1 listado», no «1 listados»
   return json({ ok: true });
 }
 
 async function verActividad(db) {
   const { results } = await db.prepare('SELECT t, usuario, nombre, accion FROM actividad ORDER BY t DESC LIMIT 400').all();
   return json({ actividad: results || [], guardarDias: GUARDAR_DIAS });
+}
+/* v1.21 (JX: «el historial mejor por día… lo de ayer se queda cerrado y dice historial del día tal»): los días que
+   tienen actividad (hora de Colombia, UTC−5) con cuántas acciones hubo, y lo de UN día cuando se abre. */
+const OFFSET_CO = 5 * 3600000;
+const LIMITE_DIA = 3000;
+async function diasActividad(db) {
+  const { results } = await db.prepare('SELECT CAST((t - 18000000) / 86400000 AS INTEGER) AS d, COUNT(*) AS n FROM actividad GROUP BY d ORDER BY d DESC LIMIT 120').all();
+  return json({ dias: (results || []).map((r) => ({ dia: new Date(r.d * DIA).toISOString().slice(0, 10), n: r.n })), guardarDias: GUARDAR_DIAS });
+}
+async function actividadDelDia(db, dia) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dia || '')) { return error('datos', 400); }
+  const ini = Date.parse(dia + 'T00:00:00Z') + OFFSET_CO;
+  if (!isFinite(ini)) { return error('datos', 400); }
+  const { results } = await db.prepare('SELECT t, usuario, nombre, accion FROM actividad WHERE t >= ?1 AND t < ?2 ORDER BY t DESC LIMIT ' + LIMITE_DIA).bind(ini, ini + DIA).all();
+  return json({ dia: dia, actividad: results || [], limite: LIMITE_DIA });
 }
 
 async function verUsuarios(db) {
@@ -484,12 +502,14 @@ async function cambiarUsuario(db, request, quien, id) {
     const n = nombreBonito(c.nombre), nu = limpiaUsuario(n);
     if (!n) { return error('nombre', 400); }
     if (!USUARIO_OK.test(nu)) { return error('usuario', 400); }
-    if (nu !== u.usuario) {
-      const otro = await db.prepare('SELECT id FROM usuarios WHERE usuario = ?1 AND id <> ?2').bind(nu, id).first();
-      if (otro) { return error('existe', 409); }
-      cambios.push(['usuario', nu]);
+    if (n !== u.nombre || nu !== u.usuario) {             // v1.21: si quedó igual, no se cambia ni se anota nada
+      if (nu !== u.usuario) {
+        const otro = await db.prepare('SELECT id FROM usuarios WHERE usuario = ?1 AND id <> ?2').bind(nu, id).first();
+        if (otro) { return error('existe', 409); }
+        cambios.push(['usuario', nu]);
+      }
+      cambios.push(['nombre', n]); hechos.push('le cambió el nombre a «' + n + '» (entra con ese nombre)');
     }
-    cambios.push(['nombre', n]); hechos.push('le cambió el nombre a «' + n + '» (entra con ese nombre)');
   }
   if (c.rol !== undefined && c.rol !== u.rol) {
     if (ROLES.indexOf(c.rol) < 0) { return error('datos', 400); }
@@ -603,7 +623,10 @@ export async function onRequest(context) {
     }
     if (r0 === 'actividad') {
       if (metodo === 'POST') { const c = await cuerpoDe(request); await anotar(db, quien, c.acciones); return json({ ok: true }); }
-      if (metodo === 'GET') { return veTodo(quien) ? await verActividad(db) : soloAdmin(); }   // v1.18: también la líder
+      // v1.21: «Quién hizo qué» es SOLO del admin (está en /admin; la líder ya no lo ve)
+      if (metodo === 'GET' && !r1) { return admin ? await verActividad(db) : soloAdmin(); }
+      if (metodo === 'GET' && r1 === 'dias') { return admin ? await diasActividad(db) : soloAdmin(); }
+      if (metodo === 'GET' && r1 === 'dia' && r2) { return admin ? await actividadDelDia(db, r2) : soloAdmin(); }
     }
     if (r0 === 'usuarios') {
       if (!admin) { return soloAdmin(); }

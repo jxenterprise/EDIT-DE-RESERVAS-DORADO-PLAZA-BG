@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<!-- =====================================================================
+     EDITADOR DE RESERVAS DP · ADMINISTRACIÓN (v1.21)
+     admin/index.html — página aparte SOLO para el administrador:
+     https://editador-reservas-doradoplaza-bg.pages.dev/admin
+
+     Qué es (JX, 21 nov 2026): «ese acceso admin (solo el mío) agregarlo
+     mejor aparte de la web como …/admin… solamente esta partecita y más
+     nada… una web index aparte, carpeta admin y todo». Aquí quedó lo que
+     antes era la sección «Administración» de la web principal:
+       · Usuarios (crear, nombre, contraseña nueva, ver contraseña,
+         permisos, activar / desactivar).
+       · Quién hizo qué, POR DÍA (v1.21): hoy abierto; los días anteriores
+         cerrados con «Historial del sábado 21/11/2026».
+     Usa la MISMA nube (/api/…) y la MISMA sesión que la web principal
+     (si ya entraste allá, aquí entras solo; y al revés). Mismo diseño:
+     ../css/estilos.css. Lo que se mueve: admin.js (en esta carpeta).
+
+     Las rutas son «../css», «../img», «../admin/admin.js»: así funciona
+     igual en /admin y en /admin/ (y abriendo el archivo con doble clic).
+     PRIVADA A PROPÓSITO, igual que la web principal (noindex, sin SEO).
+     ===================================================================== -->
+<html lang="es" data-tema="claro">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Administración · Editador de reservas DP</title>
+  <!-- privada: que ningún buscador la guarde ni la muestre -->
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+  <!-- que el enlace de esta página no viaje a otros sitios -->
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#FBF8F1">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="icon" href="../img/favicon-dorado-plaza.svg" type="image/svg+xml">
+  <link rel="icon" href="../img/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+  <link rel="preload" href="../css/fuentes/karla-regular-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../css/cargador-dorado.min.css">
+  <link rel="stylesheet" href="../css/estilos.css">
+  <!-- tema claro/oscuro antes de pintar (el mismo de la web principal) -->
+  <script src="../js/tema.js"></script>
+</head>
+<body>
+  <!-- Pantalla de carga «Trazo de oro»: la misma de la web principal (2,5 s parejos). -->
+  <script>try { window.sessionStorage.removeItem('dorado-loader:continuar'); } catch (e) { /* almacenamiento bloqueado */ }</script>
+  <script src="../js/cargador-dorado.min.js" data-fondo="vidrio" data-auto="inicio" data-inicio="siempre" data-minimo="1500" data-salida="rapida"
+          data-etiqueta="Administración"
+          data-mensajes="Preparando la administración…|Un momento…"></script>
+  <!-- el % sube parejo hasta 95 % mientras carga; admin.js lo lleva a 100 % a los 2,5 s y la pantalla se va -->
+  <script>if (window.DoradoLoader) { (function (L, t0) { document.documentElement.setAttribute('data-carga', String(t0));
+    L.progreso(100); L.progreso(0);   // 100 y luego 0 = el cargador reinicia su % en 0
+    window.rampaCargaInicio = setInterval(function () { var p = Math.min(95, (Date.now() - t0) / 25); L.progreso(p); if (p >= 95) { clearInterval(window.rampaCargaInicio); } }, 40);
+  })(window.DoradoLoader, Date.now()); }</script>
+
+  <a class="saltar" href="#usuarios">Ir a los usuarios</a>
+
+  <!-- ===========================================================
+       ENCABEZADO: logo, versión (la MISMA de la web principal), título y botones
+       (mi cuenta, tema, volver al editador). Depende de: .encabezado en estilos.css
+       =========================================================== -->
+  <header class="encabezado">
+    <img class="encabezado__logo" src="../img/logo-dorado-plaza-recepcion-bocagrande.webp" width="1200" height="878"
+         alt="Dorado Plaza · Recepción · Hotel Dorado Plaza · Bocagrande" fetchpriority="high">
+    <!-- VERSIÓN (zona editable): la misma que en ../index.html. Solo el número con «v» minúscula. -->
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.21</span></p>
+    <h1 class="encabezado__titulo">Administración</h1>
+    <p class="encabezado__sub">Editador de reservas DP · solo para el administrador</p>
+
+    <div class="ajustes-rapidos">
+      <button type="button" class="boton-mini cuenta-boton" id="btn-cuenta" hidden aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M4.8 19.5c1.2-3.3 3.9-5 7.2-5s6 1.7 7.2 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span id="cuenta-texto">Cuenta</span>
+      </button>
+      <button type="button" class="boton-mini" id="btn-tema" aria-label="Cambiar tema">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        <span id="btn-tema-texto">Tema: automático</span>
+      </button>
+      <a class="boton-mini" href="../">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver al editador
+      </a>
+    </div>
+  </header>
+
+  <main id="contenido">
+
+    <!-- ===========================================================
+         ENTRAR: la misma puerta de la web principal (nombre y contraseña).
+         Depende de: «Entrar y salir» en admin.js; functions/api/[[ruta]].js
+         =========================================================== -->
+    <section class="seccion entrar" id="entrar" aria-labelledby="entrar-titulo" hidden>
+      <form class="tarjeta entrar__caja" id="form-entrar" novalidate>
+        <span class="entrar__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12 14.2v2.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <h2 class="entrar__titulo" id="entrar-titulo">Entrar</h2>
+        <p class="nota entrar__sub" id="entrar-sub">Solo para el administrador.</p>
+        <p class="aviso-caja" id="entrar-primera" hidden>Primera vez: escribe tu <strong>nombre y apellido</strong> y la <strong>clave inicial</strong> que pusiste en Cloudflare. Quedarás como <strong>administrador</strong> y luego pondrás tu propia contraseña.</p>
+        <label class="campo" for="e-usuario">
+          <span class="campo__etiqueta">Nombre y apellido</span>
+          <input type="text" id="e-usuario" autocomplete="username" autocapitalize="words" spellcheck="false" maxlength="40" placeholder="Ej.: Jampier Estrada" required>
+        </label>
+        <div class="campo">
+          <label class="campo__etiqueta" for="e-clave">Contraseña</label>
+          <span class="campo-clave">
+            <input type="password" id="e-clave" autocomplete="current-password" maxlength="100" required>
+            <button type="button" class="campo-clave__ojo" data-ojo="e-clave" aria-label="Mostrar la contraseña" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </span>
+        </div>
+        <p class="nota entrar__mayus" id="e-mayus" hidden>Ojo: tienes las MAYÚSCULAS activadas.</p>
+        <p class="campo__error" id="e-error" role="alert" hidden></p>
+        <button type="submit" class="boton boton--primario entrar__boton" id="e-entrar">Entrar</button>
+        <details class="entrar__ayuda">
+          <summary>¿Olvidaste tu contraseña?</summary>
+          <p>Usa el rescate de Cloudflare (<strong>RESCATE_ADMIN</strong> y <strong>CLAVE_INICIAL</strong>): los pasos están en el README.</p>
+        </details>
+        <p class="entrar__volver"><a class="enlace" href="../">Volver al editador</a></p>
+      </form>
+    </section>
+
+    <!-- SOLO EL ADMINISTRADOR: alguien de recepción (o la Líder) abrió /admin con su sesión. Nada de esta página se le muestra. -->
+    <section class="seccion entrar" id="sin-acceso" aria-labelledby="sin-acceso-titulo" hidden>
+      <div class="tarjeta entrar__caja">
+        <span class="entrar__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="9.5" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 10.5V8a3.8 3.8 0 0 1 7.6 0v2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <h2 class="entrar__titulo" id="sin-acceso-titulo">Solo para el administrador</h2>
+        <p class="nota sin-acceso__texto" id="sin-acceso-texto">Esta parte es solo para el administrador.</p>
+        <div class="sin-acceso__botones">
+          <a class="boton boton--primario" href="../">Ir al editador</a>
+          <button type="button" class="boton boton--secundario" id="btn-salir-sin-acceso">Salir de este equipo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIN NUBE: la administración solo funciona en la dirección publicada (ahí está la base de datos). -->
+    <section class="seccion entrar" id="sin-nube" aria-labelledby="sin-nube-titulo" hidden>
+      <div class="tarjeta entrar__caja">
+        <span class="entrar__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 18.5h10.5a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7.6 9.1 4.7 4.7 0 0 0 7 18.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+        <h2 class="entrar__titulo" id="sin-nube-titulo">Aquí no hay nube</h2>
+        <p class="nota sin-acceso__texto" id="sin-nube-texto">La administración funciona en la dirección publicada del editador.</p>
+        <div class="sin-acceso__botones">
+          <a class="boton boton--primario" href="../">Volver al editador</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         USUARIOS (solo el admin): crear, nombre, ver contraseña, contraseña nueva,
+         permisos (Recepción / Líder de Recepción / Administrador), activar y desactivar.
+         Depende de: «Usuarios» en admin.js; /api/usuarios
+         =========================================================== -->
+    <section class="seccion" id="usuarios" aria-labelledby="usuarios-titulo" hidden>
+      <h2 class="seccion__titulo" id="usuarios-titulo">Usuarios</h2>
+      <div class="tarjeta admin__bloque">
+        <div class="admin__cabeza">
+          <h3 class="subtitulo">Usuarios de recepción</h3>
+          <button type="button" class="boton boton--secundario boton--chico" id="btn-nuevo-usuario">+ Nuevo usuario</button>
+        </div>
+        <p class="nota">Cada uno entra con su nombre y apellido. Si alguien se va, desactívalo: no podrá entrar y lo demás sigue igual.</p>
+        <ul class="usuarios" id="lista-usuarios"></ul>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         QUIÉN HIZO QUÉ, POR DÍA (v1.21, solo el admin): un bloque por día con actividad.
+         Hoy (o el día más reciente) abierto; los demás cerrados («Historial del viernes 20/11/2026»)
+         y al tocarlos se abren (lo de ese día se trae de la nube en ese momento).
+         Depende de: «Quién hizo qué» en admin.js; .dias / .dia en estilos.css; /api/actividad/dias y /dia/…
+         =========================================================== -->
+    <section class="seccion" id="actividad" aria-labelledby="actividad-titulo" hidden>
+      <h2 class="seccion__titulo" id="actividad-titulo">Quién hizo qué</h2>
+      <div class="actividad-cabeza">
+        <p class="nota" id="actividad-nota">Entradas, Excel subidos, correcciones, impresiones y PDF de los últimos 30 días.</p>
+        <button type="button" class="boton boton--secundario boton--chico" id="btn-actualizar-actividad">Actualizar</button>
+      </div>
+      <p class="nota" id="actividad-vacia" hidden>Todavía no hay actividad.</p>
+      <div class="dias" id="actividad-dias"></div>
+    </section>
+  </main>
+
+  <!-- PIE: el mismo de la web principal (crédito con el formato exacto de JX). -->
+  <footer class="pie">
+    <p class="pie__nota">Herramienta interna de recepción. Lo de la nube se borra solo a los 30 días (los usuarios no se borran).</p>
+    <p class="footer-dev">
+      <span class="footer-dev-txt">Diseño y desarrollo:</span>
+      <span class="footer-dev-jx">JX</span>
+      <span class="footer-dev-co">Enterprise</span>
+    </p>
+  </footer>
+
+  <!-- ===========================================================
+       DIÁLOGO: MI CUENTA (quién entró, cambiar mi contraseña, salir).
+       La primera vez del admin (entró con la CLAVE_INICIAL) se abre sola y le pide poner la suya.
+       =========================================================== -->
+  <dialog class="dialogo" id="dlg-cuenta" aria-labelledby="cuenta-titulo">
+    <div class="dialogo__caja">
+      <h2 class="dialogo__titulo" id="cuenta-titulo" tabindex="-1">Mi cuenta</h2>
+      <p class="nota" id="cuenta-quien"></p>
+      <form class="cuenta__clave" id="form-clave" novalidate>
+        <h3 class="subtitulo" id="clave-titulo">Cambiar mi contraseña</h3>
+        <p class="aviso-caja" id="clave-obligada" hidden>Es tu primera entrada como administrador: pon tu propia contraseña para seguir. Desde ahora la CLAVE_INICIAL ya no sirve para entrar.</p>
+        <label class="campo" for="c-actual">
+          <span class="campo__etiqueta">Contraseña actual</span>
+          <input type="password" id="c-actual" autocomplete="current-password" maxlength="100">
+        </label>
+        <div class="campo">
+          <label class="campo__etiqueta" for="c-nueva">Contraseña nueva <small class="nota">(8 o más letras o números)</small></label>
+          <span class="campo-clave">
+            <input type="password" id="c-nueva" autocomplete="new-password" maxlength="100">
+            <button type="button" class="campo-clave__ojo" data-ojo="c-nueva" aria-label="Mostrar la contraseña" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+            </button>
+          </span>
+        </div>
+        <p class="campo__error" id="c-error" role="alert" hidden></p>
+        <button type="submit" class="boton boton--secundario cuenta__boton" id="btn-cambiar-clave">Cambiar contraseña</button>
+      </form>
+      <div class="dialogo__extra" id="cuenta-extra">
+        <button type="button" class="enlace" id="btn-cerrar-cuenta">Cerrar</button>
+        <button type="button" class="enlace enlace--peligro" id="btn-salir">Salir de este equipo</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- DIÁLOGO: USUARIO NUEVO, NOMBRE, PERMISOS O CONTRASEÑA NUEVA -->
+  <dialog class="dialogo" id="dlg-usuario" aria-labelledby="u-titulo">
+    <form class="dialogo__caja" id="form-usuario" novalidate>
+      <h2 class="dialogo__titulo" id="u-titulo" tabindex="-1">Nuevo usuario</h2>
+      <p class="nota dialogo__origen" id="u-ayuda">La persona entra con su nombre y apellido y la contraseña que escribas aquí. Entrégasela en persona.</p>
+      <div id="u-datos">
+        <label class="campo" for="u-nombre">
+          <span class="campo__etiqueta">Nombre y apellido <small class="nota">(con esto entra y así sale en la hoja)</small></span>
+          <input type="text" id="u-nombre" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Ej.: Jampier Estrada">
+        </label>
+        <label class="campo" for="u-rol">
+          <span class="campo__etiqueta">Permisos</span>
+          <span class="selector"><select id="u-rol">
+            <option value="recepcion">Recepción (sube, corrige, imprime; ve solo lo suyo)</option>
+            <option value="lider">Líder de Recepción (además ve los listados de todos)</option>
+            <option value="admin">Administrador (todo: usuarios, «Quién hizo qué», borrar y ajustes)</option>
+          </select></span>
+        </label>
+      </div>
+      <div class="campo">
+        <label class="campo__etiqueta" for="u-clave">Contraseña <small class="nota">(8 o más letras o números; la escribes tú)</small></label>
+        <span class="campo-clave">
+          <input type="text" id="u-clave" maxlength="100" autocomplete="off" spellcheck="false" placeholder="Escribe la contraseña">
+          <button type="button" class="campo-clave__ojo campo-clave__azar" id="u-azar" aria-label="Inventar una contraseña al azar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h11M4 17h11M15 4l3 3-3 3M15 14l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </span>
+      </div>
+      <p class="campo__error" id="u-error" role="alert" hidden></p>
+      <div class="dialogo__botones">
+        <button type="submit" class="boton boton--primario" id="u-guardar">Crear usuario</button>
+        <button type="button" class="boton boton--secundario" id="u-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- VENTANITA «VER CONTRASEÑA» (v1.20): primero pide TU contraseña; luego la muestra la ventanita de resultado (que no se cierra sola). -->
+  <dialog class="dialogo" id="dlg-ver" aria-labelledby="ver-titulo" aria-describedby="ver-ayuda">
+    <form class="dialogo__caja" id="form-ver" novalidate>
+      <h2 class="dialogo__titulo" id="ver-titulo">Ver contraseña</h2>
+      <p class="nota dialogo__origen" id="ver-ayuda">Escribe tu contraseña para verla.</p>
+      <div class="campo">
+        <label class="campo__etiqueta" for="v-clave">Tu contraseña</label>
+        <span class="campo-clave">
+          <input type="password" id="v-clave" autocomplete="current-password" maxlength="100">
+          <button type="button" class="campo-clave__ojo" data-ojo="v-clave" aria-label="Mostrar la contraseña" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          </button>
+        </span>
+      </div>
+      <p class="campo__error" id="v-error" role="alert" hidden></p>
+      <div class="dialogo__botones">
+        <button type="submit" class="boton boton--primario" id="v-si">Ver</button>
+        <button type="button" class="boton boton--secundario" id="v-no">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- VENTANITA DE PREGUNTA (basurita roja / puerta): desactivar un usuario y salir. Igual a la de la web principal. -->
+  <dialog class="dialogo resultado" id="dlg-pregunta" data-tipo="eliminar" aria-labelledby="preg-titulo" aria-describedby="preg-texto">
+    <div class="dialogo__caja resultado__caja">
+      <svg class="resultado__icono" viewBox="0 0 52 52" aria-hidden="true">
+        <circle class="resultado__fondo" cx="26" cy="26" r="24"/>
+        <circle class="resultado__circulo" cx="26" cy="26" r="24" fill="none"/>
+        <path class="pregunta__basura" d="M16 19.5h20M23.5 24v8M28.5 24v8M18.5 19.5l1.4 14.5h12.2l1.4-14.5M22 19.5v-3.5h8v3.5"/>
+        <path class="pregunta__puerta" d="M25 16.5h-7.5v19H25M28.5 20.5l5.5 5.5-5.5 5.5M34 26H22.5"/>
+      </svg>
+      <h2 class="dialogo__titulo resultado__titulo" id="preg-titulo">¿Eliminar?</h2>
+      <p class="dialogo__texto resultado__texto" id="preg-texto"></p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--peligro" id="preg-si">Sí, eliminar</button>
+        <button type="button" class="boton boton--secundario" id="preg-no">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- VENTANITA «¿SIGUES AHÍ?»: 1 minuto antes de cerrar la sesión por 30 min sin usar (igual a la web principal). -->
+  <dialog class="dialogo resultado" id="dlg-sigues" data-tipo="salir" aria-labelledby="sig-titulo" aria-describedby="sig-texto">
+    <div class="dialogo__caja resultado__caja">
+      <svg class="resultado__icono" viewBox="0 0 52 52" aria-hidden="true">
+        <circle class="resultado__fondo" cx="26" cy="26" r="24"/>
+        <circle class="resultado__circulo" cx="26" cy="26" r="24" fill="none"/>
+        <path class="pregunta__puerta" d="M25 16.5h-7.5v19H25M28.5 20.5l5.5 5.5-5.5 5.5M34 26H22.5"/>
+      </svg>
+      <h2 class="dialogo__titulo resultado__titulo" id="sig-titulo">¿Sigues ahí?</h2>
+      <p class="dialogo__texto resultado__texto" id="sig-texto">Por seguridad, tu sesión se cierra sola en <strong id="sig-seg">60</strong> segundos si no tocas nada.</p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--primario" id="sig-si">Sí, sigo aquí</button>
+        <button type="button" class="boton boton--secundario" id="sig-salir">Salir ahora</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- VENTANITA DE RESULTADO (✓ verde, ✗ roja o puerta dorada). Igual a la de la web principal. -->
+  <dialog class="dialogo resultado" id="dlg-resultado" data-tipo="ok" aria-labelledby="res-titulo" aria-describedby="res-texto">
+    <div class="dialogo__caja resultado__caja">
+      <svg class="resultado__icono" viewBox="0 0 52 52" aria-hidden="true">
+        <circle class="resultado__fondo" cx="26" cy="26" r="24"/>
+        <circle class="resultado__circulo" cx="26" cy="26" r="24" fill="none"/>
+        <path class="resultado__ok" fill="none" d="M15.5 27.2l7 7L37 19.5"/>
+        <path class="resultado__x" fill="none" d="M18.5 18.5l15 15M33.5 18.5l-15 15"/>
+        <path class="pregunta__puerta" d="M25 16.5h-7.5v19H25M28.5 20.5l5.5 5.5-5.5 5.5M34 26H22.5"/>
+      </svg>
+      <h2 class="dialogo__titulo resultado__titulo" id="res-titulo">¡Listo!</h2>
+      <p class="dialogo__texto resultado__texto" id="res-texto"></p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--primario" id="res-ok">Entendido</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- DIÁLOGO: CONFIRMAR (activar otra vez a un usuario: no borra nada). -->
+  <dialog class="dialogo" id="dlg-confirmar" aria-labelledby="conf-texto">
+    <div class="dialogo__caja">
+      <p class="dialogo__texto" id="conf-texto"></p>
+      <div class="dialogo__botones">
+        <button type="button" class="boton boton--primario" id="conf-si">Sí</button>
+        <button type="button" class="boton boton--secundario" id="conf-no">Cancelar</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Aviso flotante y «Deshacer» (10 s después de desactivar a alguien) -->
+  <div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+  <div class="aviso aviso--deshacer" id="deshacer" hidden>
+    <span id="deshacer-texto" role="status" aria-live="polite"></span>
+    <button type="button" class="aviso__boton" id="deshacer-btn">Deshacer</button>
+  </div>
+
+  <script src="../admin/admin.js" defer></script>
+</body>
+</html>

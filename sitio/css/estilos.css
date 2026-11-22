@@ -13,8 +13,8 @@
  *  Índice: 1 variables, temas y letras · 2 base · 3 encabezado y ajustes ·
  *  4 secciones y tarjetas · 5 campos · 6 botones · 7 subir el Excel ·
  *  8 resumen, avisos y novedades · 9 lista de reservas · 10 hoja (vista
- *  previa) · 11 historial · 12 pie y crédito · 13 barra de acciones ·
- *  14 diálogos y aviso · 14b nube: entrar, cuenta y administración (v1.3) ·
+ *  previa) · 11 historial · 11b por día (v1.21) · 12 pie y crédito · 13 barra de acciones ·
+ *  14 diálogos y aviso · 14b nube: entrar, cuenta y administración (v1.3; desde v1.21 en /admin) ·
  *  15 pantalla de carga en modo noche ·
  *  16 pantallas grandes · 17 accesibilidad y movimiento reducido ·
  *  18 IMPRESIÓN (solo sale la hoja)
@@ -447,6 +447,33 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 .historial__nota { margin-top: 10px; }
 .historial__filtro { margin-bottom: 12px; max-width: 360px; }   /* v1.15: solo el admin */
 
+/* ---------- 11b. Por día (v1.21) ----------
+   JX: «el historial mejor por día… lo de ayer se queda cerrado y dice historial del día tal y fecha tal…
+   uno presiona y se abre todo lo que se hizo». Lo usan el Historial de la web (#lista-historial) y
+   «Quién hizo qué» de /admin (#actividad-dias). Hoy (o el día más reciente) abierto; los demás, cerrados. */
+.dias { display: grid; gap: 10px; }
+.dias:empty { display: none; }
+.dia { background: var(--superficie); border: 1px solid var(--linea); border-radius: 16px; overflow: hidden; }
+.dia[open] { box-shadow: var(--sombra); }
+.dia > summary {
+  position: relative; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+  min-height: 54px; padding: 10px 46px 10px 14px; cursor: pointer;
+}
+.dia > summary::-webkit-details-marker { display: none; }
+.dia > summary::after {                    /* flechita que gira al abrir */
+  content: ""; position: absolute; right: 19px; top: 50%; width: 8px; height: 8px; margin-top: -6px;
+  border-right: 2px solid var(--bronce); border-bottom: 2px solid var(--bronce); transform: rotate(45deg); transition: transform .2s;
+}
+.dia[open] > summary::after { transform: rotate(-135deg); margin-top: -2px; }
+.dia[open] > summary { border-bottom: 1px solid var(--linea); }
+.dia__titulo { font-weight: 750; color: var(--texto-fuerte); overflow-wrap: anywhere; }
+.dia__n { font-size: 13px; font-weight: 650; color: var(--texto-suave); white-space: nowrap; }
+.dia__cuerpo { padding: 10px; }
+.dia .historial li { background: var(--superficie-2); }
+.dia .actividad { margin: 0; padding: 0 4px; }
+.dia__nota { padding: 8px 4px; }
+@media (hover: hover) { .dia > summary:hover { background: var(--oro-palido); } }
+
 /* ---------- 12. Pie y crédito de JX Enterprise ---------- */
 .pie { max-width: 760px; margin: 36px auto 0; padding: 18px calc(16px + var(--der)) 10px calc(16px + var(--izq)); text-align: center; border-top: 1px solid var(--linea); }
 .pie__nota { font-size: 13px; color: var(--texto-suave); max-width: 34em; margin: 0 auto 6px; text-wrap: balance; }
@@ -720,14 +747,20 @@ input[type="password"]:focus { border-color: var(--oro); box-shadow: 0 0 0 4px r
 .usuarios__botones { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
 .actividad { gap: 0; }
 .actividad li {
-  display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr); gap: 2px 12px; padding: 9px 2px;
+  display: grid; grid-template-columns: 6.4em minmax(0, 1fr); gap: 2px 12px; padding: 9px 2px;   /* v1.21: columna de la hora fija */
   font-size: 14px; border-top: 1px solid var(--linea);
 }
 .actividad li:first-child { border-top: 0; }
 .actividad__cuando { color: var(--texto-suave); font-size: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .actividad__que { min-width: 0; overflow-wrap: anywhere; }
 .actividad__que strong { margin-right: 4px; }
-#btn-mas-actividad { margin-top: 8px; }
+/* v1.21 · página /admin: la puerta y los avisos de «solo administrador» / «sin nube» usan la misma tarjeta de Entrar */
+.entrar__volver { margin-top: 12px; text-align: center; font-size: 14px; }
+.sin-acceso__texto { text-align: center; margin-bottom: 16px; }
+.sin-acceso__botones { display: grid; gap: 10px; }
+.sin-acceso__botones .boton { width: 100%; }
+.actividad-cabeza { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; }
+.actividad-cabeza .nota { flex: 1 1 16em; }
 @media (max-width: 520px) {
   .actividad li { grid-template-columns: minmax(0, 1fr); }
 }

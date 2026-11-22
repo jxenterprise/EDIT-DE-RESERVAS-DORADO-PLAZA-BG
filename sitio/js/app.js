@@ -16,7 +16,8 @@
  *   8 Salida: imprimir, PDF y compartir
  *   9 Historial             · 10 Tema y ajustes
  *   11 Diálogo de confirmar y aviso flotante · 12 Arranque
- *   13 Nube y cuenta (v1.3): entrar, guardar en la nube, roles, administración
+ *   13 Nube y cuenta (v1.3): entrar, guardar en la nube, roles. (v1.21: la administración —usuarios y
+ *      «Quién hizo qué»— está en la página aparte /admin: sitio/admin/admin.js)
  *
  *  Conceptos:
  *   · «listado»: lo que salió de UN Excel (más lo corregido a mano). Tiene
@@ -46,6 +47,11 @@
   /** «1 reserva» / «3 reservas». */
   function plural(n, uno, varios) { return n + ' ' + (n === 1 ? uno : varios); }
   function esObjeto(x) { return !!x && typeof x === 'object' && !Array.isArray(x); }
+  /** v1.18 (JX: «cada nombre la primera letra es mayúscula»): SIEMPRE Mayúscula Inicial, igual que la nube y /admin:
+   *  «jaime valera», «Jaime valera» o «JAIME VALERA» → «Jaime Valera» (tildes y ñ se respetan). */
+  function nombreBonito(t) {
+    return String(t || '').toLowerCase().replace(/(^|[\s'-])([a-záéíóúñüàèìòùäëïöç])/g, function (m, a, b) { return a + b.toUpperCase(); });
+  }
   function lista(arr, max) {                               // «DP1, DP2 y 3 más»
     var v = arr.slice(0, max || 4).join(', ');
     return arr.length > (max || 4) ? v + ' y ' + (arr.length - (max || 4)) + ' más' : v;
@@ -340,6 +346,7 @@
       listados = listados.filter(function (x) { return x.id !== previo.id; });
     }
     listados.unshift(nuevo);
+    diasAbiertosHist[diaDe(momento)] = true;                // v1.21: su día queda abierto en el historial
     listados = listados.slice(0, maxHistorial());
     actual = nuevo;
     guardarListados();
@@ -902,6 +909,14 @@
    * 9) HISTORIAL — los listados guardados en este equipo
    * ================================================================ */
   var filtroHistorial = '';                                  // v1.15: el admin ve el de una persona («» = todos)
+  var diasAbiertosHist = {};                                 // v1.21: los días que la persona abrió (true) o cerró (false)
+  /** v1.21 (JX: «el historial mejor por día… dice historial del día tal y fecha tal»): la cabeza de cada día. */
+  function cabezaDia(iso, n, uno, varios) {
+    var hoy = hoyISO(), ayer = diaDe(ahora() - 86400000);
+    var chip = iso === hoy ? ' <span class="chip chip--cambio">Hoy</span>' : iso === ayer ? ' <span class="chip">Ayer</span>' : '';
+    return '<summary><span class="dia__titulo">Historial del ' + esc(fechaHoja(iso)) + '</span>' + chip +
+      '<span class="dia__n">' + plural(n, uno, varios) + '</span></summary>';
+  }
   function pintarHistorial() {
     // v1.15 (JX): con la nube, cada recepcionista ve SOLO lo suyo (la nube solo le manda lo suyo); el admin ve todo y filtra por persona
     var autores = [];
@@ -929,14 +944,23 @@
     $('#btn-eliminar').hidden = !puedeBorrar;
     $('#acciones').classList.toggle('acciones--cinco', puedeBorrar);   // v1.15: con 5 botones, en celular los de texto van sin ícono                // «Eliminar» de la barra: mismas reglas que «Borrar» (v1.4)
     var conAutor = !nubeActiva() || veTodo();                // recepción: todo es suyo, no hace falta «por …»
-    $('#lista-historial').innerHTML = ver.map(function (x) {
+    function item(x) {
       var t = Reglas.totales(x.filas), enPantalla = actual && actual.id === x.id;
       return '<li' + (enPantalla ? ' aria-current="true"' : '') + '><span class="historial__info">' +
         '<span class="historial__fecha">' + esc(fechaCorta(x.fecha)) + (enPantalla ? ' <span class="chip chip--cambio">En pantalla</span>' : '') + '</span>' +
-        '<span class="historial__meta">' + plural(t.habitaciones, 'habitación', 'habitaciones') + ' · ' + plural(t.reservas, 'reserva', 'reservas') + ' · subido ' + esc(cuando(x.creado)) + (x.autor && conAutor ? ' por <strong>' + esc(autorDe(x)) + '</strong>' : '') + '</span></span>' +
+        '<span class="historial__meta">' + plural(t.habitaciones, 'habitación', 'habitaciones') + ' · ' + plural(t.reservas, 'reserva', 'reservas') + ' · subido a las ' + esc(horaDe(x.creado)) + (x.autor && conAutor ? ' por <strong>' + esc(autorDe(x)) + '</strong>' : '') + '</span></span>' +
         '<span class="historial__botones">' +
         (enPantalla ? '' : '<button type="button" class="boton boton--secundario boton--chico" data-historial="abrir" data-id="' + esc(x.id) + '">Abrir</button>') +
         (puedeBorrar ? '<button type="button" class="enlace enlace--peligro" data-historial="borrar" data-id="' + esc(x.id) + '" aria-label="Borrar el listado del ' + esc(fechaCorta(x.fecha)) + '">Borrar</button>' : '') + '</span></li>';
+    }
+    // v1.21: un bloque por día en que se subió (el más reciente abierto; los demás cerrados, salvo que la persona los abra)
+    var grupos = [], porDia = {};
+    ver.forEach(function (x) { var d = diaDe(x.creado); if (!porDia[d]) { porDia[d] = []; grupos.push(d); } porDia[d].push(x); });
+    var primero = grupos[0];
+    $('#lista-historial').innerHTML = grupos.map(function (d) {
+      var abierto = Object.prototype.hasOwnProperty.call(diasAbiertosHist, d) ? diasAbiertosHist[d] : d === primero;
+      return '<details class="dia" data-dia="' + d + '"' + (abierto ? ' open' : '') + '>' + cabezaDia(d, porDia[d].length, 'listado', 'listados') +
+        '<div class="dia__cuerpo"><ul class="historial">' + porDia[d].map(item).join('') + '</ul></div></details>';
     }).join('');
   }
   /** Borra listados (del equipo y, con la nube, de todos los equipos) y ofrece «Deshacer» 10 s.
@@ -987,6 +1011,11 @@
       });
     });
     $('#historial-filtro').addEventListener('change', function () { filtroHistorial = this.value; pintarHistorial(); });
+    // v1.21: se recuerda qué días abrió o cerró la persona («toggle» no burbujea: se escucha en la captura)
+    $('#lista-historial').addEventListener('toggle', function (e) {
+      var d = e.target && e.target.getAttribute && e.target.getAttribute('data-dia');
+      if (d) { diasAbiertosHist[d] = e.target.open; }
+    }, true);
     $('#btn-borrar-historial').addEventListener('click', function () {
       preguntar({
         titulo: '¿Eliminar todo el historial?',
@@ -1050,25 +1079,9 @@
   }
 
   /* ================================================================
-   * 11) DIÁLOGO DE CONFIRMAR Y AVISO FLOTANTE
+   * 11) VENTANITAS Y AVISO FLOTANTE (v1.21: «confirmar» se fue con la administración a /admin)
+   *     OJO: /admin (sitio/admin/admin.js) tiene una COPIA de preguntar, resultado, Deshacer, pedir y la sesión.
    * ================================================================ */
-  function confirmar(texto, si) {
-    return new Promise(function (ok) {
-      var dlg = $('#dlg-confirmar');
-      $('#conf-texto').textContent = texto;
-      $('#conf-si').textContent = si || 'Sí';
-      function fin(v) {
-        $('#conf-si').removeEventListener('click', alSi); $('#conf-no').removeEventListener('click', alNo); dlg.removeEventListener('cancel', alNo);
-        if (dlg.open && dlg.close) { dlg.close(); } else { dlg.removeAttribute('open'); }
-        ok(v);
-      }
-      function alSi() { fin(true); }
-      function alNo(e) { if (e && e.preventDefault) { e.preventDefault(); } fin(false); }
-      $('#conf-si').addEventListener('click', alSi); $('#conf-no').addEventListener('click', alNo); dlg.addEventListener('cancel', alNo);
-      if (typeof dlg.showModal === 'function') { dlg.showModal(); } else { dlg.setAttribute('open', ''); }
-      setTimeout(function () { $('#conf-no').focus(); }, 30);
-    });
-  }
   /* ---------- ventanita de PREGUNTA (v1.5, igual a la de eliminar del Manual de turnos) ----------
      preguntar({ tipo: 'eliminar' | 'salir', titulo, texto, si, no }) → promesa con true / false.
      «Sí» no cuenta en el primer medio segundo (un doble toque o un toque «fantasma» del celular no
@@ -1318,8 +1331,8 @@
    *   · Cada listado lleva su versión (v). Si dos equipos cambian el mismo
    *     listado, la nube avisa ({ cambio: true }) y se MEZCLAN: por cada reserva gana el
    *     cambio más nuevo (fila.tf); las borradas a mano no vuelven (borradas).
-   *   · Roles: el admin maneja usuarios, ve «Quién hizo qué», borra del
-   *     historial y cambia la casilla «Llegó» y «Ahorrar papel» para todos.
+   *   · Roles: el admin borra del historial y cambia la casilla «Llegó» y «Ahorrar papel» para
+   *     todos; usuarios y «Quién hizo qué» están en la página aparte /admin (v1.21).
    *   · Lo de la nube se borra solo a los 30 días (lo hace el servidor).
    *  Claves en este equipo: nube-usuario, nube-vers, nube-pend, nube-acciones,
    *  nube-reemplaza, nube-sueltas, nube-desde, nube-ultima.
@@ -1340,7 +1353,7 @@
     acciones: objeto(leer('nube-acciones', {})),            // id → [«Corrigió la reserva…»] para «Quién hizo qué»
     reemplaza: objeto(leer('nube-reemplaza', {})),          // id nuevo → id del listado que reemplaza (Excel más nuevo del mismo día)
     sueltas: Array.isArray(leer('nube-sueltas', [])) ? leer('nube-sueltas', []) : [],   // imprimir, PDF, compartir
-    tSubir: 0, ocupada: false, admin: { actividad: [], verHasta: 60 }
+    tSubir: 0, ocupada: false
   };
   /* [texto corto del botón, texto largo de «Mi cuenta», color del punto] */
   var TEXTO_NUBE = {
@@ -1353,7 +1366,7 @@
   };
   function nubeActiva() { return nube.modo === 'nube' && !!nube.usuario; }
   function esAdmin() { return nubeActiva() && nube.usuario.rol === 'admin'; }
-  /* v1.18: Líder de Recepción (Yakeline): ve el historial de todos y «Quién hizo qué», sin manejar usuarios ni borrar */
+  /* v1.18: Líder de Recepción: ve el historial de todos (y corrige), sin manejar usuarios ni borrar. (v1.21: «Quién hizo qué» es solo del admin, en /admin) */
   function esLider() { return nubeActiva() && nube.usuario.rol === 'lider'; }
   function veTodo() { return esAdmin() || esLider(); }
   var NOMBRE_ROL = { admin: 'Administrador', lider: 'Líder de Recepción', recepcion: 'Recepción' };
@@ -1390,10 +1403,11 @@
   }
 
   /** ¿Se está viendo desde el computador o la red de la casa (doble clic, python -m http.server…)? Ahí no hay nube
-   *  y no se pregunta (evita un 404 en la consola). Excepción: el puerto 8788 = «wrangler pages dev», para probar la nube. */
+   *  y no se pregunta (evita un 404 en la consola). Excepción: los puertos 8788 a 8799 = «wrangler pages dev», para probar
+   *  la nube (v1.21: antes solo el 8788; así se pueden probar varias nubes a la vez). */
   function esLocal() {
     var h = location.hostname;
-    if (location.port === '8788') { return false; }
+    if (/^87(8[89]|9\d)$/.test(location.port)) { return false; }
     return !h || h === 'localhost' || h === '[::1]' || /^127\./.test(h) || /^(10|192\.168)\./.test(h) || /^172\.(1[6-9]|2\d|3[01])\./.test(h) || /\.local$/.test(h);
   }
   /** Al abrir: ¿hay nube aquí? ¿ya se entró en este equipo? */
@@ -1431,7 +1445,7 @@
   /* ---------- entrar y salir ---------- */
   function pedirEntrar(primera, mensaje) {
     document.documentElement.classList.add('pide-entrar');
-    ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar', '#dlg-pregunta', '#dlg-sigues', '#dlg-nombre', '#dlg-fecha', '#dlg-ver'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
+    ['#dlg-reserva', '#dlg-cuenta', '#dlg-pregunta', '#dlg-sigues', '#dlg-nombre', '#dlg-fecha'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
     ocultarGuia(); cerrarDeshacer();
     $('#entrar').hidden = false;
     $('#entrar-primera').hidden = !primera;
@@ -1454,7 +1468,6 @@
     $('#entrar').hidden = true;
     pintarNube();
     if (nube.usuario.cambiar) { setTimeout(function () { abrirCuenta(true); }, 50); }
-    if (veTodo()) { cargarAdmin(); }
   }
   function entrar() {
     var usuario = $('#e-usuario').value.replace(/\s+/g, ' ').trim(), clave = $('#e-clave').value, boton = $('#e-entrar');   // v1.13: la nube lo compara sin mayúsculas ni tildes
@@ -1586,10 +1599,15 @@
     return r;
   }
   function errorNube(e) {
-    if (e && e.estado === 401) {                             // la sesión se venció (o el admin desactivó el usuario)
-      if (nube.usuario) { guardar('nube-dueno', nube.usuario.id, true); }
-      nube.usuario = null; guardarNube(); actual = null; guardarListados(); pintarTodo();
-      pedirEntrar(false, 'Tu sesión se cerró: entra otra vez. Lo que hiciste quedó guardado y se sube al entrar.');
+    if (e && e.estado === 401) {                             // la sesión se venció (o el admin desactivó el usuario, o se salió en /admin)
+      // v1.21: sin nada pendiente, el equipo queda limpio (como al salir); con cambios sin subir, se guardan para su dueño
+      var pendientes = hayPendientes();
+      if (pendientes) {
+        if (nube.usuario) { guardar('nube-dueno', nube.usuario.id, true); }
+        nube.usuario = null; guardarNube(); actual = null; guardarListados();
+      } else { olvidarEquipo(); }
+      pintarTodo();
+      pedirEntrar(false, 'Tu sesión se cerró: entra otra vez.' + (pendientes ? ' Lo que hiciste quedó guardado y se sube al entrar.' : ''));
       return;
     }
     nube.estado = e && e.tipo === 'sin-conexion' ? 'sin-conexion' : 'error';
@@ -1733,9 +1751,6 @@
   function pintarNube() {
     var activa = nubeActiva(), entrando = document.documentElement.classList.contains('pide-entrar');
     $('#btn-cuenta').hidden = !activa;
-    $('#admin').hidden = !veTodo() || entrando;
-    $('#admin-usuarios').hidden = !esAdmin();               // v1.18: la líder ve «Quién hizo qué», no los usuarios
-    $('#admin-titulo').textContent = esLider() ? 'Quién hizo qué' : 'Administración';
     var bloqueo = activa && !esAdmin();
     $('#aj-casilla').disabled = bloqueo; $('#aj-apretar').disabled = bloqueo;
     $('#aj-nota-admin').hidden = !activa;
@@ -1755,7 +1770,7 @@
     $('#cuenta-estado-punto').setAttribute('data-color', e[2]);
     $('#cuenta-estado-texto').textContent = e[1] + (nube.ultima && nube.estado !== 'subiendo' && nube.estado !== 'bajando' ? ' Última vez: ' + cuando(nube.ultima) : '');
     $('#cuenta-quien').innerHTML = 'Entraste como <strong>' + esc(u.nombre) + '</strong> · ' + (NOMBRE_ROL[u.rol] || 'Recepción') + '.';
-    $('#btn-ir-admin').hidden = !veTodo();
+    $('#btn-ir-admin').hidden = !esAdmin();                 // v1.21: enlace a la página aparte /admin (solo el admin)
   }
   function abrirCuenta(obligada) {
     if (!nubeActiva()) { return; }
@@ -1787,192 +1802,6 @@
       if (e.estado === 401) { errorNube(e); return; }
       mal({ clave: 'La contraseña actual no es correcta.', corta: 'La nueva debe tener 8 o más letras o números.', igual: 'La nueva tiene que ser distinta de la actual.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo cambiar. Inténtalo otra vez.');
     }).then(function () { b.disabled = false; });
-  }
-
-  /* ---------- administración (solo el admin) ---------- */
-  function cargarAdmin() {
-    if (!veTodo()) { return Promise.resolve(); }
-    return Promise.all([
-      esAdmin() ? pedir('GET', 'usuarios').then(function (r) { pintarUsuarios(r.usuarios || []); }) : Promise.resolve(),
-      pedir('GET', 'actividad').then(function (r) { nube.admin.actividad = r.actividad || []; nube.admin.verHasta = 60; pintarActividad(); })
-    ]).catch(function (e) { if (e.estado === 401) { errorNube(e); } });
-  }
-  function pintarUsuarios(lista) {
-    var yo = nube.usuario ? nube.usuario.id : 0;
-    $('#lista-usuarios').innerHTML = lista.map(function (u) {
-      var propio = u.id === yo, chips = [];
-      if (u.rol === 'admin') { chips.push('<span class="chip chip--cambio">Administrador</span>'); }
-      if (u.rol === 'lider') { chips.push('<span class="chip chip--nueva">Líder de Recepción</span>'); }
-      if (!u.activo) { chips.push('<span class="chip chip--revisar">Desactivado</span>'); }
-      if (u.activo && u.cambiar) { chips.push('<span class="chip chip--mano">Falta que ponga su contraseña</span>'); }
-      if (propio) { chips.push('<span class="chip">Tú</span>'); }
-      var botones = '<button type="button" class="enlace" data-u="nombre">Nombre</button>' + (propio ? '<button type="button" class="enlace" data-u="mia">Cambiar mi contraseña</button>'
-        : '<button type="button" class="enlace" data-u="ver">Ver contraseña</button>' +   // v1.20
-          '<button type="button" class="enlace" data-u="clave">Contraseña nueva</button>' +
-          '<button type="button" class="enlace" data-u="rol">Permisos</button>' +   // v1.18: Recepción / Líder / Administrador
-          '<button type="button" class="enlace' + (u.activo ? ' enlace--peligro' : '') + '" data-u="activo">' + (u.activo ? 'Desactivar' : 'Activar') + '</button>');
-      return '<li data-activo="' + (u.activo ? 'si' : 'no') + '" data-id="' + esc(u.id) + '" data-nombre="' + esc(u.nombre) + '" data-usuario="' + esc(u.usuario) + '" data-rol="' + esc(u.rol) + '" data-act="' + (u.activo ? '1' : '0') + '">' +
-        '<span class="usuarios__info"><span class="usuarios__nombre">' + esc(u.nombre) + ' ' + chips.join('') + '</span>' +
-        '<span class="usuarios__meta">' + (/\s/.test(u.usuario) ? 'Entra con su nombre' : 'Entra con «' + esc(u.usuario) + '» (ponle su nombre completo)') + ' · creado el ' + esc(fechaTexto(diaDe(u.creado))) + '</span></span>' +
-        '<span class="usuarios__botones">' + botones + '</span></li>';
-    }).join('');
-  }
-  function pintarActividad() {
-    var a = nube.admin.actividad, n = Math.min(a.length, nube.admin.verHasta);
-    $('#lista-actividad').innerHTML = a.length ? a.slice(0, n).map(function (x) {
-      var accion = String(x.accion || '');
-      return '<li><span class="actividad__cuando">' + esc(cuando(x.t).replace(' a las ', ', ')) + '</span>' +
-        '<span class="actividad__que"><strong>' + esc(x.nombre || x.usuario || '—') + '</strong>' + esc(accion.charAt(0).toLowerCase() + accion.slice(1)) + '</span></li>';
-    }).join('') : '<li><span class="actividad__que nota">Todavía no hay actividad.</span></li>';
-    $('#btn-mas-actividad').hidden = n >= a.length;
-  }
-  /* v1.20 «Ver contraseña» (JX: «Ver contraseña actual de cada usuario, por si algún día se me olvida»): la nube guarda una
-     copia CIFRADA de cada contraseña que se pone desde v1.20 y solo se la muestra al admin si escribe SU contraseña. */
-  var dlgVer = { id: 0, nombre: '' };
-  function abrirVer(li) {
-    dlgVer = { id: +li.getAttribute('data-id'), nombre: li.getAttribute('data-nombre') };
-    $('#ver-titulo').textContent = 'Contraseña de ' + dlgVer.nombre;
-    $('#v-clave').value = ''; $('#v-clave').type = 'password'; $('#v-error').hidden = true;
-    abrirDialogo('#dlg-ver');
-    setTimeout(function () { $('#v-clave').focus(); }, 40);
-  }
-  function verContrasena() {
-    var clave = $('#v-clave').value, err = $('#v-error'), b = $('#v-si');
-    if (!clave) { err.textContent = 'Escribe tu contraseña.'; err.hidden = false; $('#v-clave').focus(); return; }
-    b.disabled = true;
-    pedir('POST', 'usuarios/' + dlgVer.id + '/ver', { clave: clave }).then(function (r) {
-      cerrarDialogo('#dlg-ver'); $('#v-clave').value = '';
-      if (r.sinCopia) {
-        resultado('error', 'No se puede ver', 'Esa contraseña se puso antes de la v1.20 y no quedó copia. Ponle una «Contraseña nueva» y desde ahí sí la podrás ver.');
-      } else {
-        resultado('ok', 'Contraseña de ' + (r.nombre || dlgVer.nombre), 'Es esta:', r.clave);   // con la clave, la ventanita no se cierra sola
-      }
-    }, function (e) {
-      if (e.estado === 401) { cerrarDialogo('#dlg-ver'); errorNube(e); return; }
-      err.textContent = { clave: 'Tu contraseña no es correcta.', espera: 'Demasiados intentos: espera ' + ((e.datos && e.datos.minutos) || 15) + ' minutos.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo. Inténtalo otra vez.';
-      err.hidden = false; $('#v-clave').focus();
-    }).then(function () { b.disabled = false; });
-  }
-  var dlgUsuario = { modo: 'nuevo', id: 0 };
-  function claveAlAzar() {
-    var letras = 'abcdefghjkmnpqrstuvwxyz23456789', b = new Uint8Array(10), s = '';
-    (window.crypto || window.msCrypto).getRandomValues(b);
-    for (var i = 0; i < b.length; i++) { s += letras.charAt(b[i] % letras.length); }
-    return s;
-  }
-  function abrirUsuario(modo, li) {
-    dlgUsuario = { modo: modo, id: li ? +li.getAttribute('data-id') : 0 };
-    var nuevo = modo === 'nuevo', soloNombre = modo === 'nombre', soloRol = modo === 'rol';
-    $('#u-titulo').textContent = nuevo ? 'Nuevo usuario' : soloNombre ? 'Nombre de ' + li.getAttribute('data-nombre') : soloRol ? 'Permisos de ' + li.getAttribute('data-nombre') : 'Contraseña nueva para ' + li.getAttribute('data-nombre');
-    $('#u-ayuda').textContent = nuevo ? 'La persona entra con su nombre y apellido y la contraseña que escribas aquí. Entrégasela en persona.'
-      : soloNombre ? 'Con este nombre entra y así sale en la hoja, en el historial y en «Quién hizo qué». La contraseña no cambia.'
-      : soloRol ? 'Escoge qué puede hacer. Su nombre y su contraseña no cambian.'
-        : 'Se cierra su sesión en todos los equipos y desde ahora entra con la contraseña que escribas aquí. Entrégasela en persona.';
-    $('#u-datos').hidden = !(nuevo || soloNombre || soloRol);
-    $('#u-nombre').closest('.campo').hidden = soloRol;
-    $('#u-rol').closest('.campo').hidden = soloNombre;   // v1.13: el campo «Usuario» ya no se muestra (es el nombre)
-    $('#u-clave').closest('.campo').hidden = soloNombre || soloRol;
-    $('#u-nombre').value = soloNombre ? li.getAttribute('data-nombre') : ''; $('#u-usuario').value = ''; $('#u-rol').value = soloRol ? li.getAttribute('data-rol') : 'recepcion';
-    $('#u-clave').value = '';                                // v1.7: la contraseña la escribe el admin (el dado inventa una si quiere)
-    $('#u-guardar').textContent = nuevo ? 'Crear usuario' : soloNombre ? 'Guardar nombre' : soloRol ? 'Guardar permisos' : 'Poner contraseña';
-    $('#u-error').hidden = true;
-    abrirDialogo('#dlg-usuario');
-    setTimeout(function () { (nuevo || soloNombre ? $('#u-nombre') : soloRol ? $('#u-rol') : $('#u-clave')).focus(); }, 40);
-  }
-  /** v1.18 (JX: «cada nombre la primera letra es mayúscula»): SIEMPRE Mayúscula Inicial, igual que la nube:
-   *  «jaime valera», «Jaime valera» o «JAIME VALERA» → «Jaime Valera» (tildes y ñ se respetan). */
-  function nombreBonito(t) {
-    return String(t || '').toLowerCase().replace(/(^|[\s'-])([a-záéíóúñüàèìòùäëïöç])/g, function (m, a, b) { return a + b.toUpperCase(); });
-  }
-  function guardarUsuario() {
-    var err = $('#u-error'), clave = $('#u-clave').value.trim();
-    function mal(t, campo) { err.textContent = t; err.hidden = false; if (campo) { campo.focus(); } }
-    var cuerpo, peticion;
-    if (dlgUsuario.modo === 'rol') {
-      clave = '12345678';                                    // (no se manda: solo para pasar la revisión de abajo)
-      cuerpo = { rol: $('#u-rol').value };
-      peticion = function () { return pedir('PATCH', 'usuarios/' + dlgUsuario.id, cuerpo); };
-    } else if (dlgUsuario.modo === 'nombre') {
-      var nom = nombreBonito(Reglas.limpiar($('#u-nombre').value));
-      if (!nom) { mal('Escribe el nombre.', $('#u-nombre')); return; }
-      clave = '12345678';                                    // (no se manda: solo para pasar la revisión de abajo)
-      cuerpo = { nombre: nom };
-      peticion = function () { return pedir('PATCH', 'usuarios/' + dlgUsuario.id, cuerpo); };
-    } else if (dlgUsuario.modo === 'nuevo') {
-      var nombre = nombreBonito(Reglas.limpiar($('#u-nombre').value)), usuario = nombre;   // v1.13: el usuario es el nombre y apellido
-      if (nombre.length < 3 || !/\s/.test(nombre)) { mal('Escribe el nombre y el apellido de la persona (por ejemplo, Jampier Estrada).', $('#u-nombre')); return; }
-      cuerpo = { nombre: nombre, usuario: usuario, rol: $('#u-rol').value, clave: clave };
-      peticion = function () { return pedir('POST', 'usuarios', cuerpo); };
-    } else {
-      cuerpo = { clave: clave };
-      peticion = function () { return pedir('PATCH', 'usuarios/' + dlgUsuario.id, cuerpo); };
-    }
-    if (clave.length < 8) { mal(clave ? 'La contraseña debe tener 8 o más letras o números.' : 'Escribe la contraseña (8 o más letras o números).', $('#u-clave')); return; }
-    var b = $('#u-guardar'); b.disabled = true;
-    peticion().then(function (r) {
-      pintarUsuarios(r.usuarios || []);
-      cerrarDialogo('#dlg-usuario');
-      if (dlgUsuario.modo === 'nombre' && nube.usuario && dlgUsuario.id === nube.usuario.id) {
-        // v1.13: si se cambió a sí mismo, desde ahora entra con ese nombre (la nube devuelve cómo quedó)
-        var yoNuevo = (r.usuarios || []).filter(function (x) { return x.id === nube.usuario.id; })[0];
-        nube.usuario.nombre = yoNuevo ? yoNuevo.nombre : cuerpo.nombre; if (yoNuevo) { nube.usuario.usuario = yoNuevo.usuario; }
-        guardarNube(); pintarNube();
-      }
-      if (dlgUsuario.modo === 'rol') {
-        resultado('ok', '¡Permisos guardados!', ({ admin: 'Ahora es Administrador: puede todo (usuarios, borrar y ajustes de la hoja).',
-          lider: 'Ahora es Líder de Recepción: ve el historial de todos y «Quién hizo qué». No maneja usuarios ni borra.',
-          recepcion: 'Ahora es Recepción: sube, corrige e imprime, y ve solo su historial.' })[cuerpo.rol]);
-      } else if (dlgUsuario.modo === 'nuevo') {
-        resultado('ok', '¡Usuario creado!', 'Entra escribiendo «' + cuerpo.nombre + '» y esta contraseña. Entrégasela en persona:', clave);
-      } else if (dlgUsuario.modo === 'nombre') {
-        resultado('ok', '¡Nombre guardado!', 'Desde ahora entra escribiendo «' + cuerpo.nombre + '» (con la misma contraseña) y así sale en la hoja, el historial y «Quién hizo qué».');
-      } else {
-        resultado('ok', '¡Contraseña nueva puesta!', 'Su sesión se cerró en todos los equipos. Desde ahora entra con esta contraseña (entrégasela en persona):', clave);
-      }
-      cargarAdmin();
-    }, function (e) {
-      if (e.estado === 401) { errorNube(e); return; }
-      mal({ 'ultimo-admin': 'Debe quedar al menos un administrador activo.', propio: 'No puedes cambiarte tus propios permisos.', existe: 'Ya hay alguien con ese nombre: agrégale el segundo apellido.', usuario: 'Escribe solo letras, espacios y números (nombre y apellido).', nombre: 'Escribe el nombre de la persona.', corta: 'La contraseña temporal debe tener 8 o más.', 'sin-conexion': 'Sin conexión: inténtalo cuando vuelva la señal.' }[e.tipo] || 'No se pudo guardar. Inténtalo otra vez.');
-    }).then(function () { b.disabled = false; });
-  }
-  function cambiarUsuario(li, que) {
-    var id = +li.getAttribute('data-id'), nombre = li.getAttribute('data-nombre'), cuerpo, pregunta, si;
-    if (que === 'activo') {
-      var activo = li.getAttribute('data-act') === '1';
-      cuerpo = { activo: !activo };
-      pregunta = activo ? '¿Desactivar a ' + nombre + '? No podrá entrar y se cierra su sesión en todos los equipos. Lo que hizo queda guardado.' : '¿Activar otra vez a ' + nombre + '?';
-      si = activo ? 'Desactivar' : 'Activar';
-    } else {
-      var admin = li.getAttribute('data-rol') === 'admin';
-      cuerpo = { rol: admin ? 'recepcion' : 'admin' };
-      pregunta = admin ? '¿Quitarle el administrador a ' + nombre + '? Seguirá entrando como recepción.' : '¿Hacer administrador a ' + nombre + '? Podrá crear usuarios, ver la actividad, borrar del historial y cambiar los ajustes de la hoja.';
-      si = admin ? 'Quitar administrador' : 'Hacer administrador';
-    }
-    // v1.5: desactivar = ventanita roja (es «eliminar» el acceso) + Deshacer; lo demás = confirmar + ✓ verde
-    var desactivar = que === 'activo' && cuerpo.activo === false;
-    var pide = desactivar
-      ? preguntar({ titulo: '¿Desactivar a ' + nombre + '?', texto: 'No podrá entrar y se cierra su sesión en todos los equipos. Lo que hizo queda guardado.', si: 'Sí, desactivar' })
-      : confirmar(pregunta, si);
-    function fallo(e) {
-      if (e.estado === 401) { errorNube(e); return; }
-      resultado('error', 'No se pudo cambiar', { 'ultimo-admin': 'Debe quedar al menos un administrador activo.', propio: 'No puedes quitarte el administrador ni desactivarte a ti mismo.' }[e.tipo] || 'Revisa la conexión e inténtalo otra vez.');
-    }
-    pide.then(function (ok) {
-      if (!ok) { return; }
-      return pedir('PATCH', 'usuarios/' + id, cuerpo).then(function (r) {
-        pintarUsuarios(r.usuarios || []); cargarAdmin();
-        if (desactivar) {
-          conDeshacer(nombre + ' quedó desactivado.', function () {
-            pedir('PATCH', 'usuarios/' + id, { activo: true }).then(function (r2) {
-              pintarUsuarios(r2.usuarios || []); cargarAdmin(); resultado('ok', '¡Listo, se deshizo!', nombre + ' puede entrar otra vez.');
-            }, fallo);
-          });
-          return;
-        }
-        resultado('ok', que === 'activo' ? '¡' + nombre + ' está activo otra vez!' : cuerpo.rol === 'admin' ? '¡' + nombre + ' ya es administrador!' : 'Listo: ' + nombre + ' quedó como recepción',
-          que === 'activo' ? 'Ya puede entrar con su usuario y su contraseña.' : cuerpo.rol === 'admin' ? 'Puede crear usuarios, ver «Quién hizo qué», borrar del historial y cambiar los ajustes de la hoja.' : 'Sigue entrando, pero ya no maneja usuarios ni borra.');
-      }, fallo);
-    });
   }
 
   /* ---------- v1.15: la sesión se cierra sola (los PC de recepción son compartidos) ----------
@@ -2076,6 +1905,10 @@
       if (e.key === PREFIJO + 'ping' && e.newValue && nubeActiva() && !cerrandoSola) {
         try { window.localStorage.setItem(PREFIJO + 'pong', e.newValue + ':' + ahora()); } catch (x) { /* nada */ }
       }
+      // v1.21: se salió en otra pestaña (por ejemplo en /admin) → se confirma con la nube y esta también pide entrar
+      if (e.key === PREFIJO + 'nube-usuario' && e.newValue === 'null' && nubeActiva() && !cerrandoSola) {
+        pedir('GET', 'yo').then(function (j) { if (!j.usuario) { errorNube({ estado: 401 }); } }, nada);
+      }
     });
   }
 
@@ -2107,23 +1940,7 @@
       });
     });
     $('#btn-salir').addEventListener('click', salir);
-    $('#btn-ir-admin').addEventListener('click', function () { cerrarDialogo('#dlg-cuenta'); irA('#admin'); cargarAdmin(); });
-    /* administración */
-    $('#btn-nuevo-usuario').addEventListener('click', function () { abrirUsuario('nuevo', null); });
-    $('#btn-actualizar-actividad').addEventListener('click', function () { cargarAdmin().then(function () { resultado('ok', '¡Actividad al día!', 'Ya ves lo último que se hizo en todos los equipos.'); }); });
-    $('#btn-mas-actividad').addEventListener('click', function () { nube.admin.verHasta += 100; pintarActividad(); });
-    $('#lista-usuarios').addEventListener('click', function (e) {
-      var b = e.target.closest('[data-u]');
-      if (!b) { return; }
-      var li = b.closest('li'), que = b.getAttribute('data-u');
-      if (que === 'ver') { abrirVer(li); return; }   // v1.20
-      if (que === 'mia') { abrirCuenta(false); } else if (que === 'clave' || que === 'nombre' || que === 'rol') { abrirUsuario(que, li); } else { cambiarUsuario(li, que); }
-    });
-    $('#form-usuario').addEventListener('submit', function (e) { e.preventDefault(); guardarUsuario(); });
-    $('#u-cancelar').addEventListener('click', function () { cerrarDialogo('#dlg-usuario'); });
-    $('#u-azar').addEventListener('click', function () { $('#u-clave').value = claveAlAzar(); });
-    $('#form-ver').addEventListener('submit', function (e) { e.preventDefault(); verContrasena(); });   // v1.20
-    $('#v-no').addEventListener('click', function () { $('#v-clave').value = ''; cerrarDialogo('#dlg-ver'); });
+    /* v1.21: «Ir a Administración» es un enlace a /admin (la página aparte); usuarios y «Quién hizo qué» están allá */
     /* traer lo de los demás equipos: cada 45 s, al volver a la pestaña y al volver la señal */
     setInterval(function () { if (nubeActiva() && !document.hidden) { bajarNube(false); } }, NUBE_TRAER_MS);
     document.addEventListener('visibilitychange', function () { if (!document.hidden && nubeActiva()) { bajarNube(false); } });
