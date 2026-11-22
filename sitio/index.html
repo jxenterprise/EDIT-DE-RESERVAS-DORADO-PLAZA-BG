@@ -67,7 +67,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.13</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.14</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -112,13 +112,13 @@
          =========================================================== -->
     <section class="seccion entrar" id="entrar" aria-labelledby="entrar-titulo" hidden>
       <form class="tarjeta entrar__caja" id="form-entrar" novalidate>
-        <span class="entrar__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 8.2-7 9.5-4-1.3-7-5.1-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="10.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8.2 16.2c.9-1.7 2.2-2.5 3.8-2.5s2.9.8 3.8 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+        <span class="entrar__icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10.4 4.6h3.2M12 4.6v2.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4.6 16a7.4 7.4 0 0 1 14.8 0z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.3 12.6a4.4 4.4 0 0 1 2.4-2.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M2.8 16h18.4v1.9a1 1 0 0 1-1 1H3.8a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
         <h2 class="entrar__titulo" id="entrar-titulo">Entrar</h2>
-        <p class="nota entrar__sub" id="entrar-sub">Solo para recepción: escribe tu nombre y apellido y tu contraseña.</p>
+        <p class="nota entrar__sub" id="entrar-sub">Solo para recepción: tu nombre y tu contraseña.</p>
         <p class="aviso-caja" id="entrar-primera" hidden>Primera vez: escribe tu <strong>nombre y apellido</strong> (por ejemplo, <strong>Jampier Estrada</strong>) y la <strong>clave inicial</strong> que pusiste en Cloudflare. Quedarás como <strong>administrador</strong> y luego pondrás tu propia contraseña.</p>
         <label class="campo" for="e-usuario">
-          <span class="campo__etiqueta">Nombre y apellido <small class="nota">(no importan las mayúsculas ni las tildes)</small></span>
-          <input type="text" id="e-usuario" autocomplete="username" autocapitalize="words" spellcheck="false" maxlength="40" placeholder="Ej.: Jaime Valera" required>
+          <span class="campo__etiqueta">Nombre y apellido</span>
+          <input type="text" id="e-usuario" autocomplete="username" autocapitalize="words" spellcheck="false" maxlength="40" placeholder="Ej.: Jampier Estrada" required>
         </label>
         <div class="campo">
           <label class="campo__etiqueta" for="e-clave">Contraseña</label>
@@ -138,7 +138,7 @@
         <button type="submit" class="boton boton--primario entrar__boton" id="e-entrar">Entrar</button>
         <details class="entrar__ayuda">
           <summary>¿No tienes usuario o olvidaste la contraseña?</summary>
-          <p>Pídeselo al administrador de la web (JX): él crea los usuarios y les pone una contraseña nueva.</p>
+          <p>Pídeselo a <strong>Jampier</strong>: él crea los usuarios y les da la contraseña.</p>
         </details>
         <p class="nota entrar__privacidad">El Excel se lee en este equipo. En la nube solo queda el listado (reserva, habitaciones, agencia y titular), lo ven solo los usuarios de recepción y se borra solo a los 30 días.</p>
       </form>
@@ -421,7 +421,7 @@
       <div id="u-datos">
         <label class="campo" for="u-nombre">
           <span class="campo__etiqueta">Nombre y apellido <small class="nota">(con esto entra y así sale en la hoja)</small></span>
-          <input type="text" id="u-nombre" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Ej.: Jaime Valera">
+          <input type="text" id="u-nombre" maxlength="40" autocomplete="off" autocapitalize="words" placeholder="Ej.: Jampier Estrada">
         </label>
         <!-- v1.13: el usuario ES el nombre y apellido (JX); este campo queda escondido solo por compatibilidad -->
         <label class="campo" for="u-usuario" hidden>

@@ -1387,7 +1387,7 @@
     ['#dlg-reserva', '#dlg-cuenta', '#dlg-usuario', '#dlg-confirmar', '#dlg-pregunta'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
     $('#entrar').hidden = false;
     $('#entrar-primera').hidden = !primera;
-    $('#entrar-sub').textContent = primera ? 'Así se crea el acceso a la nube.' : 'Solo para recepción: escribe tu usuario y tu contraseña.';
+    $('#entrar-sub').textContent = primera ? 'Así se crea el acceso a la nube.' : 'Solo para recepción: tu nombre y tu contraseña.';
     var err = $('#e-error'); err.textContent = mensaje || ''; err.hidden = !mensaje;
     $('#e-clave').value = '';
     pintarNube();
@@ -1808,7 +1808,7 @@
       peticion = function () { return pedir('PATCH', 'usuarios/' + dlgUsuario.id, cuerpo); };
     } else if (dlgUsuario.modo === 'nuevo') {
       var nombre = nombreBonito(Reglas.limpiar($('#u-nombre').value)), usuario = nombre;   // v1.13: el usuario es el nombre y apellido
-      if (nombre.length < 3 || !/\s/.test(nombre)) { mal('Escribe el nombre y el apellido de la persona (por ejemplo, Jaime Valera).', $('#u-nombre')); return; }
+      if (nombre.length < 3 || !/\s/.test(nombre)) { mal('Escribe el nombre y el apellido de la persona (por ejemplo, Jampier Estrada).', $('#u-nombre')); return; }
       cuerpo = { nombre: nombre, usuario: usuario, rol: $('#u-rol').value, clave: clave };
       peticion = function () { return pedir('POST', 'usuarios', cuerpo); };
     } else {
@@ -1827,7 +1827,7 @@
         guardarNube(); pintarNube();
       }
       if (dlgUsuario.modo === 'nuevo') {
-        resultado('ok', '¡Usuario creado!', 'Entra escribiendo «' + cuerpo.nombre + '» (no importan las mayúsculas ni las tildes) y esta contraseña. Entrégasela en persona:', clave);
+        resultado('ok', '¡Usuario creado!', 'Entra escribiendo «' + cuerpo.nombre + '» y esta contraseña. Entrégasela en persona:', clave);
       } else if (dlgUsuario.modo === 'nombre') {
         resultado('ok', '¡Nombre guardado!', 'Desde ahora entra escribiendo «' + cuerpo.nombre + '» (con la misma contraseña) y así sale en la hoja, el historial y «Quién hizo qué».');
       } else {

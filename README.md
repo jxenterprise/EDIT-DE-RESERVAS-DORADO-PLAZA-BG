@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.13** · 21 nov 2026, 6:17 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.14** · 21 nov 2026, 8:30 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -293,6 +293,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.14** | 21 nov 2026, 8:30 p. m. | **Pantalla «Entrar» más limpia:** el logo un poco más pequeño, campanita de recepción en vez del escudo, el ejemplo es «Jampier Estrada», sin el «(no importan las mayúsculas…)» (igual siguen sin importar) y «¿Olvidaste la contraseña?» dice «Pídeselo a Jampier». |
 | **v1.13** | 21 nov 2026, 6:17 p. m. | **El usuario es el nombre y apellido** (pedido de JX): se entra escribiendo «Jaime Valera» sin importar mayúsculas, tildes ni espacios de más. Al crear un usuario hay un solo campo (nombre y apellido); «Nombre» en Administración cambia también con qué entra. Los usuarios viejos (sin espacios) siguen entrando igual hasta que les pongas su nombre completo. |
 | **v1.12** | 21 nov 2026, 5:56 p. m. | La píldora **«✓ Datos guardados exitosamente»** pasa **abajo**, encima de la barra (como en el Manual de turnos), y se sube sola para no taparse con «Deshacer», los avisos ni la guía. |
 | **v1.11** | 21 nov 2026, 11:27 a. m. | Pantalla de carga del Excel de **10 s** (antes 12). **Bienvenida al instante** al entrar (antes salía primero la página). **Nube como en el Manual de turnos:** botón con ☁ y punto amarillo que late mientras guarda → verde «Guardado · hora»; píldora **«✓ Datos guardados exitosamente»** con qué se guardó y «☁ Guardando en la nube…» → «☁ También en la nube». |
@@ -308,7 +309,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.14, v1.15…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.15, v1.16…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 
