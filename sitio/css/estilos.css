@@ -477,16 +477,17 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 /* ---------- 12. Pie y crédito de JX Enterprise ---------- */
 .pie { max-width: 760px; margin: 36px auto 0; padding: 18px calc(16px + var(--der)) 10px calc(16px + var(--izq)); text-align: center; border-top: 1px solid var(--linea); }
 .pie__nota { font-size: 13px; color: var(--texto-suave); max-width: 34em; margin: 0 auto 6px; text-wrap: balance; }
-/* v1.22 / v1.24 (JX): enlace a la extranet, primera línea del pie. Es el patrón .enlace de siempre (letra --texto-fuerte
-   en negrita + raya --oro) con un iconito de descarga en --bronce; así se lee bien (AA) en claro y de noche. */
-.pie__extranet { margin-bottom: 8px; }
-.pie__enlace { font-size: inherit; white-space: nowrap; }       /* la dirección no se parte en dos renglones */
-.pie__junto { white-space: nowrap; }                             /* en celular: «Descarga el Excel desde aquí:» arriba y el enlace entero abajo */
-.pie__icono {
+/* Enlace a la extranet (v1.22; v1.25 ya no va en el pie: debajo de la tarjeta de «Entrar» y de los pasos de «Sube el
+   Excel», con aire para no pegarse). Es el patrón .enlace de siempre (letra --texto-fuerte en negrita + raya --oro) con
+   un iconito de descarga en --bronce; así se lee bien (AA) en claro y de noche. */
+.extranet { margin: 22px auto 0; max-width: 34em; font-size: 14px; color: var(--texto-suave); text-align: center; text-wrap: balance; }
+.extranet__enlace { font-size: inherit; white-space: nowrap; }   /* la dirección no se parte en dos renglones */
+.extranet__junto { white-space: nowrap; }                        /* en celular: «Descarga el Excel desde aquí:» arriba y el enlace entero abajo */
+.extranet__icono {
   display: inline-block; width: 1.1em; height: 1.1em; margin-right: 3px;
   vertical-align: -0.2em; color: var(--bronce);                 /* el svg es block en «2. Base»: aquí va en la línea */
 }
-@media (hover: hover) { .pie__enlace:hover { text-decoration-thickness: 2px; } }
+@media (hover: hover) { .extranet__enlace:hover { text-decoration-thickness: 2px; } }
 /* Crédito con el formato EXACTO de JX (no cambiar clases ni tipografía) */
 .footer-dev {
   width: 100%;
@@ -688,7 +689,7 @@ html[data-tema="oscuro"] .aviso--alerta { background: #F2BE45; color: #2E2414; }
 html.pide-entrar main > .seccion:not(#entrar),
 html.pide-entrar .ajustes-rapidos, html.pide-entrar .acciones, html.pide-entrar .encabezado__sub,
 html.pide-entrar .saltar { display: none !important; }
-.entrar { display: flex; justify-content: center; }
+.entrar { display: flex; flex-direction: column; align-items: center; }   /* v1.25: la tarjeta y, debajo, el enlace a la extranet */
 .entrar__caja { width: 100%; max-width: 440px; display: flex; flex-direction: column; text-align: left; }
 .entrar__icono {
   align-self: center; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
