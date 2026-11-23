@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.23** · 22 nov 2026, 9:38 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.24** · 22 nov 2026, 9:40 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -20,7 +20,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 - ☁️ **El historial queda en la nube**: cada recepcionista ve **el suyo** en cualquier equipo al entrar (el administrador ve el de todos). Si se borra la caché o cambias de computador, no se pierde nada. Se borra solo a los **30 días**.
 - 🔒 **La sesión se cierra sola** al cerrar la pestaña o a los **30 minutos sin usar** la página (los PC de recepción son compartidos).
 - 📄 **El Excel no sale de tu equipo:** se lee ahí mismo. A la nube solo va el listado ya armado (reserva, habitaciones, agencia y titular).
-- 🔗 **El enlace para bajar el Excel está en la misma página** (desde v1.23): arriba, **encima del título**, «Descarga el Excel desde aquí: **extranet.doradoplaza.com**» (se abre en otra pestaña).
+- 🔗 **El enlace para bajar el Excel está en la misma página** (desde v1.22): abajo del todo, en el pie, «Descarga el Excel desde aquí: **extranet.doradoplaza.com**» (se abre en otra pestaña).
 - 🛡️ **La administración va aparte** (desde v1.21): usuarios y «Quién hizo qué» están en `…/admin`, solo para el administrador.
 - 💻 Hecho primero para el **computador de recepción**; funciona también en el celular (Android e iPhone).
 
@@ -46,7 +46,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 ## 1. Uso diario en 6 pasos
 
-1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el listado de reservas del día, como siempre. El archivo se llama **«EXTRANET  DORADO PLAZA.xlsx»**. El enlace está también **arriba en el editador, encima del título** (desde v1.23): «Descarga el Excel desde aquí: **extranet.doradoplaza.com**». Se abre en otra pestaña, así el editador no se cierra.
+1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el listado de reservas del día, como siempre. El archivo se llama **«EXTRANET  DORADO PLAZA.xlsx»**. El enlace está también **abajo del todo en el editador, en el pie** (desde v1.22): «Descarga el Excel desde aquí: **extranet.doradoplaza.com**». Se abre en otra pestaña, así el editador no se cierra.
 2. Abre el editador y toca **«Escoge el Excel de la extranet»**. En el computador también puedes arrastrar el archivo encima de la página.
 3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja: se toma **10 segundos** a propósito (desde v1.11; antes 12). El logo se dibuja completo **4 veces** mientras el % sube parejo hasta 100, y después aparece la lista.
 4. Mira el **Resumen** (total de habitaciones y de reservas) y los **avisos**. Si todo está bien, dice «Todo en orden».
@@ -197,14 +197,14 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 - La hoja solo lleva **reserva, habitaciones, agencia, titular y estado del preregistro**. Nada de documentos, teléfonos, saldos ni tarjetas: aunque vengan en el Excel, se ignoran.
 - La página les pide a los buscadores que **no la indexen, no la guarden y no muestren nada de ella**. Por eso **no hay `robots.txt`** (Google necesita leer la página para ver esa orden). Tampoco tiene descripción, vista previa para redes, `sitemap` ni nada de SEO, y no les cuenta a otros sitios de dónde vienes (`referrer: no-referrer`).
 - Cualquier persona **con el enlace** ve solo la pantalla **Entrar**: sin usuario no ve ningún listado. Después de 5 contraseñas malas seguidas, ese usuario espera 15 minutos.
-- El enlace a la extranet (encima del título, v1.23) se abre **en otra pestaña** y **no le dice a la extranet de dónde vienes** (`noopener noreferrer`). Allá entras con tu usuario de la extranet, como siempre: el editador no ve ni guarda nada de eso.
+- El enlace a la extranet del pie (v1.22) se abre **en otra pestaña** y **no le dice a la extranet de dónde vienes** (`noopener noreferrer`). Allá entras con tu usuario de la extranet, como siempre: el editador no ve ni guarda nada de eso.
 - Es una herramienta de apoyo: antes de imprimir, revisa que la lista coincida con la extranet.
 
 ## 9. Solución de problemas
 
 | Pasa esto | Haz esto |
 |---|---|
-| No sé de dónde bajar el Excel | Arriba en el editador, encima del título: **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** (se abre en otra pestaña). Entra con tu usuario de la extranet y descarga el listado del día. |
+| No sé de dónde bajar el Excel | Abajo del todo en el editador, en el pie: **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** (se abre en otra pestaña). Entra con tu usuario de la extranet y descarga el listado del día. |
 | «Ese archivo es un Excel antiguo (.xls) o tiene clave» | Descarga otra vez de la extranet el **.xlsx** (no lo abras y guardes en otro formato). |
 | ✗ **«Excel incorrecto»** («Ese Excel no es el listado de reservas de la extranet…») | Subiste otro archivo, o le borraron alguna de las 4 columnas (Nro reserva, Nro hab, Agencia, Titular). Descarga otra vez de la extranet **«EXTRANET  DORADO PLAZA.xlsx»** y súbelo tal cual. |
 | Aviso amarillo **«Ojo: este archivo no se llama EXTRANET  DORADO PLAZA.xlsx (⚠ se llama «…»)»** (el nombre equivocado sale en rojo) | Se leyó igual porque trae las columnas de la extranet, pero el nombre es otro: revisa que sea el listado de reservas del día. (Si el navegador lo bajó como «… (1).xlsx» no sale el aviso.) |
@@ -335,6 +335,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.24** | 22 nov 2026, 9:40 p. m. | JX: «lo único era cambiar el H1». El **título** sigue diciendo **«Editador De Reservas De La Extranet»** y el enlace **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** vuelve **abajo, al pie**, donde estaba en la v1.22 (arriba del título ya no va). El pie: el enlace, la nota de siempre, «Antes de imprimir…» y el crédito. |
 | **v1.23** | 22 nov 2026, 9:38 p. m. | **Arreglo de la v1.22** (JX: «el texto era aquí, no allá abajo»): el **título** de arriba ahora dice **«Editador De Reservas De La Extranet»** y el enlace **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** va **encima del título** (también en la pantalla «Entrar»). El pie vuelve a ser el de antes (nota de privacidad, «Antes de imprimir…» y el crédito). La pestaña del navegador y el PDF siguen con el nombre corto «Editador de reservas DP». |
 | **v1.22** | 22 nov 2026, 9:26 p. m. | **Pie del editador nuevo** (pedido de JX): arriba, el enlace para bajar el Excel —«Descarga el Excel desde aquí: **extranet.doradoplaza.com**», subrayado en dorado, con un iconito de descarga; se abre en otra pestaña—; debajo, el nombre **«Editador De Reservas De La Extranet»** (en vez de «Herramienta interna de recepción…»), y se queda «Antes de imprimir, revisa que la lista coincida con la extranet.». La página `/admin` conserva su pie. Arreglo de paso: al recargar la página, Chrome mostraba un aviso en la consola por la letra de los títulos (Karla); ya no. Documentado también cómo trabajamos y la v1.21. |
 | **v1.21** | 21 nov 2026, 11:04 p. m. | **La Administración pasa a una página aparte: `…/admin`** (pedido de JX: «solo el mío… aparte de la web»): usuarios y «Quién hizo qué», solo para el administrador; en el editador queda **Mi cuenta → Ir a Administración**. **El historial y «Quién hizo qué» van por día** («Historial del domingo 22/11/2026»: el más reciente abierto, los días anteriores cerrados; se abren al tocarlos). «Quién hizo qué» vuelve a ser solo del administrador (la Líder ya no lo ve). (Se hizo en otra sesión; se anotó aquí en la v1.22.) |

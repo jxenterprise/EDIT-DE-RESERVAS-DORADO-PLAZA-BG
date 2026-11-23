@@ -69,15 +69,9 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.23</span></p>
-    <!-- ENLACE A LA EXTRANET (zona editable; v1.23, JX: «arriba de ese texto… el enlace de la extranet por donde descargamos
-         el Excel… algo como descárgalo desde aquí… con el mismo color de la web»): la dirección va en href y el texto que se ve,
-         después del ícono. Se abre en OTRA pestaña para que el editador no se cierre (noopener + noreferrer: la extranet no
-         sabe de dónde vienes). Sale también en la puerta «Entrar». Depende de: .encabezado__extranet y siguientes en estilos.css -->
-    <p class="encabezado__extranet"><span class="encabezado__junto">Descarga el Excel desde aquí:</span>
-      <a class="enlace encabezado__enlace" href="https://extranet.doradoplaza.com/extranet/" target="_blank" rel="noopener noreferrer"><svg class="encabezado__icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0l-4-4m4 4l4-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>extranet.doradoplaza.com<span class="solo-lector"> (se abre en otra pestaña)</span></a>
-    </p>
-    <!-- TÍTULO (zona editable; v1.23, JX: «Editador De Reservas De La Extranet», con Mayúscula Inicial en cada palabra, tal cual).
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.24</span></p>
+    <!-- TÍTULO (zona editable; v1.23–v1.24, JX: «Editador De Reservas De La Extranet», con Mayúscula Inicial en cada palabra, tal cual).
+         JX (v1.24): «lo único era cambiar el H1 o el título». El enlace a la extranet va abajo, en el PIE (donde estaba en la v1.22).
          La pestaña del navegador, la pantalla de carga y los datos del PDF siguen con el nombre corto «Editador de reservas DP». -->
     <h1 class="encabezado__titulo">Editador De Reservas De La Extranet</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
@@ -266,12 +260,18 @@
        PIE
        Qué es: nota de privacidad + crédito de JX Enterprise (formato exacto
        de JX). La hoja impresa NO lleva el crédito.
-       v1.23: vuelve a ser el de la v1.21. En la v1.22 aquí se puso el enlace a la
-       extranet y «Editador De Reservas De La Extranet», pero JX lo quería ARRIBA:
-       el nombre es el TÍTULO y el enlace va encima de él (ver ENCABEZADO).
-       Depende de: .pie y .footer-dev en estilos.css; #pie-privacidad lo escribe app.js (pintarNube)
+       v1.24 (JX: «eso de descargar Excel déjalo donde estaba… lo único era cambiar el H1»):
+       arriba va el enlace a la extranet (como en la v1.22; se abre en OTRA pestaña, noopener +
+       noreferrer); el nombre «Editador De Reservas De La Extranet» ya NO va aquí: es el título (h1).
+       La nota de privacidad (#pie-privacidad) es la de siempre (hasta v1.21 y desde v1.23).
+       Depende de: .pie, .pie__extranet, .pie__enlace, .pie__junto, .pie__icono y .footer-dev en
+       estilos.css; #pie-privacidad lo escribe app.js (pintarNube)
        =========================================================== -->
   <footer class="pie">
+    <!-- ENLACE A LA EXTRANET (zona editable): la dirección va en href y el texto que se ve, después del ícono. -->
+    <p class="pie__nota pie__extranet"><span class="pie__junto">Descarga el Excel desde aquí:</span>
+      <a class="enlace pie__enlace" href="https://extranet.doradoplaza.com/extranet/" target="_blank" rel="noopener noreferrer"><svg class="pie__icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0l-4-4m4 4l4-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>extranet.doradoplaza.com<span class="solo-lector"> (se abre en otra pestaña)</span></a>
+    </p>
     <p class="pie__nota" id="pie-privacidad">Herramienta interna de recepción. El Excel se lee en tu equipo y no se sube a internet.</p>
     <p class="pie__nota">Antes de imprimir, revisa que la lista coincida con la extranet.</p>
     <p class="footer-dev">
