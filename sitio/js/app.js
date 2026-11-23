@@ -1417,7 +1417,7 @@
       if (j.error) { nube.modo = 'local'; pintarNube(); return; }   // «sin-configurar»: la base aún no está en Cloudflare
       nube.modo = 'nube'; nube.dias = +j.guardarDias || 30;
       if (!j.usuario) {
-        // v1.15: la sesión ya no está (30 min sin usar, o se salió en otra pestaña): el equipo queda limpio
+        // v1.15: la sesión ya no está (2 horas sin usar, o se salió en otra pestaña): el equipo queda limpio
         if (!hayPendientes()) { olvidarEquipo(); } else { nube.usuario = null; guardarNube(); actual = null; guardarListados(); }
         pedirEntrar(!!j.primera, ''); return;
       }
@@ -1431,7 +1431,7 @@
       if (e.tipo === 'sin-conexion' && nube.usuario) {      // sin señal pero ya había entrado en ESTA pestaña: se sigue trabajando aquí
         return sesionSigue().then(function (sigue) {
           nube.modo = 'nube';
-          if (!sigue.ok) {                                   // pestaña nueva o 30 min sin usar: no se deja entrar sin la nube
+          if (!sigue.ok) {                                   // pestaña nueva o 2 horas sin usar: no se deja entrar sin la nube
             guardar('nube-dueno', nube.usuario.id, true); nube.usuario = null; guardarNube(); actual = null; guardarListados();
             pedirEntrar(false, 'Sin conexión: por seguridad la sesión se cerró. Entra otra vez cuando vuelva la señal.'); return;
           }
@@ -1476,7 +1476,7 @@
     boton.disabled = true; boton.textContent = 'Entrando…'; err.hidden = true;
     pedir('POST', 'entrar', { usuario: usuario, clave: clave }).then(function (j) {
       $('#e-clave').value = '';
-      tActividad = 0; marcarActividad(true); latir(true);   // v1.15: empieza a contar los 30 min y esta pestaña queda «viva»
+      tActividad = 0; marcarActividad(true); latir(true);   // v1.15: empieza a contar las 2 horas y esta pestaña queda «viva»
       guardar('guia-hoja', false, true);                     // v1.5: en cada entrada la guía «tu hoja está aquí abajo» sale una vez
       // v1.11 (JX: «entra a la página primero y después carga el modal, y no debería»): el ✓ de bienvenida sale EN EL MISMO
       // instante en que se quita la puerta; lo de la nube se trae detrás (el historial aparece solo cuando llega).
@@ -1807,14 +1807,14 @@
 
   /* ---------- v1.15: la sesión se cierra sola (los PC de recepción son compartidos) ----------
      JX: «si entra otro compañero a ese computador va a estar en la cuenta de ese otro… que se cierre
-     automáticamente… media hora». Y la nube la vence sola a los 30 min sin usar (SESION_INACTIVA).
-     · 30 min sin tocar nada (INACTIVO_MS) → se cierra; 1 min antes sale «¿Sigues ahí?» con la cuenta atrás.
+     automáticamente… media hora». Y la nube la vence sola a las 2 horas sin usar (SESION_INACTIVA; v1.26, antes 30 min).
+     · v1.26 (JX: «mejor 2 horas»): 2 horas sin tocar nada (INACTIVO_MS; antes 30 min) → se cierra; 1 min antes sale «¿Sigues ahí?» con la cuenta atrás.
        «Tocar» = clic, tecla, rueda, toque o escribir, en CUALQUIER pestaña de la página (se anota en
        localStorage «actividad»). Traer lo de la nube cada 45 s NO cuenta.
      · Al cerrar la pestaña (o el navegador) → la próxima vez que se abra la página, pide entrar.
        Cómo se sabe: la pestaña deja su «latido» en sessionStorage (al recargar sigue ahí, en una pestaña
        nueva no); y si hay OTRA pestaña de la página abierta, contesta un «ping» por localStorage. */
-  var INACTIVO_MS = 30 * 60000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000, RECARGA_MS = 20000;
+  var INACTIVO_MS = 2 * 3600000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000, RECARGA_MS = 20000;
   var tActividad = 0, tLatido = 0, cerrandoSola = false, vigilando = 0;
   function sesionLeer(k) { try { return window.sessionStorage.getItem(PREFIJO + k); } catch (e) { return null; } }
   function sesionGuardar(k, v) {
@@ -1865,7 +1865,7 @@
       $('#sig-seg').textContent = String(Math.max(1, Math.ceil((INACTIVO_MS - quieto) / 1000)));
     } else if (dlg.open) { cerrarDialogo('#dlg-sigues'); }   // tocó algo (aquí o en otra pestaña)
   }
-  /** Cierra la sesión sin preguntar. motivo: 'inactivo' (30 min) · 'pestana' (se cerró la pestaña) · 'manual' («Salir ahora»).
+  /** Cierra la sesión sin preguntar. motivo: 'inactivo' (2 horas) · 'pestana' (se cerró la pestaña) · 'manual' («Salir ahora»).
    *  alAbrir = true cuando se detecta al abrir la página (no hay nada en pantalla todavía). */
   function cerrarSola(motivo, alAbrir) {
     if (cerrandoSola) { return Promise.resolve(); }
@@ -1882,7 +1882,7 @@
       pintarTodo();
       pedirEntrar(false, '');                                // v1.16 (JX): sin explicar por qué (menos texto en la puerta)
       if (motivo === 'inactivo') {
-        resultado('salir', 'Sesión cerrada', 'Pasaron 30 minutos sin usar la página' + (nombre ? ' (' + nombre + ')' : '') +
+        resultado('salir', 'Sesión cerrada', 'Pasaron 2 horas sin usar la página' + (nombre ? ' (' + nombre + ')' : '') +
           ': por seguridad se cerró sola. Para volver, entra con tu nombre y tu contraseña.' + (alAbrir ? '' : ' Todo lo que hiciste quedó guardado en tu historial.'));
       } else if (motivo === 'manual') {
         resultado('salir', 'Sesión cerrada', (nombre ? '¡Hasta pronto, ' + nombre + '! ' : '') + 'Todo quedó guardado en tu historial.');

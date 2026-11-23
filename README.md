@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.25** · 23 nov 2026, 11:35 a. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.26** · 23 nov 2026, 11:44 a. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -18,7 +18,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 - 🔒 **Solo entra recepción:** cada recepcionista entra con **su usuario y contraseña** (los crea el administrador).
 - ☁️ **El historial queda en la nube**: cada recepcionista ve **el suyo** en cualquier equipo al entrar (el administrador ve el de todos). Si se borra la caché o cambias de computador, no se pierde nada. Se borra solo a los **30 días**.
-- 🔒 **La sesión se cierra sola** al cerrar la pestaña o a los **30 minutos sin usar** la página (los PC de recepción son compartidos).
+- 🔒 **La sesión se cierra sola** al cerrar la pestaña o a las **2 horas sin usar** la página (desde v1.26; antes era media hora) (los PC de recepción son compartidos).
 - 📄 **El Excel no sale de tu equipo:** se lee ahí mismo. A la nube solo va el listado ya armado (reserva, habitaciones, agencia y titular).
 - 🔗 **El enlace para bajar el Excel está en la misma página** (desde v1.22): desde v1.25 va **debajo de la tarjeta de «Entrar»** y, ya adentro, **debajo de los pasos de «Sube el Excel»**: «Descarga el Excel desde aquí: **extranet.doradoplaza.com**» (se abre en otra pestaña).
 - 🛡️ **La administración va aparte** (desde v1.21): usuarios y «Quién hizo qué» están en `…/admin`, solo para el administrador.
@@ -136,8 +136,8 @@ Desde **v1.15** (pedido de JX):
 
 **La sesión se cierra sola (v1.15, porque los PC de recepción son compartidos).** Ya no existe «Recordar en este equipo».
 - **Al cerrar la pestaña o el navegador**: la próxima persona que abra la página tiene que entrar con su nombre (desde v1.16 sin ningún mensaje: solo pide entrar). Recargar (F5) **no** la cierra, y si tienes otra pestaña de la página abierta, la nueva entra sola.
-- **A los 30 minutos sin tocar nada** (ni clic, ni tecla, ni el dedo): 1 minuto antes sale **«¿Sigues ahí?»** con la cuenta atrás → **«Sí, sigo aquí»** (o Esc) sigue 30 minutos más; **«Salir ahora»** cierra ya. Si nadie responde, se cierra sola y sale **«Sesión cerrada»**. Lo hecho queda guardado en tu historial.
-- La nube también la vence sola a los 30 minutos sin usar (y nunca dura más de 14 horas), así nadie puede reabrirla con la cookie.
+- **A las 2 horas sin tocar nada** (desde v1.26; antes 30 minutos) (ni clic, ni tecla, ni el dedo): 1 minuto antes sale **«¿Sigues ahí?»** con la cuenta atrás → **«Sí, sigo aquí»** (o Esc) sigue 2 horas más; **«Salir ahora»** cierra ya. Si nadie responde, se cierra sola y sale **«Sesión cerrada»**. Lo hecho queda guardado en tu historial.
+- La nube también la vence sola a las 2 horas sin usar (y nunca dura más de 14 horas), así nadie puede reabrirla con la cookie.
 
 **Tu contraseña te la da el administrador** (desde v1.7): entras con esa y listo. Recepción no la puede cambiar; si la olvidas, el administrador te pone una nueva. Solo el administrador, **la primera vez** que entra con la `CLAVE_INICIAL`, pone su propia contraseña.
 
@@ -335,6 +335,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.26** | 23 nov 2026, 11:44 a. m. | JX: «ya no quiero media hora… mejor 2 horas». **La sesión se cierra sola a las 2 horas sin usar la página** (antes 30 minutos), en el editador, en `/admin` y en la nube. «¿Sigues ahí?» sigue saliendo 1 minuto antes. Al cerrar la pestaña se sigue cerrando igual. |
 | **v1.25** | 23 nov 2026, 11:35 a. m. | JX: el enlace **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** sube: en la puerta va **debajo de la tarjeta de «Entrar»** (con aire, sin pegarse) y, ya adentro, **debajo de los pasos de «Sube el Excel»**. En el pie ya no va (queda la nota «Herramienta interna…», «Antes de imprimir…» y el crédito). |
 | **v1.24** | 22 nov 2026, 9:40 p. m. | JX: «lo único era cambiar el H1». El **título** sigue diciendo **«Editador De Reservas De La Extranet»** y el enlace **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** vuelve **abajo, al pie**, donde estaba en la v1.22 (arriba del título ya no va). El pie: el enlace, la nota de siempre, «Antes de imprimir…» y el crédito. |
 | **v1.23** | 22 nov 2026, 9:38 p. m. | **Arreglo de la v1.22** (JX: «el texto era aquí, no allá abajo»): el **título** de arriba ahora dice **«Editador De Reservas De La Extranet»** y el enlace **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** va **encima del título** (también en la pantalla «Entrar»). El pie vuelve a ser el de antes (nota de privacidad, «Antes de imprimir…» y el crédito). La pestaña del navegador y el PDF siguen con el nombre corto «Editador de reservas DP». |

@@ -9,7 +9,7 @@
  *   · Quién hizo qué, POR DÍA (v1.21, JX: «el historial mejor por día… lo de ayer se queda cerrado y dice
  *     historial del día tal… uno presiona y se abre»): hoy abierto; los días anteriores cerrados.
  *  Usa la MISMA nube (/api/…), la MISMA sesión (cookie dp_sesion) y las MISMAS reglas que la web principal:
- *  se cierra sola al cerrar la pestaña o a los 30 min sin usar («¿Sigues ahí?» 1 min antes).
+ *  se cierra sola al cerrar la pestaña o a las 2 horas sin usar (v1.26; «¿Sigues ahí?» 1 min antes).
  *
  *  OJO (mantenimiento): las ventanitas (preguntar, resultado, confirmar, Deshacer), pedir() y la sesión son
  *  COPIA de las de js/app.js (allá están documentadas). Si se cambia algo allá, cambiarlo aquí también
@@ -305,7 +305,7 @@
    * 7) SESIÓN — copia de js/app.js (v1.15): las MISMAS claves (actividad, latido, ping/pong), así la web
    *    principal y /admin abiertas a la vez cuentan como la misma sesión.
    * ================================================================ */
-  var INACTIVO_MS = 30 * 60000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000, RECARGA_MS = 20000;
+  var INACTIVO_MS = 2 * 3600000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000, RECARGA_MS = 20000;
   var tActividad = 0, tLatido = 0, cerrandoSola = false, vigilando = 0;
   function ultimaActividad() { return Math.max(+leer('actividad', 0) || 0, tActividad); }
   function marcarActividad(forzar) {
@@ -362,7 +362,7 @@
       cerrandoSola = false;
       pedirEntrar(false, '');
       if (motivo === 'inactivo') {
-        resultado('salir', 'Sesión cerrada', 'Pasaron 30 minutos sin usar la página' + (nombre ? ' (' + nombre + ')' : '') + ': por seguridad se cerró sola. Para volver, entra con tu nombre y tu contraseña.');
+        resultado('salir', 'Sesión cerrada', 'Pasaron 2 horas sin usar la página' + (nombre ? ' (' + nombre + ')' : '') + ': por seguridad se cerró sola. Para volver, entra con tu nombre y tu contraseña.');
       } else if (motivo === 'manual') {
         resultado('salir', 'Sesión cerrada', (nombre ? '¡Hasta pronto, ' + nombre + '! ' : '') + 'Para volver, entra con tu nombre y tu contraseña.');
       }
@@ -489,7 +489,7 @@
     olvidarEquipo();
     pedirEntrar(false, 'Tu sesión se cerró: entra otra vez.');
   }
-  /** Al abrir: ¿hay nube? ¿ya entró alguien? ¿sigue siendo la misma persona (pestaña cerrada / 30 min)? */
+  /** Al abrir: ¿hay nube? ¿ya entró alguien? ¿sigue siendo la misma persona (pestaña cerrada / 2 horas)? */
   function iniciarNube() {
     if (!/^https?:$/.test(location.protocol) || !window.fetch || esLocal()) { mostrarParte('sin-nube'); return Promise.resolve(); }
     return pedir('GET', 'yo').then(function (j) {

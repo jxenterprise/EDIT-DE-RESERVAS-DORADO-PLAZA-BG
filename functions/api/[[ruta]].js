@@ -15,7 +15,7 @@
  *     listados del historial y cambia los ajustes de la hoja para todos.
  *   · v1.15 (JX, 21 nov 2026): cada recepcionista ve SOLO su historial (los listados que subió él);
  *     el admin ve los de todos. Cada listado guarda su dueño (columna usuario_id).
- *   · v1.15: la sesión se cierra sola a los 30 minutos sin usar (SESION_INACTIVA) y nunca dura más
+ *   · v1.15: la sesión se cierra sola sin usar (SESION_INACTIVA: 30 min; desde v1.26, 2 horas) y nunca dura más
  *     de 14 h (SESION_MAX). Solo la alarga lo que manda la web con «X-Activo: 1» (la persona tocó
  *     algo hace poco); lo automático (traer cada 45 s) no la alarga. Ya no hay «Recordar en este equipo».
  *   · v1.18 (JX): rol «lider» (Líder de Recepción): ve el historial de todos y puede corregir cualquier
@@ -62,7 +62,7 @@
 
 const DIA = 86400000;
 const GUARDAR_DIAS = 30;                       // JX: «30 días» (listados y actividad se borran solos)
-const SESION_INACTIVA = 30 * 60000;            // v1.15 (JX): «que se cierre sola… media hora»: 30 min sin usar
+const SESION_INACTIVA = 2 * 3600000;           // v1.26 (JX: «ya no quiero media hora… mejor 2 horas»): 2 h sin usar (v1.15: 30 min)
 const SESION_MAX = 14 * 3600000;               // y nunca más de un turno con holgura, aunque se use
 const COOKIE = 'dp_sesion';
 const VUELTAS = 100000;                        // PBKDF2: Cloudflare no acepta más de 100.000
@@ -244,13 +244,13 @@ async function quienEs(db, request) {
   const u = await db.prepare('SELECT u.id, u.usuario, u.nombre, u.rol, u.cambiar, s.token, s.creado AS s_creado, s.expira AS s_expira FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token = ?1 AND s.expira > ?2 AND u.activo = 1')
     .bind(await huella(token), ahora).first();
   if (!u) { return null; }
-  // v1.19: ninguna sesión pasa de 14 h, y las viejas de «Recordar en este equipo» (hasta 30 días) quedan en 30 min
+  // v1.19: ninguna sesión pasa de 14 h, y las viejas de «Recordar en este equipo» (hasta 30 días) quedan en 2 h (SESION_INACTIVA)
   if (ahora > u.s_creado + SESION_MAX) { await db.prepare('DELETE FROM sesiones WHERE token = ?1').bind(u.token).run(); return null; }
   if (u.s_expira > ahora + SESION_INACTIVA + 60000) {
     u.s_expira = Math.min(ahora + SESION_INACTIVA, u.s_creado + SESION_MAX);
     await db.prepare('UPDATE sesiones SET expira = ?1 WHERE token = ?2').bind(u.s_expira, u.token).run();
   }
-  // v1.15: la persona está usando la página («X-Activo: 1») → otros 30 min (como mucho una escritura por minuto)
+  // v1.15: la persona está usando la página («X-Activo: 1») → otras 2 h (SESION_INACTIVA; como mucho una escritura por minuto)
   if (request.headers.get('X-Activo') === '1') {
     const nueva = Math.min(ahora + SESION_INACTIVA, u.s_creado + SESION_MAX);
     if (nueva - u.s_expira > 60000) { await db.prepare('UPDATE sesiones SET expira = ?1 WHERE token = ?2').bind(nueva, u.token).run(); }
@@ -336,7 +336,7 @@ async function salir(db, request, quien) {
   try { motivo = (await cuerpoDe(request)).motivo || ''; } catch (e) { motivo = ''; }
   if (token) { await db.prepare('DELETE FROM sesiones WHERE token = ?1').bind(await huella(token)).run(); }
   if (quien) {
-    await anotar(db, quien, motivo === 'inactivo' ? 'Se le cerró la sesión sola (30 minutos sin usar)'
+    await anotar(db, quien, motivo === 'inactivo' ? 'Se le cerró la sesión sola (2 horas sin usar)'
       : motivo === 'pestana' ? 'Se le cerró la sesión sola (cerró la pestaña)' : 'Salió');
   }
   return json({ ok: true }, 200, { 'Set-Cookie': cookieSesion('', 0) });
