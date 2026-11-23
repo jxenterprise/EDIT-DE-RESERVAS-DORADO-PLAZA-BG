@@ -6,7 +6,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 🔗 **Ábrelo aquí:** <https://editador-reservas-doradoplaza-bg.pages.dev>
 
-🏷️ **Versión actual: v1.20** · 21 nov 2026, 10:17 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
+🏷️ **Versión actual: v1.22** · 22 nov 2026, 9:26 p. m. (hora de Colombia) · [ver todas las versiones](#12-versiones)
 
 | Antes (a mano) | Con el editador |
 |---|---|
@@ -20,6 +20,8 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 - ☁️ **El historial queda en la nube**: cada recepcionista ve **el suyo** en cualquier equipo al entrar (el administrador ve el de todos). Si se borra la caché o cambias de computador, no se pierde nada. Se borra solo a los **30 días**.
 - 🔒 **La sesión se cierra sola** al cerrar la pestaña o a los **30 minutos sin usar** la página (los PC de recepción son compartidos).
 - 📄 **El Excel no sale de tu equipo:** se lee ahí mismo. A la nube solo va el listado ya armado (reserva, habitaciones, agencia y titular).
+- 🔗 **El enlace para bajar el Excel está en la misma página** (desde v1.22): abajo del todo, «Descarga el Excel desde aquí: **extranet.doradoplaza.com**» (se abre en otra pestaña).
+- 🛡️ **La administración va aparte** (desde v1.21): usuarios y «Quién hizo qué» están en `…/admin`, solo para el administrador.
 - 💻 Hecho primero para el **computador de recepción**; funciona también en el celular (Android e iPhone).
 
 ---
@@ -44,7 +46,7 @@ Subes el Excel de llegadas que descargas de la extranet y el editador lo limpia,
 
 ## 1. Uso diario en 6 pasos
 
-1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el listado de reservas del día, como siempre. El archivo se llama **«EXTRANET  DORADO PLAZA.xlsx»**.
+1. En la **extranet** (`https://extranet.doradoplaza.com/extranet/`) descarga el listado de reservas del día, como siempre. El archivo se llama **«EXTRANET  DORADO PLAZA.xlsx»**. El enlace está también **abajo del todo en el editador** (desde v1.22): «Descarga el Excel desde aquí: **extranet.doradoplaza.com**». Se abre en otra pestaña, así el editador no se cierra.
 2. Abre el editador y toca **«Escoge el Excel de la extranet»**. En el computador también puedes arrastrar el archivo encima de la página.
 3. Sale la pantalla de carga dorada mientras lee el Excel y arma la hoja: se toma **10 segundos** a propósito (desde v1.11; antes 12). El logo se dibuja completo **4 veces** mientras el % sube parejo hasta 100, y después aparece la lista.
 4. Mira el **Resumen** (total de habitaciones y de reservas) y los **avisos**. Si todo está bien, dice «Todo en orden».
@@ -111,6 +113,7 @@ Desde **v1.15** (pedido de JX):
 ## 6. Historial, modo noche y ajustes
 
 - **Historial**: cada Excel que subes queda guardado con sus correcciones. **Con la nube**, desde **v1.15 cada recepcionista ve solo SU historial** (lo que subió él, en cualquier equipo al entrar) y **el administrador ve el de todos**, con «subido … por **Nombre**» y el filtro **«Ver el historial de»** (Todos o una persona). Cada listado se borra solo a los 30 días; solo el administrador puede borrar a mano. Sin la nube queda solo en ese equipo (hasta 30 listados). Toca **Abrir** para volver a imprimir uno.
+- **Por día** (desde v1.21, pedido de JX): el historial sale en bloques **«Historial del domingo 22/11/2026»**, con «Hoy» o «Ayer» y cuántos listados tiene. El día más reciente sale **abierto** y los anteriores **cerrados**: tócalos para abrirlos (la página recuerda los que abriste o cerraste mientras sigas en ella).
 - Al entrar o abrir una pestaña nueva, la pantalla sale limpia (v1.15); al recargar, sigue el listado que tenías.
 - **Tema**: automático (modo noche de 6 p. m. a 6 a. m.), claro o noche. Solo cambia la pantalla: la hoja siempre sale en blanco.
 - **Más ajustes** (se abre encima de la página y se cierra tocando fuera o con **Esc**):
@@ -149,13 +152,13 @@ Desde **v1.15** (pedido de JX):
 
 **«✓ Datos guardados exitosamente»** (desde v1.11, igual que en el Manual de turnos): cada vez que guardas algo (subir el Excel, corregir, agregar, quitar, eliminar, tema, casillas) sale **abajo, al centro, encima de la barra** (desde v1.12), una píldora pequeña con el ✓ verde, en pequeño **qué se guardó** y, con la nube, **«☁ Guardando en la nube…»** (amarillo) que cambia a **«☁ También en la nube»** (verde) cuando ya quedó, o **«☁ Sin señal: se sube solo cuando vuelva»** (rojo). Se va sola en unos 2 segundos y no se puede tocar (no estorba). Si hay una ventanita abierta, espera a que la cierres; si abajo está «Deshacer», un aviso o la guía «tu hoja está aquí abajo», se sube un poco para no taparlos.
 
-Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** y **Salir de este equipo**. Al salir, en ese equipo no queda nada del historial (sigue en la nube).
+Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** (el administrador y la Líder de Recepción) y **Salir de este equipo**; el administrador ve además **«Ir a Administración»** (desde v1.21, la página aparte `…/admin`). Al salir, en ese equipo no queda nada del historial (sigue en la nube).
 
 **Entre varios equipos.** Si entras con tu usuario en el PC y en el celular, lo que haces en uno aparece solo en el otro (cada 45 segundos, o al volver a la pestaña). Si el administrador corrige un listado tuyo mientras tú también lo corriges, se **juntan los dos cambios**: si fue la misma reserva, gana el último.
 
 ### Preguntas frecuentes de la nube (respuestas a JX, 21 nov 2026)
 
-- **¿Quién ve «Administración»?** Solo los usuarios de tipo **Administrador**. A recepción no le aparece, y aunque intentara entrar por otro camino, la nube responde «no autorizado». **No hay límite de usuarios.** Siempre queda al menos un administrador activo (la web no deja quitártelo ni desactivarte a ti mismo).
+- **¿Quién ve «Administración»?** Solo los usuarios de tipo **Administrador**. Desde **v1.21** es una página aparte: **`https://editador-reservas-doradoplaza-bg.pages.dev/admin/`** (en el editador: **Mi cuenta → Ir a Administración**; para volver, **«Volver al editador»**). A recepción y a la Líder no les aparece el enlace; si alguien abre `/admin` igual, sale «Solo para el administrador», y aunque intentara entrar por otro camino, la nube responde «no autorizado». **No hay límite de usuarios.** Siempre queda al menos un administrador activo (la web no deja quitártelo ni desactivarte a ti mismo).
 - **¿Dónde se guardan los datos?** En la base **D1** (`editador-reservas-db`) de la cuenta de Cloudflare de JX. Las contraseñas no se guardan tal cual: van cifradas con PBKDF2 (100.000 vueltas), así que nadie puede leerlas, solo cambiarlas. La sesión va en una cookie protegida que la página no puede leer y que solo viaja por HTTPS. 5 contraseñas malas = 15 minutos de espera. El Excel nunca se sube: solo el listado ya armado.
 - **¿Alguien puede entrar un día y no encontrar nada?** Desde v1.15 cada uno ve **su** historial (lo que subió él), en cualquier equipo; el administrador ve el de todos. **Los usuarios no se borran nunca** (solo se desactivan). **Los listados y «Quién hizo qué» se borran solos a los 30 días** (por los nombres de los huéspedes, Ley 1581); se puede cambiar a 60 o 90 días si JX lo decide. Sin internet no se pierde nada: queda en el equipo y se sube al volver la señal. Al salir de la cuenta, ese equipo se limpia, pero todo sigue en la nube.
 - **¿Hay copia de seguridad?** Sí: Cloudflare guarda el historial de la base y en el plan gratis se puede **volver a cualquier momento de los últimos 7 días** (30 días en el plan de pago). Fuente: [Cloudflare D1 · Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/).
@@ -165,7 +168,7 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 | Permiso | Qué puede hacer |
 |---|---|
 | **Recepción** | Sube el Excel, corrige, imprime, descarga y comparte. Ve **solo su historial**. |
-| **Líder de Recepción** | Lo mismo, y además ve **el historial de todos** (con filtro por persona), puede corregir cualquier listado, ve **«Quién hizo qué»** y (desde v1.19) **cambia su propia contraseña** en «Mi cuenta». **No** maneja usuarios, **no** borra y **no** cambia los ajustes de la hoja. |
+| **Líder de Recepción** | Lo mismo, y además ve **el historial de todos** (con filtro por persona), puede corregir cualquier listado y (desde v1.19) **cambia su propia contraseña** en «Mi cuenta». **No** maneja usuarios, **no** borra, **no** cambia los ajustes de la hoja y, desde v1.21, **no** ve «Quién hizo qué» (quedó solo para el administrador, en `/admin`; de v1.18 a v1.20 sí lo veía). |
 | **Administrador** | Todo lo anterior y lo de abajo. |
 
 **Los nombres van siempre con Mayúscula Inicial** (v1.18): aunque se escriba «jaime valera», «Jaime valera» o «JAIME VALERA», queda «Jaime Valera» (las tildes y la ñ se respetan; los usuarios que ya existían se arreglan solos).
@@ -179,12 +182,11 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 - **Quién cambia qué:** el administrador cambia la suya (Mi cuenta, pide la actual) y le pone una nueva a cualquiera (Contraseña nueva, sin pedir la vieja). La **Líder de Recepción** cambia la suya. **Recepción** no cambia la suya: se la pone el administrador.
 - Si el administrador olvida la suya: el rescate (ver «Activar la nube», abajo). Copias de la base: Cloudflare D1 Time Travel (7 días en el plan gratis).
 
-**Solo el administrador** (sección **Administración**, abajo del historial):
-- **Usuarios de recepción:** **+ Nuevo usuario** (**nombre y apellido** —con eso entra y así sale en la hoja; desde v1.13 ya no hay un «usuario» aparte; si lo escribes todo en minúsculas, la web le pone las mayúsculas— y **la contraseña que tú escribes**; el dado inventa una si quieres; entrégasela en persona: con esa entra siempre), **Contraseña nueva** (si alguien la olvidó o quieres cambiársela), **Nombre**, **Hacer administrador** / **Quitar administrador** y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
-- **Quién hizo qué:** quién entró, quién subió cada Excel, quién corrigió, agregó o quitó cada reserva, quién imprimió o descargó el PDF, y a qué hora (últimos 30 días).
+**Solo el administrador** — en la página **Administración** (`…/admin/`, desde v1.21; hasta v1.20 era una sección abajo del historial):
+- **Usuarios de recepción:** **+ Nuevo usuario** (**nombre y apellido** —con eso entra y así sale en la hoja; desde v1.13 ya no hay un «usuario» aparte; si lo escribes todo en minúsculas, la web le pone las mayúsculas— y **la contraseña que tú escribes**; el dado inventa una si quieres; entrégasela en persona: con esa entra siempre), **Contraseña nueva** (si alguien la olvidó o quieres cambiársela), **Ver contraseña** (v1.20), **Nombre**, **Permisos** (v1.18; antes «Hacer / Quitar administrador») y **Desactivar** (si alguien se va: no puede entrar y lo que hizo queda guardado). Siempre queda al menos un administrador.
+- **Quién hizo qué:** quién entró, quién subió cada Excel, quién corrigió, agregó o quitó cada reserva, quién imprimió o descargó el PDF, y a qué hora (últimos 30 días). **Por día** (v1.21): «Historial del domingo 22/11/2026 · N acciones»; **hoy** sale abierto y los días anteriores **cerrados** (al tocar uno se abre y trae lo de ese día). El botón **Actualizar** trae lo último de todos los equipos.
 - **Permisos** de cada usuario (Recepción / Líder de Recepción / Administrador). Siempre queda al menos un administrador activo.
-- **Ver el historial de todos** (filtro «Ver el historial de»), **Borrar** listados del historial y **Eliminar** el que está en pantalla.
-- **Ajustes de la hoja para todos:** casilla «Llegó» y «Ahorrar papel».
+- En el **editador** (no en `/admin`): **ver el historial de todos** (filtro «Ver el historial de»), **Borrar** listados del historial, **Eliminar** el que está en pantalla y los **ajustes de la hoja para todos** («Más ajustes»: casilla «Llegó» y «Ahorrar papel»).
 
 > Si la página se abre con doble clic, en el computador de la casa o mientras Cloudflare no tiene la nube lista, funciona **sola en ese equipo**, como antes (sin pedir usuario).
 
@@ -195,12 +197,14 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 - La hoja solo lleva **reserva, habitaciones, agencia, titular y estado del preregistro**. Nada de documentos, teléfonos, saldos ni tarjetas: aunque vengan en el Excel, se ignoran.
 - La página les pide a los buscadores que **no la indexen, no la guarden y no muestren nada de ella**. Por eso **no hay `robots.txt`** (Google necesita leer la página para ver esa orden). Tampoco tiene descripción, vista previa para redes, `sitemap` ni nada de SEO, y no les cuenta a otros sitios de dónde vienes (`referrer: no-referrer`).
 - Cualquier persona **con el enlace** ve solo la pantalla **Entrar**: sin usuario no ve ningún listado. Después de 5 contraseñas malas seguidas, ese usuario espera 15 minutos.
+- El enlace a la extranet del pie (v1.22) se abre **en otra pestaña** y **no le dice a la extranet de dónde vienes** (`noopener noreferrer`). Allá entras con tu usuario de la extranet, como siempre: el editador no ve ni guarda nada de eso.
 - Es una herramienta de apoyo: antes de imprimir, revisa que la lista coincida con la extranet.
 
 ## 9. Solución de problemas
 
 | Pasa esto | Haz esto |
 |---|---|
+| No sé de dónde bajar el Excel | Abajo del todo en el editador: **«Descarga el Excel desde aquí: extranet.doradoplaza.com»** (se abre en otra pestaña). Entra con tu usuario de la extranet y descarga el listado del día. |
 | «Ese archivo es un Excel antiguo (.xls) o tiene clave» | Descarga otra vez de la extranet el **.xlsx** (no lo abras y guardes en otro formato). |
 | ✗ **«Excel incorrecto»** («Ese Excel no es el listado de reservas de la extranet…») | Subiste otro archivo, o le borraron alguna de las 4 columnas (Nro reserva, Nro hab, Agencia, Titular). Descarga otra vez de la extranet **«EXTRANET  DORADO PLAZA.xlsx»** y súbelo tal cual. |
 | Aviso amarillo **«Ojo: este archivo no se llama EXTRANET  DORADO PLAZA.xlsx (⚠ se llama «…»)»** (el nombre equivocado sale en rojo) | Se leyó igual porque trae las columnas de la extranet, pero el nombre es otro: revisa que sea el listado de reservas del día. (Si el navegador lo bajó como «… (1).xlsx» no sale el aviso.) |
@@ -220,6 +224,7 @@ Al tocarlo se abre **Mi cuenta**: **Guardar ahora**, **Cambiar mi contraseña** 
 | «Tu sesión se venció: entra otra vez» | Pasó el turno (o el administrador te desactivó o te cambió la contraseña). Entra otra vez: lo que habías hecho se sube al entrar. |
 | El botón dice **Sin señal** | Se cayó el internet. Sigue trabajando: todo queda en el equipo y se sube solo cuando vuelva. No toques **Salir** hasta que diga **Guardado**. |
 | No sale la pantalla **Entrar** en la dirección publicada | La nube aún no está lista en Cloudflare: la página trabaja sola en cada equipo. Revisa el [punto 10](#10-para-quien-mantiene-la-página) («Activar la nube»). |
+| No encuentro «Administración» | Desde v1.21 es una página aparte y es **solo del administrador**: **Mi cuenta → Ir a Administración**, o abre `https://editador-reservas-doradoplaza-bg.pages.dev/admin/`. Si dice «Solo para el administrador», entraste con un usuario de recepción o de Líder. |
 | El administrador olvidó su contraseña | Ver «Si el administrador olvida su contraseña» en el [punto 10](#10-para-quien-mantiene-la-página). |
 | La dirección del editador da «404» | En Cloudflare falta decir que la página está en la carpeta `sitio` (ver [punto 10](#10-para-quien-mantiene-la-página)). |
 
@@ -235,7 +240,10 @@ EDIT-DE-RESERVAS-DORADO-PLAZA-BG/
 │   └── api/[[ruta]].js  ← LA NUBE (v1.3): usuarios, sesiones y listados en la base D1.
 │                          Cloudflare la ejecuta en /api/…, pero no se publica como archivo
 └── sitio/           ← LO ÚNICO QUE SE PUBLICA EN CLOUDFLARE PAGES
-    ├── index.html                  ← la página
+    ├── index.html                  ← el editador (la página principal)
+    ├── admin/                      ← (v1.21) la página de Administración: …/admin/ (solo el administrador)
+    │   ├── index.html              ← usuarios y «Quién hizo qué» por día (usa los mismos css/, js/ e img/)
+    │   └── admin.js                ← lo que se mueve en /admin (copia de partes de app.js: ver CLAUDE.md)
     ├── css/
     │   ├── estilos.css             ← todo el diseño (claro, modo noche e impresión)
     │   ├── cargador-dorado.min.css (+ .css legible)  ← pantalla de carga
@@ -266,7 +274,7 @@ EDIT-DE-RESERVAS-DORADO-PLAZA-BG/
   ```bash
   npx wrangler pages dev sitio --port 8788 --d1 DB=editador-local --binding CLAVE_INICIAL=PruebaLocal123
   ```
-  y abre `http://localhost:8788`. Es una base de prueba **en tu computador** (no toca la de verdad). Wrangler crea una carpeta `.wrangler/`: no la subas a GitHub.
+  y abre `http://localhost:8788` (y `http://localhost:8788/admin/` para la Administración, que **solo funciona con la nube**: sin ella dice «Aquí no hay nube»). Es una base de prueba **en tu computador** (no toca la de verdad). Wrangler crea una carpeta `.wrangler/`: no la subas a GitHub. Desde v1.21 también sirven los puertos 8789 a 8799, para probar varias nubes a la vez.
 
 ### Cómo se publica (automático desde GitHub)
 
@@ -292,7 +300,7 @@ Lo mismo que se hizo en el Manual de turnos, con otros nombres. Mientras no est�
 3. **Poner la clave inicial:** en la misma pestaña → **Variables y secretos** → **«+ Agregar»** → Tipo **Secreto** → Nombre: `CLAVE_INICIAL` → Valor: una clave de **8 caracteres o más** (mejor 12 a 30, letras y números) → **Guardar**. Debe quedar «🔒 Valor cifrado».
 4. **Volver a publicar:** pestaña **Implementaciones** → primera fila → **⋯ → Reintentar implementación**. Las vinculaciones y la clave solo se activan en una publicación nueva.
 5. **Crear el administrador:** abre la página. Sale **Entrar** con el aviso «Primera vez». Escribe **tu nombre y apellido** (por ejemplo «Jampier Estrada») y la `CLAVE_INICIAL`. Quedas como **administrador** y la web te pide poner **tu propia contraseña**. Desde ahí la `CLAVE_INICIAL` ya no sirve para entrar.
-6. **Crear a los recepcionistas:** sección **Administración** → **+ Nuevo usuario** → su **nombre y apellido** (con eso entra; si dos se llaman igual, agrega el segundo apellido). Escribe tú la contraseña de cada uno y entrégasela en persona: entran con esa y no la pueden cambiar (solo tú, con **Contraseña nueva**).
+6. **Crear a los recepcionistas:** página **Administración** (desde v1.21: **Mi cuenta → Ir a Administración**, o abre `…/admin/`) → **+ Nuevo usuario** → su **nombre y apellido** (con eso entra; si dos se llaman igual, agrega el segundo apellido). Escribe tú la contraseña de cada uno y entrégasela en persona: entran con esa y no la pueden cambiar (solo tú, con **Contraseña nueva**).
 
 Para revisar si quedó bien, abre `https://editador-reservas-doradoplaza-bg.pages.dev/api/yo`: con todo listo responde `{"usuario":null,…}`. Si falta algo, responde `{"error":"sin-configurar","falta":[…]}` y dice en `falta` si es `DB`, `CLAVE_INICIAL` o `CLAVE_INICIAL_CORTA`.
 
@@ -306,9 +314,18 @@ Para revisar si quedó bien, abre `https://editador-reservas-doradoplaza-bg.page
 
 Una sola rama: **`main`**. Antes de empezar a editar, `git pull` (para traer lo que se hizo en el otro lado); al terminar, commit y `git push` a `main`. Los detalles están en `CLAUDE.md`.
 
+**Cómo trabajamos (resumen; el paso a paso completo está en `CLAUDE.md` → «Cómo trabajamos»):**
+
+1. **Al empezar:** traer lo último de GitHub (JX también trabaja en otras sesiones) y leer `CLAUDE.md`. Revisar que la página publicada esté bien: `…/api/yo` responde `{"usuario":null,"primera":false,…}` y la versión de `/` y `/admin/` es la última.
+2. **Antes de construir algo nuevo:** se le pregunta a JX, todo en una sola tanda, con opciones para escoger y la recomendada primero. Nada se inventa: lo que falte queda `{POR CONFIRMAR}`.
+3. **Al construir:** el mismo diseño de siempre (colores, letras, botones, modo noche), código para computadores viejos (ES5) y cada parte comentada. Cada cambio publicado sube la versión (v1.22, v1.23…) en las **dos** páginas (`sitio/index.html` y `sitio/admin/index.html`), en este README y en `CLAUDE.md`, con fecha y hora de Colombia.
+4. **Antes de subir:** se prueba con el navegador **visible y despacio** (pedido de JX), sin nube y con la nube de prueba, en PC, tabletas, Android e iPhone, en claro y noche, con accesibilidad (WCAG 2.2 AA), HTML válido y la consola limpia (también al recargar). Las pruebas no se suben al repositorio.
+5. **Al terminar:** se documenta aquí y en `CLAUDE.md`, y **se sube solo cuando JX lo dice**. Las sesiones en la nube (claude.ai/code) trabajan en una rama `claude/…` y al final la unen a `main`; Cloudflare publica solo en 1–2 minutos y se comprueba que salga la versión nueva.
+
 ## 11. Pendientes `{POR CONFIRMAR}`
 
-- **Activar la nube en Cloudflare** (v1.3): ver «Activar la nube en Cloudflare» en el [punto 10](#10-para-quien-mantiene-la-página). Y que el hotel esté de acuerdo con guardar 30 días los nombres de los titulares en la nube.
+- ~~Activar la nube en Cloudflare (v1.3)~~ ✅ **activa desde el 21 nov 2026, 10:36 a. m.** (ver «Activar la nube en Cloudflare» en el [punto 10](#10-para-quien-mantiene-la-página)). Si aún no está hecho: que JX cree a los recepcionistas en **Administración** y, si entró con el rescate, que **borre `RESCATE_ADMIN`** en Cloudflare.
+- Que el **hotel esté de acuerdo** con guardar 30 días los nombres de los titulares en la nube.
 - **Cómo prefieren llamar los estados** del preregistro en la hoja: hoy «Con preregistro» para «Preregistro (…) ✔ Completo» y «Web check-in completo» para «Web check-in ✔ Completo».
 - **Otras sedes** (logo, nombre y textos de la hoja): por ahora solo Bocagrande.
 
@@ -318,6 +335,8 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 
 | Versión | Fecha y hora | Qué cambió |
 |---|---|---|
+| **v1.22** | 22 nov 2026, 9:26 p. m. | **Pie del editador nuevo** (pedido de JX): arriba, el enlace para bajar el Excel —«Descarga el Excel desde aquí: **extranet.doradoplaza.com**», subrayado en dorado, con un iconito de descarga; se abre en otra pestaña—; debajo, el nombre **«Editador De Reservas De La Extranet»** (en vez de «Herramienta interna de recepción…»), y se queda «Antes de imprimir, revisa que la lista coincida con la extranet.». La página `/admin` conserva su pie. Arreglo de paso: al recargar la página, Chrome mostraba un aviso en la consola por la letra de los títulos (Karla); ya no. Documentado también cómo trabajamos y la v1.21. |
+| **v1.21** | 21 nov 2026, 11:04 p. m. | **La Administración pasa a una página aparte: `…/admin`** (pedido de JX: «solo el mío… aparte de la web»): usuarios y «Quién hizo qué», solo para el administrador; en el editador queda **Mi cuenta → Ir a Administración**. **El historial y «Quién hizo qué» van por día** («Historial del domingo 22/11/2026»: el más reciente abierto, los días anteriores cerrados; se abren al tocarlos). «Quién hizo qué» vuelve a ser solo del administrador (la Líder ya no lo ve). (Se hizo en otra sesión; se anotó aquí en la v1.22.) |
 | **v1.20** | 21 nov 2026, 10:17 p. m. | **«Ver contraseña»** de cada compañero (solo el administrador, pidiendo su propia contraseña; copia cifrada de las contraseñas que se pongan desde ahora). **`CLAVE_INICIAL` ya no es obligatoria** cuando hay usuarios: si falta o se borra por error, la nube sigue funcionando (con la base vacía sí se necesita, para que nadie más se adueñe de la nube). |
 | **v1.19** | 21 nov 2026, 9:55 p. m. | La **Líder de Recepción cambia su propia contraseña** (Mi cuenta). Las sesiones viejas de «Recordar en este equipo» quedan con las reglas nuevas (30 min sin usar, 14 h como máximo). En «Mi cuenta» de recepción: «Tu contraseña te la da Jampier». Explicación de dónde quedan las contraseñas y qué es `CLAVE_INICIAL`. Revisión completa antes de publicar: HTML válido, ES5, accesibilidad AA, 25 + 22 pruebas. |
 | **v1.18** | 21 nov 2026, 9:37 p. m. | **Nombres siempre con Mayúscula Inicial** («Jaime valera» → «Jaime Valera»; también los que ya existían) y **permiso nuevo «Líder de Recepción»**: ve el historial de todos y «Quién hizo qué», sin manejar usuarios ni borrar. En Administración, el botón **«Permisos»** reemplaza a «Hacer / Quitar administrador». |
@@ -340,7 +359,7 @@ En la página, debajo del logo, se ve **solo el número de la versión** con «v
 | **v1.1** | 17 nov 2026, 2:33 p. m. | Revisión de errores y responsive (prioridad PC; también Android e iPhone): «Más ajustes» ya no mueve los botones, el «notch» del iPhone acostado, Guardar/Cancelar siempre visibles en pantallas bajitas, barra más delgada con el celular acostado y fondo sin tirones al hacer scroll. |
 | **v1.0** | 17 nov 2026, 2:12 p. m. | Primera versión: del Excel de la extranet a la hoja «LISTADO DE RESERVAS», con corrección, novedades, PDF, impresión, historial y modo noche. |
 
-Cada cambio que se publica sube la versión (v1.21, v1.22…) y se anota aquí.
+Cada cambio que se publica sube la versión (v1.23, v1.24…) y se anota aquí.
 
 ## 13. Fuentes, licencias y propiedad
 

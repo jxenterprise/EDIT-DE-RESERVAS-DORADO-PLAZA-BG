@@ -34,7 +34,9 @@
   <link rel="icon" href="../img/favicon-dorado-plaza.svg" type="image/svg+xml">
   <link rel="icon" href="../img/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
-  <link rel="preload" href="../css/fuentes/karla-regular-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- v1.22: SIN «preload» de Karla. Con la letra ya guardada en el navegador (al recargar o al volver a la
+       página), Chrome avisaba en la consola que la letra precargada «no se usó en unos segundos». Ahora la
+       pide admin.js (iniciar) apenas arranca, detrás de la pantalla de carga (los títulos salen igual con Karla). -->
   <link rel="stylesheet" href="../css/cargador-dorado.min.css">
   <link rel="stylesheet" href="../css/estilos.css">
   <!-- tema claro/oscuro antes de pintar (el mismo de la web principal) -->
@@ -62,7 +64,7 @@
     <img class="encabezado__logo" src="../img/logo-dorado-plaza-recepcion-bocagrande.webp" width="1200" height="878"
          alt="Dorado Plaza · Recepción · Hotel Dorado Plaza · Bocagrande" fetchpriority="high">
     <!-- VERSIÓN (zona editable): la misma que en ../index.html. Solo el número con «v» minúscula. -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.21</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.22</span></p>
     <h1 class="encabezado__titulo">Administración</h1>
     <p class="encabezado__sub">Editador de reservas DP · solo para el administrador</p>
 

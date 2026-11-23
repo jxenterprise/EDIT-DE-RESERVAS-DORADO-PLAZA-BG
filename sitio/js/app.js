@@ -1756,9 +1756,8 @@
     $('#aj-nota-admin').hidden = !activa;
     $('#aj-nota-admin').textContent = esAdmin() ? 'Eres administrador: lo que cambies en la casilla y en «Ahorrar papel» cambia para todos los equipos.'
       : 'La casilla y «Ahorrar papel» son iguales para todos: solo el administrador los cambia.';
-    $('#pie-privacidad').textContent = nube.modo === 'nube'
-      ? 'Herramienta interna de recepción. El Excel se lee en tu equipo; en la nube solo queda el listado (reserva, habitaciones, agencia y titular), lo ven solo los usuarios de recepción y se borra solo a los ' + nube.dias + ' días.'
-      : 'Herramienta interna de recepción. El Excel se lee en tu equipo y no se sube a internet.';
+    // v1.22 (JX): el pie ya no lleva la nota de privacidad que se escribía aquí (#pie-privacidad): ahora es fijo en
+    // index.html (enlace a la extranet + «Editador De Reservas De La Extranet»). Lo de los 30 días sigue en /admin y en el README.
     if (!activa) { return; }
     var e = TEXTO_NUBE[nube.estado] || TEXTO_NUBE['al-dia'], u = nube.usuario;
     $('#cuenta-punto').setAttribute('data-color', e[2]);
@@ -1987,6 +1986,8 @@
     var letras = [listaNube];
     if (document.fonts && document.fonts.load) {
       letras.push(document.fonts.load('400 12px "Hoja Sans"').catch(nada), document.fonts.load('700 12px "Hoja Sans"').catch(nada));
+      // v1.22: Karla (títulos de sección) se pide aquí, detrás de la pantalla de carga; ya no va con «preload» en index.html
+      letras.push(document.fonts.load('400 13.5px "Karla Dorado"').catch(nada));
       if (document.fonts.ready) { letras.push(Promise.resolve(document.fonts.ready).catch(nada)); }
     }
     var espera = function (ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); };

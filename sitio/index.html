@@ -31,7 +31,9 @@
   <link rel="icon" href="img/favicon-dorado-plaza.svg" type="image/svg+xml">
   <link rel="icon" href="img/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
-  <link rel="preload" href="css/fuentes/karla-regular-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- v1.22: SIN «preload» de Karla. Con la letra ya guardada en el navegador (al recargar o al volver a la
+       página), Chrome avisaba en la consola que la letra precargada «no se usó en unos segundos». Ahora la
+       pide js/app.js (iniciar) apenas arranca, detrás de la pantalla de carga (los títulos salen igual con Karla). -->
   <link rel="stylesheet" href="css/cargador-dorado.min.css">
   <link rel="stylesheet" href="css/estilos.css">
   <!-- tema claro/oscuro antes de pintar (evita el destello blanco de noche) -->
@@ -67,7 +69,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.21</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.22</span></p>
     <h1 class="encabezado__titulo">Editador de reservas DP</h1>
     <p class="encabezado__sub">Del Excel de la extranet a la hoja lista para imprimir · Recepción Bocagrande</p>
 
@@ -253,12 +255,26 @@
 
   <!-- ===========================================================
        PIE
-       Qué es: nota de privacidad + crédito de JX Enterprise (formato exacto
-       de JX). La hoja impresa NO lleva el crédito.
-       Depende de: .pie y .footer-dev en estilos.css
+       Qué es (v1.22, pedido de JX): 1) el enlace a la extranet de donde se
+       descarga el Excel («Descarga el Excel desde aquí: extranet.doradoplaza.com»;
+       se abre en OTRA pestaña para que el editador no se cierre; noopener +
+       noreferrer: la extranet no sabe de dónde vienes), 2) el nombre «Editador
+       De Reservas De La Extranet» (así, con Mayúscula Inicial en cada palabra,
+       como lo escribió JX), 3) el recordatorio de revisar contra la extranet
+       (JX: «dejarla») y 4) el crédito de JX Enterprise (formato exacto de JX).
+       Hasta v1.21 aquí iba la nota de privacidad que pintaba app.js
+       (#pie-privacidad); /admin conserva su propio pie (JX: «solo en el editador»).
+       La hoja impresa NO lleva nada de esto.
+       Depende de: .pie, .pie__extranet, .pie__enlace, .pie__icono, .pie__nombre
+       y .footer-dev en estilos.css
        =========================================================== -->
   <footer class="pie">
-    <p class="pie__nota" id="pie-privacidad">Herramienta interna de recepción. El Excel se lee en tu equipo y no se sube a internet.</p>
+    <!-- ENLACE A LA EXTRANET (zona editable): la dirección va en href y el texto que se ve, después del ícono. -->
+    <p class="pie__nota pie__extranet"><span class="pie__junto">Descarga el Excel desde aquí:</span>
+      <a class="enlace pie__enlace" href="https://extranet.doradoplaza.com/extranet/" target="_blank" rel="noopener noreferrer"><svg class="pie__icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4v11m0 0l-4-4m4 4l4-4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>extranet.doradoplaza.com<span class="solo-lector"> (se abre en otra pestaña)</span></a>
+    </p>
+    <!-- NOMBRE (zona editable): así lo escribió JX, con Mayúscula Inicial en cada palabra. -->
+    <p class="pie__nota pie__nombre">Editador De Reservas De La Extranet</p>
     <p class="pie__nota">Antes de imprimir, revisa que la lista coincida con la extranet.</p>
     <p class="footer-dev">
       <span class="footer-dev-txt">Diseño y desarrollo:</span>

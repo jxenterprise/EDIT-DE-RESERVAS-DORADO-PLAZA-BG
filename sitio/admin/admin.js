@@ -835,6 +835,10 @@
     eventos();
     var listo = iniciarNube().catch(nada);
     var letras = [listo];
+    // v1.22: Karla (la de los títulos «Usuarios» y «Quién hizo qué») se pide YA, mientras está la pantalla de carga.
+    // Antes iba con «preload» en index.html y, con la letra ya guardada en el navegador, Chrome avisaba en la consola
+    // que «no se usó en unos segundos». Ahora no hay preload: se pide aquí y los títulos salen ya con su letra.
+    if (document.fonts && document.fonts.load) { letras.push(document.fonts.load('400 13.5px "Karla Dorado"').catch(nada)); }
     if (document.fonts && document.fonts.ready) { letras.push(Promise.resolve(document.fonts.ready).catch(nada)); }
     var espera = function (ms) { return new Promise(function (ok) { setTimeout(ok, ms); }); };
     var t0 = +document.documentElement.getAttribute('data-carga') || ahora();
