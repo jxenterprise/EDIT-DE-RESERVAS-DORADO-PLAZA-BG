@@ -64,7 +64,7 @@
     <img class="encabezado__logo" src="../img/logo-dorado-plaza-recepcion-bocagrande.webp" width="1200" height="878"
          alt="Dorado Plaza · Recepción · Hotel Dorado Plaza · Bocagrande" fetchpriority="high">
     <!-- VERSIÓN (zona editable): la misma que en ../index.html. Solo el número con «v» minúscula. -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.26</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v2.0</span></p>
     <h1 class="encabezado__titulo">Administración</h1>
     <p class="encabezado__sub">Editador de reservas DP · solo para el administrador</p>
 
@@ -116,7 +116,7 @@
           <summary>¿Olvidaste tu contraseña?</summary>
           <p>Usa el rescate de Cloudflare (<strong>RESCATE_ADMIN</strong> y <strong>CLAVE_INICIAL</strong>): los pasos están en el README.</p>
         </details>
-        <p class="entrar__volver"><a class="enlace" href="../">Volver al editador</a></p>
+        <p class="entrar__volver"><a class="boton boton--secundario boton--chico" href="../">Volver al editador</a></p>   <!-- v2.0: botón, ya no enlace de texto -->
       </form>
     </section>
 
@@ -157,7 +157,8 @@
           <h3 class="subtitulo">Usuarios de recepción</h3>
           <button type="button" class="boton boton--secundario boton--chico" id="btn-nuevo-usuario">+ Nuevo usuario</button>
         </div>
-        <p class="nota">Cada uno entra con su nombre y apellido. Si alguien se va, desactívalo: no podrá entrar y lo demás sigue igual.</p>
+        <p class="nota">Cada uno entra con su nombre y apellido. Toca a alguien para ver sus opciones. Si alguien se va, desactívalo: no podrá entrar y lo demás sigue igual.</p>
+        <!-- v1.27: cada <li> trae un <details class="usuario"> (cerrado: nombre y chips; abierto: cómo entra y sus botones) -->
         <ul class="usuarios" id="lista-usuarios"></ul>
       </div>
     </section>
@@ -216,9 +217,10 @@
         <p class="campo__error" id="c-error" role="alert" hidden></p>
         <button type="submit" class="boton boton--secundario cuenta__boton" id="btn-cambiar-clave">Cambiar contraseña</button>
       </form>
+      <!-- v2.0 (JX: «que sean botones mejor… así se ve solo algo escrito»): «Cerrar» y «Salir de este equipo» son botones -->
       <div class="dialogo__extra" id="cuenta-extra">
-        <button type="button" class="enlace" id="btn-cerrar-cuenta">Cerrar</button>
-        <button type="button" class="enlace enlace--peligro" id="btn-salir">Salir de este equipo</button>
+        <button type="button" class="boton boton--secundario boton--chico" id="btn-cerrar-cuenta">Cerrar</button>
+        <button type="button" class="boton boton--secundario boton--chico boton--eliminar" id="btn-salir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4.5H5.5v15h5M14.5 8l4 4-4 4M18.5 12H9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Salir de este equipo</button>
       </div>
     </div>
   </dialog>

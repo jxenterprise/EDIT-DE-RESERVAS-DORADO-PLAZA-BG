@@ -69,7 +69,7 @@
     <!-- VERSIÓN (zona editable): se cambia en CADA versión que se publica. En la web va SOLO el número
          con «v» minúscula (pedido de JX, v1.4 y v1.6; en v1.5 fue «V»): la fecha y la hora de cada versión se anotan en CLAUDE.md («Historial») y en
          README.md («Versiones»). -->
-    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v1.26</span></p>
+    <p class="encabezado__version"><span class="solo-lector">Versión </span><span class="encabezado__version-num">v2.0</span></p>
     <!-- TÍTULO (zona editable; v1.23–v1.24, JX: «Editador De Reservas De La Extranet», con Mayúscula Inicial en cada palabra, tal cual).
          JX (v1.24): «lo único era cambiar el H1 o el título». El enlace a la extranet NO va aquí arriba: v1.25 → debajo de la tarjeta de «Entrar» y de los pasos de «Sube el Excel».
          La pestaña del navegador, la pantalla de carga y los datos del PDF siguen con el nombre corto «Editador de reservas DP». -->
@@ -99,6 +99,13 @@
             <span>Ahorrar papel <small>(si apretando un poco la letra la hoja cabe en menos páginas, se aprieta)</small></span>
           </label>
           <p class="nota ajustes__nota" id="aj-nota-admin" hidden>La casilla y «Ahorrar papel» son iguales para todos: solo el administrador los cambia.</p>
+          <!-- SONIDO AL IMPRIMIR (v1.27, JX): impresora + campanita al cerrarse la ventana de imprimir. Viene prendido; es de
+               cada cuenta, igual que el tema. Depende de: app.js → «SONIDO AL IMPRIMIR» y «TEMA Y SONIDO DE CADA CUENTA». -->
+          <label class="interruptor ajustes__otro">
+            <input type="checkbox" id="aj-sonido" checked>
+            <span>Sonido al imprimir <small>(papelito saliendo y una campanita cuando se manda la hoja)</small></span>
+          </label>
+          <p class="nota ajustes__nota" id="aj-nota-propia" hidden>El tema y el sonido son solo de tu cuenta.</p>
           <p class="nota ajustes__nota">El modo noche solo cambia la pantalla: la hoja siempre sale en blanco.</p>
         </div>
       </details>
@@ -261,7 +268,7 @@
       </label>
       <div class="dias" id="lista-historial"></div>
       <p class="nota historial__nota" id="historial-nota" hidden><span id="historial-nota-texto">Se guardan hasta 30 listados, solo en este equipo. Si el equipo es compartido, bórralos cuando ya no los necesites.</span>
-        <button type="button" class="enlace enlace--peligro" id="btn-borrar-historial">Borrar todo el historial</button></p>
+        <button type="button" class="boton boton--secundario boton--chico boton--eliminar" id="btn-borrar-historial">Borrar todo el historial</button></p>
     </section>
 
   </main>
@@ -366,9 +373,10 @@
         <button type="submit" class="boton boton--primario" id="r-guardar">Guardar</button>
         <button type="button" class="boton boton--secundario" id="r-cancelar">Cancelar</button>
       </div>
+      <!-- v2.0 (JX: «que sean botones mejor… así se ve solo algo escrito y ya, muy básico»): botones chicos, ya no enlaces de texto -->
       <div class="dialogo__extra">
-        <button type="button" class="enlace" id="r-restaurar" hidden>Volver a lo del Excel</button>
-        <button type="button" class="enlace enlace--peligro" id="r-quitar" hidden>Quitar de la hoja</button>
+        <button type="button" class="boton boton--secundario boton--chico" id="r-restaurar" hidden>Volver a lo del Excel</button>
+        <button type="button" class="boton boton--secundario boton--chico boton--eliminar" id="r-quitar" hidden>Quitar de la hoja</button>
       </div>
     </form>
   </dialog>
@@ -410,9 +418,10 @@
         <button type="submit" class="boton boton--secundario cuenta__boton" id="btn-cambiar-clave">Cambiar contraseña</button>
       </form>
       <p class="nota cuenta__nota-clave" id="clave-nota-recepcion" hidden>Tu contraseña te la da Jampier. Si la olvidas, pídele una nueva.</p>
+      <!-- v2.0: «Ir a Administración» y «Salir de este equipo» son botones (antes enlaces de texto) -->
       <div class="dialogo__extra">
-        <a class="enlace" id="btn-ir-admin" href="admin/" hidden>Ir a Administración</a>
-        <button type="button" class="enlace enlace--peligro" id="btn-salir">Salir de este equipo</button>
+        <a class="boton boton--secundario boton--chico" id="btn-ir-admin" href="admin/" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l7 2.8v5.2c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6.3l7-2.8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 12l2.2 2.2L15.2 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Ir a Administración</a>
+        <button type="button" class="boton boton--secundario boton--chico boton--eliminar" id="btn-salir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4.5H5.5v15h5M14.5 8l4 4-4 4M18.5 12H9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Salir de este equipo</button>
       </div>
     </div>
   </dialog>

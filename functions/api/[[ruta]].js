@@ -15,8 +15,9 @@
  *     listados del historial y cambia los ajustes de la hoja para todos.
  *   · v1.15 (JX, 21 nov 2026): cada recepcionista ve SOLO su historial (los listados que subió él);
  *     el admin ve los de todos. Cada listado guarda su dueño (columna usuario_id).
- *   · v1.15: la sesión se cierra sola sin usar (SESION_INACTIVA: 30 min; desde v1.26, 2 horas) y nunca dura más
- *     de 14 h (SESION_MAX). Solo la alarga lo que manda la web con «X-Activo: 1» (la persona tocó
+ *   · v1.15: la sesión se cierra sola sin usar (SESION_INACTIVA: 30 min; desde v1.26, 2 horas). v2.0 (JX: «dejar
+ *     solamente lo de las 2 horas»): la cookie dura aunque se cierre el navegador o se apague el PC (Max-Age de
+ *     COOKIE_DIAS) y ya no hay tope de 14 h (antes SESION_MAX): SOLO cierra el pasar 2 horas sin usar. Solo la alarga lo que manda la web con «X-Activo: 1» (la persona tocó
  *     algo hace poco); lo automático (traer cada 45 s) no la alarga. Ya no hay «Recordar en este equipo».
  *   · v1.18 (JX): rol «lider» (Líder de Recepción): ve el historial de todos y puede corregir cualquier
  *     listado, pero NO maneja usuarios, NO borra y NO cambia los ajustes de la hoja. (v1.21: «Quién hizo qué»
@@ -26,6 +27,9 @@
  *     usuarios y falta, la nube sigue funcionando. «Ver contraseña»: cada contraseña que se pone guarda además
  *     una copia CIFRADA (AES-GCM, columna usuarios.copia; la llave se crea sola en la tabla ajustes) que solo el
  *     admin puede abrir, escribiendo antes SU propia contraseña (POST /api/usuarios/:id/ver).
+ *   · v1.27 (JX: «cada quien con un tema personal… si Daniel cambió el tema también me apareció a mí y no debería»):
+ *     el TEMA y el SONIDO al imprimir son de cada cuenta (columna usuarios.prefs, JSON { tema, sonido }); te siguen a
+ *     cualquier equipo donde entres. La casilla «Llegó» y «Ahorrar papel» siguen siendo del admin para todos.
  *   · El Excel NUNCA llega aquí: se lee en el equipo. Aquí solo llega el
  *     listado ya armado (reserva, habitaciones, agencia, titular, preregistro).
  *   · Lo guardado se BORRA SOLO a los 30 días (son nombres de huéspedes).
@@ -41,7 +45,7 @@
  *
  *  Rutas:
  *   GET    /api/yo                → { usuario | null, primera }   (sin sesión: 200, para no ensuciar la consola)
- *   POST   /api/entrar            { usuario, clave } → cookie de sesión (sin Max-Age: muere al cerrar el navegador)
+ *   POST   /api/entrar            { usuario, clave } → cookie de sesión (v2.0: con Max-Age, no muere al cerrar el navegador; la vence la nube a las 2 h sin usar)
  *   POST   /api/salir             { motivo?: 'inactivo' | 'pestana' }
  *   POST   /api/clave             { actual, nueva }       (la propia)
  *   GET    /api/listados?desde=t  → { ahora, listados: [{ id, datos, v, t, borrado }], ajustes }   (recepción: solo los suyos)
@@ -52,6 +56,7 @@
  *                                           ·  GET /api/actividad/dia/AAAA-MM-DD → { dia, actividad, limite } (admin)
  *   GET    /api/usuarios          (admin)  ·  POST /api/usuarios (admin)  ·  PATCH /api/usuarios/:id (admin)
  *   PUT    /api/ajustes           { casilla, apretar }    (admin)
+ *   PUT    /api/preferencias      { tema?, sonido? } → { prefs }   (v1.27: las de la propia cuenta; cualquiera que entró)
  *
  *  Seguridad: contraseñas con PBKDF2-SHA256 (100.000 vueltas, el máximo de
  *  Cloudflare) y sal propia; la sesión es una cookie HttpOnly + Secure +
@@ -63,7 +68,7 @@
 const DIA = 86400000;
 const GUARDAR_DIAS = 30;                       // JX: «30 días» (listados y actividad se borran solos)
 const SESION_INACTIVA = 2 * 3600000;           // v1.26 (JX: «ya no quiero media hora… mejor 2 horas»): 2 h sin usar (v1.15: 30 min)
-const SESION_MAX = 14 * 3600000;               // y nunca más de un turno con holgura, aunque se use
+const COOKIE_DIAS = 30;                        // v2.0: la cookie sobrevive a cerrar el navegador; quien manda es SESION_INACTIVA
 const COOKIE = 'dp_sesion';
 const VUELTAS = 100000;                        // PBKDF2: Cloudflare no acepta más de 100.000
 const MAX_INTENTOS = 5, ESPERA_INTENTOS = 15 * 60000;
@@ -188,6 +193,7 @@ async function prepararTablas(db) {
   } catch (e) { /* ya la tenía */ }
   await db.prepare('CREATE INDEX IF NOT EXISTS listados_u ON listados (usuario_id, t)').run();
   try { await db.prepare('ALTER TABLE usuarios ADD COLUMN copia TEXT').run(); } catch (e) { /* v1.20: ya la tenía */ }
+  try { await db.prepare('ALTER TABLE usuarios ADD COLUMN prefs TEXT').run(); } catch (e) { /* v1.27: ya la tenía */ }
   // v1.17: los usuarios creados antes de v1.13 tienen un «usuario» distinto del nombre (p. ej. «jx» / «Jampier Estrada»):
   // se igualan al nombre para que todos entren escribiendo su nombre y apellido. Si dos se llaman igual, se dejan.
   const { results } = await db.prepare('SELECT id, usuario, nombre FROM usuarios').all();
@@ -241,23 +247,28 @@ async function quienEs(db, request) {
   const token = leerCookie(request);
   if (!token || token.length > 100) { return null; }
   const ahora = Date.now();
-  const u = await db.prepare('SELECT u.id, u.usuario, u.nombre, u.rol, u.cambiar, s.token, s.creado AS s_creado, s.expira AS s_expira FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token = ?1 AND s.expira > ?2 AND u.activo = 1')
+  const u = await db.prepare('SELECT u.id, u.usuario, u.nombre, u.rol, u.cambiar, u.prefs, s.token, s.creado AS s_creado, s.expira AS s_expira FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token = ?1 AND s.expira > ?2 AND u.activo = 1')
     .bind(await huella(token), ahora).first();
   if (!u) { return null; }
-  // v1.19: ninguna sesión pasa de 14 h, y las viejas de «Recordar en este equipo» (hasta 30 días) quedan en 2 h (SESION_INACTIVA)
-  if (ahora > u.s_creado + SESION_MAX) { await db.prepare('DELETE FROM sesiones WHERE token = ?1').bind(u.token).run(); return null; }
+  // v1.19: las viejas de «Recordar en este equipo» (hasta 30 días) quedan en 2 h (SESION_INACTIVA). v2.0: sin el tope de 14 h
   if (u.s_expira > ahora + SESION_INACTIVA + 60000) {
-    u.s_expira = Math.min(ahora + SESION_INACTIVA, u.s_creado + SESION_MAX);
+    u.s_expira = ahora + SESION_INACTIVA;
     await db.prepare('UPDATE sesiones SET expira = ?1 WHERE token = ?2').bind(u.s_expira, u.token).run();
   }
   // v1.15: la persona está usando la página («X-Activo: 1») → otras 2 h (SESION_INACTIVA; como mucho una escritura por minuto)
   if (request.headers.get('X-Activo') === '1') {
-    const nueva = Math.min(ahora + SESION_INACTIVA, u.s_creado + SESION_MAX);
+    const nueva = ahora + SESION_INACTIVA;
     if (nueva - u.s_expira > 60000) { await db.prepare('UPDATE sesiones SET expira = ?1 WHERE token = ?2').bind(nueva, u.token).run(); }
   }
   return u;
 }
-const publico = (u) => ({ id: u.id, usuario: u.usuario, nombre: u.nombre, rol: u.rol, cambiar: !!u.cambiar });
+/** v1.27: tema y sonido de la cuenta. Sin nada guardado: tema automático y sonido PRENDIDO (JX: «que ya venga activada por defecto… siempre»). */
+function prefsDe(texto) {
+  let p = {};
+  try { p = JSON.parse(texto || '{}') || {}; } catch (e) { p = {}; }
+  return { tema: p.tema === 'claro' || p.tema === 'oscuro' ? p.tema : 'auto', sonido: p.sonido !== false };
+}
+const publico = (u) => ({ id: u.id, usuario: u.usuario, nombre: u.nombre, rol: u.rol, cambiar: !!u.cambiar, prefs: prefsDe(u.prefs) });
 
 /* ---------- lectura del cuerpo ---------- */
 async function cuerpoDe(request) {
@@ -327,7 +338,7 @@ async function entrar(db, env, request) {
   await db.prepare('INSERT INTO sesiones (token, usuario_id, creado, expira) VALUES (?1, ?2, ?3, ?4)').bind(await huella(token), u.id, ahora, ahora + SESION_INACTIVA).run();
   await anotar(db, u, 'Entró');
   await limpiarVencido(db, ahora, false);
-  return json({ usuario: publico(u), inactivoMin: SESION_INACTIVA / 60000 }, 200, { 'Set-Cookie': cookieSesion(token, null) });
+  return json({ usuario: publico(u), inactivoMin: SESION_INACTIVA / 60000 }, 200, { 'Set-Cookie': cookieSesion(token, COOKIE_DIAS * 86400) });
 }
 
 async function salir(db, request, quien) {
@@ -379,7 +390,7 @@ async function leerListados(db, url, quien) {
     : db.prepare('SELECT id, datos, v, t, borrado FROM listados WHERE borrado = 0' + suyo + ' ORDER BY t');
   const { results } = await consulta.all();
   return json({
-    ahora: ahora, guardarDias: GUARDAR_DIAS, ajustes: await ajustesGlobales(db),
+    ahora: ahora, guardarDias: GUARDAR_DIAS, ajustes: await ajustesGlobales(db), prefs: prefsDe(quien.prefs),   // v1.27: si cambió el tema en otro equipo, llega aquí
     listados: (results || []).map((r) => {
       let datos = null;
       if (!r.borrado) { try { datos = JSON.parse(r.datos); } catch (e) { datos = null; } }
@@ -579,6 +590,15 @@ async function guardarAjustes(db, request, quien) {
   return json(Object.assign({ t: ahora }, valor));
 }
 
+/** v1.27: tema y sonido de la propia cuenta (no se anota en «Quién hizo qué»: es solo de cada uno). */
+async function guardarPrefs(db, request, quien) {
+  const c = await cuerpoDe(request), p = prefsDe(quien.prefs);
+  if (c.tema === 'auto' || c.tema === 'claro' || c.tema === 'oscuro') { p.tema = c.tema; }
+  if (typeof c.sonido === 'boolean') { p.sonido = c.sonido; }
+  await db.prepare('UPDATE usuarios SET prefs = ?1 WHERE id = ?2').bind(JSON.stringify(p), quien.id).run();
+  return json({ prefs: p });
+}
+
 /* ================================================================
  *  ENTRADA: todo lo que llega a /api/…
  * ================================================================ */
@@ -636,6 +656,7 @@ export async function onRequest(context) {
       if (metodo === 'PATCH' && r1) { return await cambiarUsuario(db, request, quien, r1); }
     }
     if (r0 === 'ajustes' && metodo === 'PUT') { return admin ? await guardarAjustes(db, request, quien) : soloAdmin(); }
+    if (r0 === 'preferencias' && metodo === 'PUT') { return await guardarPrefs(db, request, quien); }   // v1.27
     return error('ruta', 404);
   } catch (e) {
     if (e && e.estado) { return error(e.codigo, e.estado); }

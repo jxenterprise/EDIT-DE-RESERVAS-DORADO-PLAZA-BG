@@ -9,7 +9,8 @@
  *   · Quién hizo qué, POR DÍA (v1.21, JX: «el historial mejor por día… lo de ayer se queda cerrado y dice
  *     historial del día tal… uno presiona y se abre»): hoy abierto; los días anteriores cerrados.
  *  Usa la MISMA nube (/api/…), la MISMA sesión (cookie dp_sesion) y las MISMAS reglas que la web principal:
- *  se cierra sola al cerrar la pestaña o a las 2 horas sin usar (v1.26; «¿Sigues ahí?» 1 min antes).
+ *  se cierra sola SOLO a las 2 horas sin usar (v1.26; «¿Sigues ahí?» 1 min antes; desde v2.0 cerrar la pestaña
+ *  o el navegador ya no la cierra).
  *
  *  OJO (mantenimiento): las ventanitas (preguntar, resultado, confirmar, Deshacer), pedir() y la sesión son
  *  COPIA de las de js/app.js (allá están documentadas). Si se cambia algo allá, cambiarlo aquí también
@@ -90,6 +91,8 @@
 
   /* ================================================================
    * 4) TEMA — el mismo botón y la misma regla de la web principal (comparten el ajuste «tema»)
+   *    v1.27: el tema es de CADA CUENTA (se guarda en la nube con PUT /api/preferencias; al entrar llega en
+   *    usuario.prefs). En la puerta «Entrar», automático. Igual que en js/app.js → «TEMA Y SONIDO DE CADA CUENTA».
    * ================================================================ */
   function ajustesGuardados() { var a = leer('ajustes', {}); return esObjeto(a) ? a : {}; }
   function temaElegido() { var t = ajustesGuardados().tema; return t === 'claro' || t === 'oscuro' ? t : 'auto'; }
@@ -112,9 +115,21 @@
       var a = ajustesGuardados();                            // se conservan «casilla» y «apretar» de la web principal
       a.tema = { auto: 'claro', claro: 'oscuro', oscuro: 'auto' }[temaElegido()] || 'auto';
       guardar('ajustes', a); aplicarTema();
+      if (nubeActiva()) {                                   // v1.27: de TU cuenta (el sonido se manda igual, para no tocarlo)
+        var p = { tema: a.tema, sonido: a.sonido !== false };
+        nube.usuario.prefs = p; guardar('nube-usuario', nube.usuario);
+        pedir('PUT', 'preferencias', p).then(nada, function (e) { if (e.estado === 401) { sesionVencida(); } });
+      }
     });
     setInterval(function () { if (temaElegido() === 'auto') { aplicarTema(); } }, 60000);
     window.addEventListener('storage', function (e) { if (e.key === PREFIJO + 'ajustes') { aplicarTema(); } });   // si se cambia en otra pestaña
+  }
+  /** v1.27: pone en el equipo el tema y el sonido de la cuenta que entró (o los de la puerta: automático y sonido prendido) */
+  function ponerPrefs(p) {
+    if (!esObjeto(p)) { return; }
+    var a = ajustesGuardados(), tema = p.tema === 'claro' || p.tema === 'oscuro' ? p.tema : 'auto', sonido = p.sonido !== false;
+    if (a.tema === tema && (a.sonido !== false) === sonido) { return; }
+    a.tema = tema; a.sonido = sonido; guardar('ajustes', a); aplicarTema();
   }
 
   /* ================================================================
@@ -269,7 +284,8 @@
   var NOMBRE_ROL = { admin: 'Administrador', lider: 'Líder de Recepción', recepcion: 'Recepción' };
   function usuarioSano(u) {
     return esObjeto(u) && typeof u.usuario === 'string' && typeof u.nombre === 'string'
-      ? { id: +u.id || 0, usuario: u.usuario, nombre: u.nombre.slice(0, 40), rol: u.rol === 'admin' || u.rol === 'lider' ? u.rol : 'recepcion', cambiar: !!u.cambiar } : null;
+      ? { id: +u.id || 0, usuario: u.usuario, nombre: u.nombre.slice(0, 40), rol: u.rol === 'admin' || u.rol === 'lider' ? u.rol : 'recepcion', cambiar: !!u.cambiar,
+        prefs: esObjeto(u.prefs) ? { tema: u.prefs.tema === 'claro' || u.prefs.tema === 'oscuro' ? u.prefs.tema : 'auto', sonido: u.prefs.sonido !== false } : null } : null;   // v1.27
   }
   function nubeActiva() { return nube.modo === 'nube' && !!nube.usuario; }
   function esAdmin() { return nubeActiva() && nube.usuario.rol === 'admin'; }
@@ -302,10 +318,10 @@
   }
 
   /* ================================================================
-   * 7) SESIÓN — copia de js/app.js (v1.15): las MISMAS claves (actividad, latido, ping/pong), así la web
+   * 7) SESIÓN — copia de js/app.js (v1.15): las MISMAS claves (actividad, latido), así la web
    *    principal y /admin abiertas a la vez cuentan como la misma sesión.
    * ================================================================ */
-  var INACTIVO_MS = 2 * 3600000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000, RECARGA_MS = 20000;
+  var INACTIVO_MS = 2 * 3600000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000;
   var tActividad = 0, tLatido = 0, cerrandoSola = false, vigilando = 0;
   function ultimaActividad() { return Math.max(+leer('actividad', 0) || 0, tActividad); }
   function marcarActividad(forzar) {
@@ -318,22 +334,14 @@
     if (!forzar && t - tLatido < LATIDO_MS) { return; }
     tLatido = t; sesionGuardar('latido', t); guardar('latido', t);
   }
-  function hayOtraPestana() {
-    return new Promise(function (ok) {
-      var marca = String(Math.random()).slice(2) + ahora(), listo = false;
-      function fin(si) { if (listo) { return; } listo = true; window.removeEventListener('storage', alGuardar); ok(si); }
-      function alGuardar(e) { if (e.key === PREFIJO + 'pong' && String(e.newValue || '').indexOf(marca) >= 0) { fin(true); } }
-      window.addEventListener('storage', alGuardar);
-      try { window.localStorage.setItem(PREFIJO + 'ping', marca); } catch (e) { fin(false); return; }
-      setTimeout(function () { fin(false); }, 700);
-    });
-  }
+  /** Al abrir la página con la sesión puesta: ¿sigue? → { ok, motivo }
+   *  v2.0 (JX: «sería mejor que la sesión no se cierre cuando cierren las pestañas o la ventana del navegador…
+   *  es tedioso… lo mejor sería dejar solamente lo de las 2 horas»): cerrar la pestaña, el navegador o apagar el PC
+   *  YA NO cierra la sesión; solo las 2 horas sin usar la página (INACTIVO_MS, contadas desde lo último que se tocó). */
   function sesionSigue() {
     var actividad = +leer('actividad', 0) || 0;
     if (actividad && ahora() - actividad >= INACTIVO_MS) { return Promise.resolve({ ok: false, motivo: 'inactivo' }); }
-    var mio = +sesionLeer('latido') || 0;
-    if (mio && ahora() - mio < RECARGA_MS) { return Promise.resolve({ ok: true }); }   // recargó (o vino desde el editador en esta misma pestaña)
-    return hayOtraPestana().then(function (si) { return si ? { ok: true } : { ok: false, motivo: 'pestana' }; });
+    return Promise.resolve({ ok: true });
   }
   function empezarVigilancia() {
     latir(true);
@@ -380,11 +388,6 @@
     $('#dlg-sigues').addEventListener('cancel', function (e) { e.preventDefault(); $('#sig-si').click(); });
     window.addEventListener('pagehide', function () { if (nubeActiva()) { latir(true); } });
     document.addEventListener('visibilitychange', function () { if (!document.hidden) { vigilarSesion(); } });
-    window.addEventListener('storage', function (e) {
-      if (e.key === PREFIJO + 'ping' && e.newValue && nubeActiva() && !cerrandoSola) {
-        try { window.localStorage.setItem(PREFIJO + 'pong', e.newValue + ':' + ahora()); } catch (x) { /* nada */ }
-      }
-    });
   }
 
   /* ================================================================
@@ -416,6 +419,7 @@
     nube.usuario = null;
   }
   function pedirEntrar(primera, mensaje) {
+    ponerPrefs({ tema: 'auto', sonido: true });            // v1.27: la puerta no se queda con el tema de la cuenta que salió
     ['#dlg-cuenta', '#dlg-usuario', '#dlg-ver', '#dlg-confirmar', '#dlg-pregunta', '#dlg-sigues'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
     cerrarDeshacer();
     mostrarParte('entrar');
@@ -431,7 +435,7 @@
     // lo que quedó guardado en este equipo es de otra persona → se borra (igual que en la web principal)
     if (dueno && nuevo && dueno !== nuevo.id) { nube.usuario = null; guardar('nube-pend', {}); guardar('nube-sueltas', []); olvidarEquipo(); }
     nube.usuario = nuevo; nube.modo = 'nube';
-    if (nuevo) { guardar('nube-dueno', nuevo.id); guardar('nube-usuario', nuevo); }
+    if (nuevo) { guardar('nube-dueno', nuevo.id); guardar('nube-usuario', nuevo); ponerPrefs(nuevo.prefs); }   // v1.27: su tema
     empezarVigilancia();
     pintarCuenta();
     if (!esAdmin()) {
@@ -489,7 +493,7 @@
     olvidarEquipo();
     pedirEntrar(false, 'Tu sesión se cerró: entra otra vez.');
   }
-  /** Al abrir: ¿hay nube? ¿ya entró alguien? ¿sigue siendo la misma persona (pestaña cerrada / 2 horas)? */
+  /** Al abrir: ¿hay nube? ¿ya entró alguien? ¿pasaron 2 horas sin usar? */
   function iniciarNube() {
     if (!/^https?:$/.test(location.protocol) || !window.fetch || esLocal()) { mostrarParte('sin-nube'); return Promise.resolve(); }
     return pedir('GET', 'yo').then(function (j) {
@@ -553,6 +557,7 @@
     if (!esAdmin()) { return Promise.resolve(); }
     return pedir('GET', 'usuarios').then(function (r) { pintarUsuarios(r.usuarios || []); }, function (e) { if (e.estado === 401) { sesionVencida(); } });
   }
+  var usuariosAbiertos = {};                                 // v1.27: id → true si el admin lo dejó abierto
   function pintarUsuarios(lista) {
     var yo = nube.usuario ? nube.usuario.id : 0;
     $('#lista-usuarios').innerHTML = lista.map(function (u) {
@@ -562,15 +567,21 @@
       if (!u.activo) { chips.push('<span class="chip chip--revisar">Desactivado</span>'); }
       if (u.activo && u.cambiar) { chips.push('<span class="chip chip--mano">Falta que ponga su contraseña</span>'); }
       if (propio) { chips.push('<span class="chip">Tú</span>'); }
-      var botones = '<button type="button" class="enlace" data-u="nombre">Nombre</button>' + (propio ? '<button type="button" class="enlace" data-u="mia">Cambiar mi contraseña</button>'
-        : '<button type="button" class="enlace" data-u="ver">Ver contraseña</button>' +
-          '<button type="button" class="enlace" data-u="clave">Contraseña nueva</button>' +
-          '<button type="button" class="enlace" data-u="rol">Permisos</button>' +
-          '<button type="button" class="enlace' + (u.activo ? ' enlace--peligro' : '') + '" data-u="activo">' + (u.activo ? 'Desactivar' : 'Activar') + '</button>');
+      // v2.0 (JX: «que sean botones mejor… así se ve solo algo escrito»): los botones chicos de siempre; «Desactivar» con letra roja
+      var B = '<button type="button" class="boton boton--secundario boton--chico" ';
+      var botones = B + 'data-u="nombre">Nombre</button>' + (propio ? B + 'data-u="mia">Cambiar mi contraseña</button>'
+        : B + 'data-u="ver">Ver contraseña</button>' +
+          B + 'data-u="clave">Contraseña nueva</button>' +
+          B + 'data-u="rol">Permisos</button>' +
+          '<button type="button" class="boton boton--secundario boton--chico' + (u.activo ? ' boton--eliminar' : '') + '" data-u="activo">' + (u.activo ? 'Desactivar' : 'Activar') + '</button>');
+      // v1.27 (JX: «los historiales tienen un desplegable… quiero que también lo tengan los usuarios… entre más orden mejor»):
+      // cada usuario es un desplegable: cerrado se ve el nombre con sus chips; al tocarlo, cómo entra y sus botones.
+      // usuariosAbiertos recuerda cuáles abrió el admin (al volver a pintar después de una acción siguen abiertos).
       return '<li data-activo="' + (u.activo ? 'si' : 'no') + '" data-id="' + esc(u.id) + '" data-nombre="' + esc(u.nombre) + '" data-usuario="' + esc(u.usuario) + '" data-rol="' + esc(u.rol) + '" data-act="' + (u.activo ? '1' : '0') + '">' +
-        '<span class="usuarios__info"><span class="usuarios__nombre">' + esc(u.nombre) + ' ' + chips.join('') + '</span>' +
-        '<span class="usuarios__meta">' + (/\s/.test(u.usuario) ? 'Entra con su nombre' : 'Entra con «' + esc(u.usuario) + '» (ponle su nombre completo)') + ' · creado el ' + esc(fechaTexto(diaDe(u.creado))) + '</span></span>' +
-        '<span class="usuarios__botones">' + botones + '</span></li>';
+        '<details class="usuario" data-uid="' + esc(u.id) + '"' + (usuariosAbiertos[u.id] ? ' open' : '') + '>' +
+        '<summary><span class="usuarios__nombre">' + esc(u.nombre) + ' ' + chips.join('') + '</span></summary>' +
+        '<div class="usuario__cuerpo"><span class="usuarios__meta">' + (/\s/.test(u.usuario) ? 'Entra con su nombre' : 'Entra con «' + esc(u.usuario) + '» (ponle su nombre completo)') + ' · creado el ' + esc(fechaTexto(diaDe(u.creado))) + '</span>' +
+        '<span class="usuarios__botones">' + botones + '</span></div></details></li>';
     }).join('');
   }
   /* «Ver contraseña» (v1.20): pide TU contraseña; la nube muestra la copia cifrada (solo de las puestas desde v1.20) */
@@ -811,6 +822,11 @@
     $('#btn-salir').addEventListener('click', salir);
     $('#btn-salir-sin-acceso').addEventListener('click', salir);
     $('#btn-nuevo-usuario').addEventListener('click', function () { abrirUsuario('nuevo', null); });
+    // v1.27: se recuerda qué usuario quedó abierto o cerrado («toggle» no sube: se escucha en la captura)
+    $('#lista-usuarios').addEventListener('toggle', function (e) {
+      var d = e.target;
+      if (d && d.getAttribute && d.getAttribute('data-uid')) { usuariosAbiertos[d.getAttribute('data-uid')] = d.open; }
+    }, true);
     $('#lista-usuarios').addEventListener('click', function (e) {
       var b = e.target.closest('[data-u]');
       if (!b) { return; }

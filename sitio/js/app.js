@@ -127,7 +127,8 @@
   function maxHistorial() { return nubeActiva() ? (veTodo() ? 200 : 90) : MAX_HISTORIAL; }   // v1.15: el admin (y la líder, v1.18) ven los de todos
   // La casilla «Llegó» viene APAGADA: así la hoja sale igual a la que usa Recepción; se prende en «Más ajustes».
   // «apretar» viene PRENDIDO: con 19 a 22 reservas la letra se aprieta un poco y la hoja cabe en una sola página.
-  var ajustes = Object.assign({ tema: 'auto', casilla: false, apretar: true }, esObjeto(leer('ajustes', {})) ? leer('ajustes', {}) : {});
+  // v1.27: «sonido» (al imprimir) viene PRENDIDO; el tema y el sonido son de cada cuenta (con la nube se traen al entrar)
+  var ajustes = Object.assign({ tema: 'auto', casilla: false, apretar: true, sonido: true }, esObjeto(leer('ajustes', {})) ? leer('ajustes', {}) : {});
   /* lo guardado se revisa antes de usarlo: un dato viejo o a medias nunca rompe la página */
   function filaSana(f) {
     if (!esObjeto(f) || typeof f.cod !== 'string' || !f.id) { return null; }
@@ -431,7 +432,7 @@
       // típico del turno de noche: se saca de noche la hoja de las llegadas del día siguiente
       linea('ojo', 'El Excel trae llegadas con check-in del <strong>' + esc(actual.checkin.map(fechaTexto).join(', ')) + '</strong> y la hoja saldrá con fecha <strong>' +
         esc(fechaTexto(actual.fecha)) + '</strong>.' + (actual.checkin.length === 1
-          ? ' <button type="button" class="enlace" data-accion="fecha-checkin">Usar ' + esc(fechaTexto(actual.checkin[0])) + '</button>'
+          ? ' <button type="button" class="boton boton--secundario boton--chico" data-accion="fecha-checkin">Usar ' + esc(fechaTexto(actual.checkin[0])) + '</button>'
           : ' Si es para otro día, cambia la fecha arriba.'));
     } else if (actual.checkin.length > 1) {
       linea('info', 'El Excel trae llegadas de varias fechas: ' + esc(actual.checkin.map(fechaTexto).join(', ')) + '.');
@@ -441,7 +442,7 @@
       var sug = [];
       a.conSugerencia.forEach(function (f) { Reglas.sugerencias(f.ag + ' ' + f.ti).forEach(function (g) { var t = g.de + ' → ' + g.a; if (sug.indexOf(t) < 0) { sug.push(t); } }); });
       linea('ojo', plural(a.danadas.length, 'reserva trae', 'reservas traen') + ' una letra dañada desde la extranet (tilde o Ñ): <strong>' + codigos(a.danadas) + '</strong>.' +
-        (sug.length ? ' <button type="button" class="enlace" data-accion="aplicar-sugerencias">Corregir ' + (sug.length === 1 ? 'la sugerida' : 'las ' + sug.length + ' sugeridas') + '</button><small>' + esc(lista(sug, 3)) + '</small>'
+        (sug.length ? ' <button type="button" class="boton boton--secundario boton--chico" data-accion="aplicar-sugerencias">Corregir ' + (sug.length === 1 ? 'la sugerida' : 'las ' + sug.length + ' sugeridas') + '</button><small>' + esc(lista(sug, 3)) + '</small>'
           : ' Tócala en la lista y corrige el nombre.'));
     }
     if (a.noDP.length) { linea('info', plural(a.noDP.length, 'código no empieza', 'códigos no empiezan') + ' por DP: <strong>' + codigos(a.noDP) + '</strong>. ' + (a.noDP.length === 1 ? 'Se incluyó' : 'Se incluyeron') + ' igual en la hoja.'); }
@@ -474,7 +475,7 @@
       : 'Sin cambios: este Excel trae las mismas reservas que el anterior.';
     $('#novedades-lista').innerHTML = n.yaNo.map(function (y, i) {
       return '<li><span><strong>' + esc(y.cod) + '</strong> · ' + (y.hab == null ? 'sin número' : plural(y.hab, 'hab', 'hab')) + ' · ' + esc(y.ag || y.ti || '') +
-        ' <small>(ya no viene en el Excel)</small></span><button type="button" class="enlace" data-accion="volver-a-agregar" data-i="' + i + '">Agregarla a mano</button></li>';
+        ' <small>(ya no viene en el Excel)</small></span><button type="button" class="boton boton--secundario boton--chico" data-accion="volver-a-agregar" data-i="' + i + '">Agregarla a mano</button></li>';
     }).join('');
     var c = n.conservadas, partes = [];
     if (c.correcciones) { partes.push(plural(c.correcciones, 'corrección', 'correcciones')); }
@@ -522,7 +523,7 @@
     $('#quitadas-num').textContent = '(' + q.length + ')';
     $('#lista-quitadas').innerHTML = q.map(function (f) {
       return '<li><span><strong>' + esc(f.cod) + '</strong> · ' + (f.hab == null ? 'sin número' : f.hab + ' hab') + ' · ' + esc(f.ag || f.ti || '') + '</span>' +
-        '<button type="button" class="enlace" data-accion="devolver" data-id="' + esc(f.id) + '">Devolver a la hoja</button></li>';
+        '<button type="button" class="boton boton--secundario boton--chico" data-accion="devolver" data-id="' + esc(f.id) + '">Devolver a la hoja</button></li>';
     }).join('');
   }
 
@@ -810,9 +811,61 @@
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 8000);
   }
+  /* ---------- v1.27 · SONIDO AL IMPRIMIR (zona editable: SONIDO_VOLUMEN y las notas de sonarImpresion) ----------
+     Qué es: JX escogió el n.º 8 de la prueba, «Impresora + campanita»: un ruidito de papel saliendo y un «ding»
+     de la campanita de recepción. Se hace con el mismo navegador (Web Audio), sin archivos de audio.
+     Cuándo: una vez, al cerrarse la ventana de imprimir (el navegador no le dice a la página si se tocó
+     «Imprimir» o «Cancelar»). Se apaga en «Más ajustes» (#aj-sonido); viene prendido y es de cada cuenta.
+     Depende de: ajustes.sonido, #btn-imprimir (prepararSonido en el toque) y el evento afterprint. */
+  var SONIDO_VOLUMEN = 0.6, audio = { ctx: null, salida: null };
+  function prepararSonido() {
+    try {
+      if (!audio.ctx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) { return null; }
+        audio.ctx = new AC();
+        var comp = audio.ctx.createDynamicsCompressor();
+        audio.salida = audio.ctx.createGain(); audio.salida.gain.value = SONIDO_VOLUMEN;
+        audio.salida.connect(comp); comp.connect(audio.ctx.destination);
+      }
+      if (audio.ctx.state === 'suspended' && audio.ctx.resume) { audio.ctx.resume(); }
+      return audio.ctx;
+    } catch (e) { return null; }
+  }
+  /** un tono que sube rápido y se apaga suave */
+  function tonoSonido(c, f, t, vol, dur) {
+    var osc = c.createOscillator(), g = c.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(audio.salida); osc.start(t); osc.stop(t + dur + 0.05);
+  }
+  /** la campanita del mostrador: los sobretonos de una campana (no son armónicos) */
+  function campanaSonido(c, t, vol) {
+    var f = 1046.5, p = [[1, 0.26, 1.6], [2.0, 0.07, 1.1], [2.76, 0.10, 0.9], [5.4, 0.04, 0.45], [8.93, 0.015, 0.25]];
+    for (var i = 0; i < p.length; i++) { tonoSonido(c, f * p[i][0], t, p[i][1] * vol, p[i][2]); }
+  }
+  /** el papel saliendo: ruido suave filtrado que «tiembla» un poco */
+  function papelSonido(c, t, dur) {
+    var n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) { d[i] = Math.random() * 2 - 1; }
+    var src = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = buf; bp.type = 'bandpass'; bp.Q.value = 0.8;
+    bp.frequency.setValueAtTime(1800, t); bp.frequency.linearRampToValueAtTime(3200, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + 0.06);
+    for (var k = 1; k < 6; k++) { g.gain.linearRampToValueAtTime(k % 2 ? 0.05 : 0.09, t + k * dur / 6); }
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(bp); bp.connect(g); g.connect(audio.salida); src.start(t); src.stop(t + dur + 0.05);
+  }
+  function sonarImpresion() {
+    if (ajustes.sonido === false) { return; }
+    var c = prepararSonido();
+    if (!c) { return; }
+    try { var t = c.currentTime + 0.05; papelSonido(c, t, 0.55); campanaSonido(c, t + 0.62, 0.9); } catch (e) { /* sin sonido: no pasa nada */ }
+  }
   function eventosSalida() {
     $('#btn-imprimir').addEventListener('click', function () {
       if (!actual || !maqueta) { return; }
+      if (ajustes.sonido !== false) { prepararSonido(); }   // v1.27: el navegador solo deja sonar si se prepara en un toque de la persona
       conNombre('Imprimir').then(function (n) {
         if (!n || !actual) { return; }
         // v1.10: primero se termina de cerrar la ventanita «¿Quién imprime?» y se pinta la hoja con la hora
@@ -840,8 +893,10 @@
       else if (ahora() - impresionPintada > 4000) { pintarHoja(); }   // solo desde el menú del navegador (el botón ya la pintó)
     });
     window.addEventListener('afterprint', function () {
+      var eraHoja = imprimiendo, sinNombre = document.documentElement.classList.contains('falta-nombre');
       imprimiendo = false; document.title = tituloPagina;
-      if (document.documentElement.classList.contains('falta-nombre')) { document.documentElement.classList.remove('falta-nombre'); }
+      if (sinNombre) { document.documentElement.classList.remove('falta-nombre'); }
+      if (eraHoja && !sinNombre) { sonarImpresion(); }       // v1.27: «se mandó a la impresora» (suena al cerrarse la ventana de imprimir)
     });
     $('#btn-pdf').addEventListener('click', function () {
       if (!actual || !maqueta) { return; }
@@ -951,7 +1006,7 @@
         '<span class="historial__meta">' + plural(t.habitaciones, 'habitación', 'habitaciones') + ' · ' + plural(t.reservas, 'reserva', 'reservas') + ' · subido a las ' + esc(horaDe(x.creado)) + (x.autor && conAutor ? ' por <strong>' + esc(autorDe(x)) + '</strong>' : '') + '</span></span>' +
         '<span class="historial__botones">' +
         (enPantalla ? '' : '<button type="button" class="boton boton--secundario boton--chico" data-historial="abrir" data-id="' + esc(x.id) + '">Abrir</button>') +
-        (puedeBorrar ? '<button type="button" class="enlace enlace--peligro" data-historial="borrar" data-id="' + esc(x.id) + '" aria-label="Borrar el listado del ' + esc(fechaCorta(x.fecha)) + '">Borrar</button>' : '') + '</span></li>';
+        (puedeBorrar ? '<button type="button" class="boton boton--secundario boton--chico boton--eliminar" data-historial="borrar" data-id="' + esc(x.id) + '" aria-label="Borrar el listado del ' + esc(fechaCorta(x.fecha)) + '">Borrar</button>' : '') + '</span></li>';
     }
     // v1.21: un bloque por día en que se subió (el más reciente abierto; los demás cerrados, salvo que la persona los abra)
     var grupos = [], porDia = {};
@@ -1050,6 +1105,7 @@
       ajustes.tema = { auto: 'claro', claro: 'oscuro', oscuro: 'auto' }[ajustes.tema] || 'auto';
       guardar('ajustes', ajustes); aplicarTema();
       avisarGuardado($('#btn-tema-texto').textContent, false);   // v1.11 (como en turnos: «Tema: automático»)
+      nubePrefs();                                           // v1.27: el tema es de TU cuenta (te sigue a cualquier equipo)
     });
     $('#aj-casilla').checked = ajustes.casilla === true;
     $('#aj-casilla').addEventListener('change', function () {
@@ -1064,6 +1120,22 @@
       avisarGuardado('Ahorrar papel: ' + (this.checked ? 'sí' : 'no'), false);
       if (actual) { pintarHoja(); }
       nubeAjustesHoja();
+    });
+    // v1.27: «Sonido al imprimir» (de cada cuenta, viene prendido). Al prenderlo suena una vez para que se escuche cómo es.
+    $('#aj-sonido').checked = ajustes.sonido !== false;
+    $('#aj-sonido').addEventListener('change', function () {
+      ajustes.sonido = this.checked; guardar('ajustes', ajustes);
+      avisarGuardado('Sonido al imprimir: ' + (this.checked ? 'sí' : 'no'), false);
+      if (this.checked) { sonarImpresion(); }
+      nubePrefs();
+    });
+    // v1.27: si el tema o el sonido se cambian en otra pestaña (p. ej. en /admin), aquí también
+    window.addEventListener('storage', function (e) {
+      if (e.key !== PREFIJO + 'ajustes') { return; }
+      var a = leer('ajustes', {});
+      if (!esObjeto(a)) { return; }
+      ajustes.tema = a.tema === 'claro' || a.tema === 'oscuro' ? a.tema : 'auto'; ajustes.sonido = a.sonido !== false;
+      aplicarTema(); $('#aj-sonido').checked = ajustes.sonido;
     });
     setInterval(function () { if (ajustes.tema === 'auto') { aplicarTema(); } }, 60000);
     /* «Más ajustes» es un panel flotante: se cierra al tocar fuera de él o con Escape */
@@ -1342,8 +1414,10 @@
   function objeto(x) { return esObjeto(x) ? x : {}; }
   function usuarioSano(u) {
     return esObjeto(u) && typeof u.usuario === 'string' && typeof u.nombre === 'string'
-      ? { id: +u.id || 0, usuario: u.usuario, nombre: u.nombre.slice(0, 40), rol: u.rol === 'admin' || u.rol === 'lider' ? u.rol : 'recepcion', cambiar: !!u.cambiar } : null;
+      ? { id: +u.id || 0, usuario: u.usuario, nombre: u.nombre.slice(0, 40), rol: u.rol === 'admin' || u.rol === 'lider' ? u.rol : 'recepcion', cambiar: !!u.cambiar,
+        prefs: esObjeto(u.prefs) ? prefsSanas(u.prefs) : null } : null;   // v1.27: tema y sonido de la cuenta
   }
+  function prefsSanas(p) { p = objeto(p); return { tema: p.tema === 'claro' || p.tema === 'oscuro' ? p.tema : 'auto', sonido: p.sonido !== false }; }
   var nube = {
     modo: 'local',                                          // 'local' (aquí no hay nube) · 'nube'
     usuario: usuarioSano(leer('nube-usuario', null)),       // quién entró en este equipo (para trabajar sin señal)
@@ -1431,7 +1505,7 @@
       if (e.tipo === 'sin-conexion' && nube.usuario) {      // sin señal pero ya había entrado en ESTA pestaña: se sigue trabajando aquí
         return sesionSigue().then(function (sigue) {
           nube.modo = 'nube';
-          if (!sigue.ok) {                                   // pestaña nueva o 2 horas sin usar: no se deja entrar sin la nube
+          if (!sigue.ok) {                                   // 2 horas sin usar: no se deja entrar sin la nube
             guardar('nube-dueno', nube.usuario.id, true); nube.usuario = null; guardarNube(); actual = null; guardarListados();
             pedirEntrar(false, 'Sin conexión: por seguridad la sesión se cerró. Entra otra vez cuando vuelva la señal.'); return;
           }
@@ -1445,6 +1519,7 @@
   /* ---------- entrar y salir ---------- */
   function pedirEntrar(primera, mensaje) {
     document.documentElement.classList.add('pide-entrar');
+    aplicarPrefs({ tema: 'auto', sonido: true }, false);   // v1.27: la puerta no se queda con el tema de la cuenta que salió
     ['#dlg-reserva', '#dlg-cuenta', '#dlg-pregunta', '#dlg-sigues', '#dlg-nombre', '#dlg-fecha'].forEach(function (s) { var d = $(s); if (d && d.open && d.close) { d.close(); } });
     ocultarGuia(); cerrarDeshacer();
     $('#entrar').hidden = false;
@@ -1463,6 +1538,7 @@
     if (nuevo) { guardar('nube-dueno', nuevo.id, true); }
     nube.usuario = nuevo; nube.modo = 'nube';
     guardarNube();
+    if (nuevo) { aplicarPrefs(nuevo.prefs, false); }        // v1.27: el tema y el sonido de ESTA cuenta (no los del que entró antes)
     empezarVigilancia();
     document.documentElement.classList.remove('pide-entrar');
     $('#entrar').hidden = true;
@@ -1677,6 +1753,7 @@
       nube.dias = +r.guardarDias || nube.dias;
       aplicarRemotos(r.listados || [], completo);
       aplicarAjustesHoja(r.ajustes);
+      aplicarPrefs(r.prefs, true);                           // v1.27: el tema o el sonido cambiados en otro equipo
       nube.estado = 'al-dia'; nube.ultima = ahora(); guardar('nube-ultima', nube.ultima, true);
       guardarNube();
     }).catch(errorNube).then(function () {
@@ -1731,6 +1808,30 @@
     }, function (e) { if (e.estado === 401) { errorNube(e); } throw e; });
   }
 
+  /* ---------- v1.27 · TEMA Y SONIDO DE CADA CUENTA ----------
+     JX: «cada quien con un tema personal… si yo coloqué automático, eso me quede a mí y no se le cambie a nadie».
+     Antes el tema era del EQUIPO (localStorage): en un PC compartido, el que ponía uno se lo cambiaba a todos.
+     Ahora se guarda en la nube, en la cuenta (PUT /api/preferencias), y llega al entrar (usuario.prefs) y cada vez
+     que se trae de la nube (r.prefs). En el equipo queda una copia en «ajustes» (la usa js/tema.js antes de pintar).
+     En la puerta «Entrar»: automático. Sin nube (doble clic, python -m http.server): como antes, del equipo. */
+  var tPrefsLocal = 0;
+  function aplicarPrefs(p, remoto) {
+    if (!esObjeto(p)) { return; }
+    if (remoto && ahora() - tPrefsLocal < 15000) { return; }   // recién cambiado aquí: no lo pisa una respuesta vieja
+    p = prefsSanas(p);
+    if (nube.usuario && remoto) { nube.usuario.prefs = p; guardarNube(); }
+    if (ajustes.tema === p.tema && ajustes.sonido === p.sonido) { return; }
+    ajustes.tema = p.tema; ajustes.sonido = p.sonido; guardar('ajustes', ajustes, true);
+    aplicarTema(); $('#aj-sonido').checked = p.sonido;
+  }
+  function nubePrefs() {
+    tPrefsLocal = ahora();
+    if (!nubeActiva()) { return; }
+    var p = { tema: ajustes.tema, sonido: ajustes.sonido !== false };
+    nube.usuario.prefs = prefsSanas(p); guardarNube();
+    pedir('PUT', 'preferencias', p).then(nada, function (e) { if (e.estado === 401) { errorNube(e); } });
+  }
+
   /* ---------- ajustes de la hoja (iguales para todos; los cambia el admin) ---------- */
   function aplicarAjustesHoja(g) {
     if (!esObjeto(g)) { return; }
@@ -1754,6 +1855,7 @@
     var bloqueo = activa && !esAdmin();
     $('#aj-casilla').disabled = bloqueo; $('#aj-apretar').disabled = bloqueo;
     $('#aj-nota-admin').hidden = !activa;
+    $('#aj-nota-propia').hidden = !activa;                 // v1.27: «El tema y el sonido son solo de tu cuenta.»
     $('#aj-nota-admin').textContent = esAdmin() ? 'Eres administrador: lo que cambies en la casilla y en «Ahorrar papel» cambia para todos los equipos.'
       : 'La casilla y «Ahorrar papel» son iguales para todos: solo el administrador los cambia.';
     // v1.23: vuelve la nota de privacidad del pie (en la v1.22 se había quitado por error: JX quería el nombre en el TÍTULO)
@@ -1811,10 +1913,9 @@
      · v1.26 (JX: «mejor 2 horas»): 2 horas sin tocar nada (INACTIVO_MS; antes 30 min) → se cierra; 1 min antes sale «¿Sigues ahí?» con la cuenta atrás.
        «Tocar» = clic, tecla, rueda, toque o escribir, en CUALQUIER pestaña de la página (se anota en
        localStorage «actividad»). Traer lo de la nube cada 45 s NO cuenta.
-     · Al cerrar la pestaña (o el navegador) → la próxima vez que se abra la página, pide entrar.
-       Cómo se sabe: la pestaña deja su «latido» en sessionStorage (al recargar sigue ahí, en una pestaña
-       nueva no); y si hay OTRA pestaña de la página abierta, contesta un «ping» por localStorage. */
-  var INACTIVO_MS = 2 * 3600000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000, RECARGA_MS = 20000;
+     · v2.0 (JX): cerrar la pestaña, el navegador o apagar el PC YA NO cierra la sesión (v1.15–v1.27 sí la cerraba).
+       Al volver, si no han pasado 2 horas desde lo último que se tocó, sigue dentro sin contraseña. */
+  var INACTIVO_MS = 2 * 3600000, AVISO_INACTIVO_MS = 60000, LATIDO_MS = 5000;
   var tActividad = 0, tLatido = 0, cerrandoSola = false, vigilando = 0;
   function sesionLeer(k) { try { return window.sessionStorage.getItem(PREFIJO + k); } catch (e) { return null; } }
   function sesionGuardar(k, v) {
@@ -1831,24 +1932,14 @@
     if (!forzar && t - tLatido < LATIDO_MS) { return; }
     tLatido = t; sesionGuardar('latido', t); guardar('latido', t, true);
   }
-  /** ¿Hay otra pestaña de la página abierta? (le pregunta por localStorage; contesta en menos de 0,7 s) */
-  function hayOtraPestana() {
-    return new Promise(function (ok) {
-      var marca = String(Math.random()).slice(2) + ahora(), listo = false;
-      function fin(si) { if (listo) { return; } listo = true; window.removeEventListener('storage', alGuardar); ok(si); }
-      function alGuardar(e) { if (e.key === PREFIJO + 'pong' && String(e.newValue || '').indexOf(marca) >= 0) { fin(true); } }
-      window.addEventListener('storage', alGuardar);
-      try { window.localStorage.setItem(PREFIJO + 'ping', marca); } catch (e) { fin(false); return; }
-      setTimeout(function () { fin(false); }, 700);
-    });
-  }
-  /** Al abrir la página con la sesión puesta: ¿sigue siendo la misma persona? → { ok, motivo } */
+  /** Al abrir la página con la sesión puesta: ¿sigue? → { ok, motivo }
+   *  v2.0 (JX: «sería mejor que la sesión no se cierre cuando cierren las pestañas o la ventana del navegador…
+   *  es tedioso… lo mejor sería dejar solamente lo de las 2 horas»): cerrar la pestaña, el navegador o apagar el PC
+   *  YA NO cierra la sesión; solo las 2 horas sin usar la página (INACTIVO_MS, contadas desde lo último que se tocó). */
   function sesionSigue() {
     var actividad = +leer('actividad', 0) || 0;
     if (actividad && ahora() - actividad >= INACTIVO_MS) { return Promise.resolve({ ok: false, motivo: 'inactivo' }); }
-    var mio = +sesionLeer('latido') || 0;
-    if (mio && ahora() - mio < RECARGA_MS) { return Promise.resolve({ ok: true }); }   // recargó esta misma pestaña
-    return hayOtraPestana().then(function (si) { return si ? { ok: true } : { ok: false, motivo: 'pestana' }; });
+    return Promise.resolve({ ok: true });
   }
   function empezarVigilancia() {
     latir(true);
@@ -1865,7 +1956,7 @@
       $('#sig-seg').textContent = String(Math.max(1, Math.ceil((INACTIVO_MS - quieto) / 1000)));
     } else if (dlg.open) { cerrarDialogo('#dlg-sigues'); }   // tocó algo (aquí o en otra pestaña)
   }
-  /** Cierra la sesión sin preguntar. motivo: 'inactivo' (2 horas) · 'pestana' (se cerró la pestaña) · 'manual' («Salir ahora»).
+  /** Cierra la sesión sin preguntar. motivo: 'inactivo' (2 horas) · 'manual' («Salir ahora»). ('pestana' ya no se usa desde v2.0.)
    *  alAbrir = true cuando se detecta al abrir la página (no hay nada en pantalla todavía). */
   function cerrarSola(motivo, alAbrir) {
     if (cerrandoSola) { return Promise.resolve(); }
@@ -1901,11 +1992,7 @@
     $('#dlg-sigues').addEventListener('cancel', function (e) { e.preventDefault(); $('#sig-si').click(); });   // Esc = sigo aquí
     window.addEventListener('pagehide', function () { if (nubeActiva()) { latir(true); } });
     document.addEventListener('visibilitychange', function () { if (!document.hidden) { vigilarSesion(); } });
-    // otra pestaña nueva pregunta si hay alguna abierta: esta contesta
     window.addEventListener('storage', function (e) {
-      if (e.key === PREFIJO + 'ping' && e.newValue && nubeActiva() && !cerrandoSola) {
-        try { window.localStorage.setItem(PREFIJO + 'pong', e.newValue + ':' + ahora()); } catch (x) { /* nada */ }
-      }
       // v1.21: se salió en otra pestaña (por ejemplo en /admin) → se confirma con la nube y esta también pide entrar
       if (e.key === PREFIJO + 'nube-usuario' && e.newValue === 'null' && nubeActiva() && !cerrandoSola) {
         pedir('GET', 'yo').then(function (j) { if (!j.usuario) { errorNube({ estado: 401 }); } }, nada);

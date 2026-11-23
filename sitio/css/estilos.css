@@ -365,7 +365,8 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 .aviso-nombre-malo { color: var(--error); font-weight: 800; white-space: normal; overflow-wrap: anywhere; }
 .aviso-nombre-malo svg { display: inline-block; width: 1.05em; height: 1.05em; margin: 0 .22em 0 .08em; vertical-align: -.16em; }
 .avisos li[data-tipo="bien"] { border-left-color: var(--s-verde); }
-.avisos .enlace { margin-left: 4px; }
+/* v2.0: las acciones dentro de un aviso («Usar 17/11/2026», «Corregir las sugeridas») son botones chicos en su propio renglón */
+.avisos .boton { display: flex; width: max-content; max-width: 100%; margin-top: 8px; white-space: normal; }
 .avisos small { display: block; margin-top: 3px; font-size: 13px; color: var(--texto-suave); word-break: break-word; }
 
 .novedades { margin-top: 12px; }
@@ -415,7 +416,14 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 .reserva__marcas { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
 .reserva__marcas:empty { display: none; }
 .reserva__detalle { margin-top: 4px; font-size: 13px; color: var(--texto-suave); overflow-wrap: anywhere; }
-.reserva__editar { font-size: 13px; font-weight: 700; color: var(--texto-fuerte); text-decoration: underline; text-decoration-color: var(--oro); text-underline-offset: 3px; }
+/* v2.0 (JX: «que sean botones… no dejar ninguno así»): «Corregir» se ve como un botón chico (antes texto subrayado).
+   Es solo el dibujo: toda la tarjeta .reserva es el botón. */
+.reserva__editar {
+  display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; color: var(--texto-fuerte); white-space: nowrap;
+  background: var(--superficie-2); border: 1px solid var(--linea-2);
+}
+@media (hover: hover) { .reserva:hover .reserva__editar { border-color: var(--oro); } }
 .lista__acciones { display: flex; justify-content: center; margin-top: 12px; }
 .lista__acciones .boton { width: 100%; max-width: 380px; }
 .quitadas { margin-top: 14px; font-size: 14.5px; }
@@ -443,7 +451,7 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 .historial__info { display: grid; gap: 1px; min-width: 0; }
 .historial__fecha { font-weight: 750; color: var(--texto-fuerte); }
 .historial__meta { font-size: 13.5px; color: var(--texto-suave); overflow-wrap: anywhere; }
-.historial__botones { display: flex; align-items: center; gap: 4px 14px; }
+.historial__botones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }   /* v2.0: «Abrir» y «Borrar», los dos botones */
 .historial__nota { margin-top: 10px; }
 .historial__filtro { margin-bottom: 12px; max-width: 360px; }   /* v1.15: solo el admin */
 
@@ -548,7 +556,13 @@ html[data-tema="oscuro"] .footer-dev-txt {             /* pie oscuro → platead
 .dialogo__texto { font-size: 16px; color: var(--texto-fuerte); margin-bottom: 16px; }
 .dialogo__botones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .dialogo__botones .boton { flex: 1 1 140px; }
-.dialogo__extra { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 10px; }
+/* v2.0 (JX: «que sean botones mejor… así se ve solo algo escrito y ya, muy básico»): lo de abajo de las ventanitas
+   («Cerrar», «Salir de este equipo», «Ir a Administración», «Volver a lo del Excel», «Quitar de la hoja») son
+   botones chicos (.boton--secundario .boton--chico; los de borrar o salir con .boton--eliminar, letra roja) que
+   reparten el ancho; en celular angosto quedan uno por renglón. */
+.dialogo__extra { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.dialogo__extra .boton { flex: 1 1 150px; }
+.dialogo__extra .boton[hidden] { display: none; }
 .sugerencias { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -4px 0 12px; font-size: 13px; color: var(--texto-suave); }
 .sugerencias .boton { min-height: 34px; padding: 0 10px; font-size: 13px; font-weight: 650; border-radius: 10px; text-align: left; overflow-wrap: anywhere; }
 .aviso {
@@ -748,14 +762,28 @@ input[type="password"]:focus { border-color: var(--oro); box-shadow: 0 0 0 4px r
 .admin__cabeza .subtitulo { margin: 0; }
 .usuarios, .actividad { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
 .usuarios li {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
-  padding: 11px 14px; background: var(--superficie-2); border: 1px solid var(--linea); border-radius: 14px;
+  background: var(--superficie-2); border: 1px solid var(--linea); border-radius: 14px; overflow: hidden;
 }
+/* v1.27: cada usuario se despliega, con la misma flechita de los días del historial (.dia) */
+.usuario > summary {
+  position: relative; list-style: none; display: flex; align-items: center;
+  min-height: 52px; padding: 10px 46px 10px 14px; cursor: pointer;
+}
+.usuario > summary::-webkit-details-marker { display: none; }
+.usuario > summary::after {
+  content: ""; position: absolute; right: 19px; top: 50%; width: 8px; height: 8px; margin-top: -6px;
+  border-right: 2px solid var(--bronce); border-bottom: 2px solid var(--bronce); transform: rotate(45deg); transition: transform .2s;
+}
+.usuario[open] > summary::after { transform: rotate(-135deg); margin-top: -2px; }
+.usuario[open] > summary { border-bottom: 1px solid var(--linea); }
+.usuario__cuerpo { display: grid; gap: 8px; padding: 10px 14px 12px; }
+@media (hover: hover) { .usuario > summary:hover { background: var(--oro-palido); } }
 .usuarios li[data-activo="no"] { border-style: dashed; background: var(--superficie); }   /* sin transparencia: el texto conserva su contraste */
 .usuarios__info { display: grid; gap: 2px; min-width: 0; }
 .usuarios__nombre { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-weight: 750; color: var(--texto-fuerte); overflow-wrap: anywhere; }
 .usuarios__meta { font-size: 13.5px; color: var(--texto-suave); overflow-wrap: anywhere; }
-.usuarios__botones { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.usuarios__botones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.usuarios__botones .boton { flex: 1 1 9.5em; }   /* v2.0: botones chicos que reparten el renglón (en celular, de a dos o uno) */
 .actividad { gap: 0; }
 .actividad li {
   display: grid; grid-template-columns: 6.4em minmax(0, 1fr); gap: 2px 12px; padding: 9px 2px;   /* v1.21: columna de la hora fija */
@@ -767,6 +795,7 @@ input[type="password"]:focus { border-color: var(--oro); box-shadow: 0 0 0 4px r
 .actividad__que strong { margin-right: 4px; }
 /* v1.21 · página /admin: la puerta y los avisos de «solo administrador» / «sin nube» usan la misma tarjeta de Entrar */
 .entrar__volver { margin-top: 12px; text-align: center; font-size: 14px; }
+.entrar__volver .boton { width: 100%; }   /* v2.0: «Volver al editador» en la puerta de /admin es botón */
 .sin-acceso__texto { text-align: center; margin-bottom: 16px; }
 .sin-acceso__botones { display: grid; gap: 10px; }
 .sin-acceso__botones .boton { width: 100%; }
