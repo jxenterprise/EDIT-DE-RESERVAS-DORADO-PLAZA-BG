@@ -1756,8 +1756,10 @@
     $('#aj-nota-admin').hidden = !activa;
     $('#aj-nota-admin').textContent = esAdmin() ? 'Eres administrador: lo que cambies en la casilla y en «Ahorrar papel» cambia para todos los equipos.'
       : 'La casilla y «Ahorrar papel» son iguales para todos: solo el administrador los cambia.';
-    // v1.22 (JX): el pie ya no lleva la nota de privacidad que se escribía aquí (#pie-privacidad): ahora es fijo en
-    // index.html (enlace a la extranet + «Editador De Reservas De La Extranet»). Lo de los 30 días sigue en /admin y en el README.
+    // v1.23: vuelve la nota de privacidad del pie (en la v1.22 se había quitado por error: JX quería el nombre en el TÍTULO)
+    $('#pie-privacidad').textContent = nube.modo === 'nube'
+      ? 'Herramienta interna de recepción. El Excel se lee en tu equipo; en la nube solo queda el listado (reserva, habitaciones, agencia y titular), lo ven solo los usuarios de recepción y se borra solo a los ' + nube.dias + ' días.'
+      : 'Herramienta interna de recepción. El Excel se lee en tu equipo y no se sube a internet.';
     if (!activa) { return; }
     var e = TEXTO_NUBE[nube.estado] || TEXTO_NUBE['al-dia'], u = nube.usuario;
     $('#cuenta-punto').setAttribute('data-color', e[2]);

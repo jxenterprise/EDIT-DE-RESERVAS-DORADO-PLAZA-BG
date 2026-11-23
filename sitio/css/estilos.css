@@ -191,6 +191,17 @@ strong { color: var(--texto-fuerte); }
 .encabezado__version-num { font-weight: 800; color: var(--texto-fuerte); }   /* v1.3: en claro, el bronce no daba el contraste AA sobre la pastilla */
 html[data-tema="oscuro"] .encabezado__version-num { color: var(--bronce); }
 .encabezado__titulo { margin-top: 12px; font-size: clamp(23px, 6.4vw, 30px); letter-spacing: -.01em; }
+/* v1.23 (JX): enlace para bajar el Excel ARRIBA del título. Es el patrón .enlace de siempre (letra --texto-fuerte en
+   negrita + raya --oro) con un iconito de descarga en --bronce: se lee bien (AA) en claro y de noche. */
+.encabezado__extranet { margin-top: 12px; font-size: 14px; color: var(--texto-suave); max-width: 100%; text-wrap: balance; }
+.encabezado__enlace { font-size: inherit; white-space: nowrap; }   /* la dirección no se parte en dos renglones */
+.encabezado__junto { white-space: nowrap; }                       /* en celular: «Descarga el Excel desde aquí:» arriba y el enlace entero abajo */
+.encabezado__icono {
+  display: inline-block; width: 1.1em; height: 1.1em; margin-right: 3px;
+  vertical-align: -0.2em; color: var(--bronce);                   /* el svg es block en «2. Base»: aquí va en la línea */
+}
+@media (hover: hover) { .encabezado__enlace:hover { text-decoration-thickness: 2px; } }
+.encabezado__extranet + .encabezado__titulo { margin-top: 6px; max-width: 100%; text-wrap: balance; }   /* el título largo baja en renglones parejos */
 .encabezado__sub { margin-top: 6px; font-size: 14.5px; color: var(--texto-suave); max-width: 30em; text-wrap: balance; }
 
 .ajustes-rapidos {
@@ -477,17 +488,6 @@ html.hay-hoja .soltar__sub, html.hay-hoja .soltar__nota, html.hay-hoja .pasos { 
 /* ---------- 12. Pie y crédito de JX Enterprise ---------- */
 .pie { max-width: 760px; margin: 36px auto 0; padding: 18px calc(16px + var(--der)) 10px calc(16px + var(--izq)); text-align: center; border-top: 1px solid var(--linea); }
 .pie__nota { font-size: 13px; color: var(--texto-suave); max-width: 34em; margin: 0 auto 6px; text-wrap: balance; }
-/* v1.22 (JX): enlace a la extranet arriba del nombre. Es el patrón .enlace de siempre (letra --texto-fuerte en
-   negrita + raya --oro) con un iconito de descarga en --bronce; así se lee bien (AA) en claro y de noche. */
-.pie__extranet { margin-bottom: 8px; }
-.pie__enlace { font-size: inherit; white-space: nowrap; }       /* la dirección no se parte en dos renglones */
-.pie__junto { white-space: nowrap; }                             /* en celular: «Descarga el Excel desde aquí:» arriba y el enlace entero abajo */
-.pie__icono {
-  display: inline-block; width: 1.1em; height: 1.1em; margin-right: 3px;
-  vertical-align: -0.2em; color: var(--bronce);                 /* el svg es block en «2. Base»: aquí va en la línea */
-}
-@media (hover: hover) { .pie__enlace:hover { text-decoration-thickness: 2px; } }
-.pie__nombre { font-weight: 650; color: var(--texto); }         /* el nombre de la herramienta, un poco más marcado */
 /* Crédito con el formato EXACTO de JX (no cambiar clases ni tipografía) */
 .footer-dev {
   width: 100%;
